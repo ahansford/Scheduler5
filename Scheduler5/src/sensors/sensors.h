@@ -77,8 +77,38 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 /***********************************************/
 /****** application interface functions  *******/
 
-// MUST be called the class before other methods are called
-// returns self on success, otherwise NULL
+/*!
+* @brief Generalized sensor manager based on a state machine design.
+*
+* Processing for various sensors shares a significant amount of commonality,
+* even for sensors that use different communication channels.  This sensor
+* manager attempts to abstract sensor control and processing for higher level
+* program components.
+*
+* The nominal methods treat the sensor as a simple memory addressed device.
+* Nominal reads and writes are executed directly by the base methods.
+*
+* Other sensor types should overload the base methods with appropriate code
+* for the individual sensor.  Many sensors will require some form of hardware
+* communication.  The IO manager will normally manage this communication.
+* For example, I2C sensors will send specific read and write commands to the IO
+* manager.  The IO manager will communicate with the I2C HAL.  Several I2C
+* sensors can access the I2C hardware via the IO manager.
+*
+* Sensor_init() MUST be called before other Sensor_xxxx methods are called.
+*
+* Higher level program code creates one of more sensors using new().
+*
+* @code
+* Sensor_init();
+* struct Sensor * mySensorPointer = new(Sensor);
+* Sensor_Start(mySensorPointer);
+* Sensor_measureAndProcess(mySensorPointer);
+* mySensorPointer = safeDelete(mySensorPointer);
+* @endcode
+*
+*
+*/
 void Sensor_init(void);
 
 // create a new sensor with new()
