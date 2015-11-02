@@ -145,8 +145,9 @@ sensor_cb_fnct Sensor_getOnAlarmTriggered_cb(const void * _self);
 /*******************************************/
 /*** Post sensor configuration controls  ***/
 
-// performs complete sensor power up and measurement cycle
-// Processes data and automatically disables power.
+/*! Performs complete sensor power up and measurement cycle, processes data
+ * and automatically disables power.
+*/
 void * Sensor_measureAndProcess(void * _self);
 
 // power is automatically disabled if Sensor_disablePower() is populated
