@@ -15,6 +15,7 @@ struct Sensor {
 	int 			powerUpDelayTicks;  //! Post enable power CB delay in ticks
 	int 			resetDelayTicks;  //! Post align & config CB delay in ticks
 	int 			measurementDelayTicks; //! Post measurement CB delay in ticks
+	void *			commandPointer;  //! Pointer to the command buffer
 	void * 			rawDataPointer;  //! Pointer to the unprocessed data buffer
 	void * 			finalDataPointer;  //! Pointer to the processed data buffer
 	void * 			alarmLevelsPointer;  //! Pointer alarm level(s) (nodes)

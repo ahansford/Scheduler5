@@ -65,7 +65,11 @@ typedef enum sensorReportStatus_t {
 
 typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 
-
+/*! Maximum number of commands that can be pre-loaded into the command buffer.
+ *  Commands are 8-bit char types.  Note that address registers that might be
+ *  needed in other communications protocols like I2C also count toward this count.
+ */
+#define MAX_COMMANDS 16
 
 /***********************************************/
 /************ protected includes  **************/
@@ -141,7 +145,7 @@ void * Sensor_start(void * _self);
 
 /*! Arms the asynchronous callbacks from the scheduler.  The callback function
  *  will be fired with _self as a parameter.
- *  Requires ... #include "..\..\src\scheduler\scheduler.h"
+ *  Requires ... include scheduler.h
  */
 sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 		                                 sensor_cb_fnct _callback,
@@ -264,6 +268,10 @@ int Sensor_setResetDelayTicks(      void * _self, int _delayTicks);
  */
 int Sensor_getMeasurementDelayTicks(const void * _self);
 int Sensor_setMeasurementDelayTicks(      void * _self, int _delayTicks);
+
+//! Pointer to the command buffer used to communicate with sensor
+void * Sensor_getCommandPointer(const void * _self);
+void * Sensor_setCommandPointer(      void * _self, void * _commandPointer);
 
 //! Pointer to the unprocessed data buffer
 void * Sensor_getRawDataPointer(const void * _self);

@@ -619,6 +619,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// complete initialization method is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
 
+
 	// generate raw data structures
 	struct Node * rawDataPointer = new(Node);
 	if ( rawDataPointer == NULL ) { return NULL; }  // fail
@@ -967,7 +968,7 @@ int Sensor_setPowerUpDelayTicks(void * _self, int _delayTicks)
 }
 
 /********************************************/
-/****  set and get powerUpDelayTicks    *****/
+/****  set and get resetDelayTicks    *****/
 
 int Sensor_getResetDelayTicks(const void * _self)
 {
@@ -985,7 +986,7 @@ int Sensor_setResetDelayTicks(void * _self, int _delayTicks)
 }
 
 /********************************************/
-/****  set and get powerUpDelayTicks    *****/
+/****  set and get measurmentDelayTicks  ****/
 
 int Sensor_getMeasurementDelayTicks(const void * _self)
 {
@@ -1003,7 +1004,25 @@ int Sensor_setMeasurementDelayTicks(void * _self, int _delayTicks)
 }
 
 /********************************************/
-/****  set and get powerUpDelayTicks    *****/
+/*****  set and get commandPointer    *******/
+
+void * Sensor_getCommandPointer(const void * _self)
+{
+	const struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }
+	return self->commandPointer;
+}
+
+void * Sensor_setCommandPointer(void * _self, void * _commandPointer)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }
+	self->commandPointer = _commandPointer;
+	return _commandPointer;
+}
+
+/********************************************/
+/*****  set and get RawDataPointer    *******/
 
 void * Sensor_getRawDataPointer(const void * _self)
 {
@@ -1021,7 +1040,7 @@ void * Sensor_setRawDataPointer(void * _self, void * _rawDataPointer)
 }
 
 /********************************************/
-/****  set and get powerUpDelayTicks    *****/
+/****  set and get FinalDataPointer    *****/
 
 void * Sensor_getFinalDataPointer(const void * _self)
 {
@@ -1039,7 +1058,7 @@ void * Sensor_setFinalDataPointer(void * _self, void * _finalDataPointer)
 }
 
 /********************************************/
-/****  set and get powerUpDelayTicks    *****/
+/****  set and get AlarmLevelsPointer    *****/
 
 void * Sensor_getAlarmLevelsPointer(const void * _self)
 {
@@ -1439,9 +1458,11 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 
 	// WARNING: DO NOT overwrite pointers outside of ctor and dtor.
 	//          The individual buffers or Nodes are created in the ctor.
+	Sensor_setCommandPointer       (_self, NULL);
 	Sensor_setRawDataPointer       (_self, NULL);
 	Sensor_setFinalDataPointer     (_self, NULL);
 	Sensor_setAlarmLevelsPointer   (_self, NULL);
+
 
 	Sensor_setAlarmState           (_self, ALARM_TYPE_UNKNOWN);
 	Sensor_setNormalState          (_self, ALARM_TYPE_UNKNOWN);
