@@ -1479,8 +1479,9 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 
 	case SENSOR_MINI_STATE_START_0: {
 		// Example:  create write/read sequence for I2C sensor to enable power
-		_self->
-		// Write_I2C_Default(address, regPointer);
+		//_self->commandBuffer[0] = registerAddress;
+		//_self->commandBuffer[1] = values;
+		// Write_I2C_Default(address, _self->commandBuffer, 2);
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
 	}
