@@ -1465,10 +1465,8 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 
 static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 {
-	//  WARNING:  must include state machine transition in update method
-	//  serial communication probably required
+	//  WARNING:  Must add primary state machine transition in last mini-state
 
-	// TODO: add sensor specific code
 	miniState_t localMiniState = Sensor_getMiniState(_self);
 	switch (localMiniState) {
 
@@ -1478,27 +1476,32 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	}
 
 	case SENSOR_MINI_STATE_START_0: {
-		// Example:  create write/read sequence for I2C sensor to enable power
-		//_self->commandBuffer[0] = registerAddress;
-		//_self->commandBuffer[1] = values;
-		// Write_I2C_Default(address, _self->commandBuffer, 2);
+		// Example:  create write/read sequence to enable power for I2C sensor
+		// _self->commandBuffer[0] = registerAddress;
+		// _self->commandBuffer[1] = values;
+		// void * bufPTR= _self->commandBuffer;
+		// int writeCount = 2;
+		// Write_I2C_Default(address, bufPTR, writeCount);
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_1: {
-		// example code
-		// if ( get_i2C_ack(address) == ACK ) then Sensor_setMiniState(_self, ++localMiniState);
+		// add code if needed
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
 	}
 
-	case SENSOR_MINI_STATE_2: {
+	case SENSOR_MINI_STATE_2: {  // last mini-state
 		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
 		Sensor_armDelayedCallback(_self,
 								  (sensor_cb_fnct)Sensor_postEnablePower,
 								  delayTicks);
-		Sensor_setMiniState(_self, ++localMiniState);
+		Sensor_setMiniState(_self, SENSOR_MINI_STATE_UNKNOWN);
+
+		// WARNING: Sensor_postEnablePower() should be set and fired by the
+		//          scheduler in order to transition the state variable
+		//          past the SENSOR_WAITING_POWER state.
 		Sensor_transitionState(_self, SENSOR_WAITING_POWER);
 		break;
 	}
@@ -1506,13 +1509,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	default: { break; }
 
 	} // end switch
-/*
-	int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
-	Sensor_armDelayedCallback(_self,
-							  (sensor_cb_fnct)Sensor_postEnablePower,
-							  delayTicks);
-	Sensor_transitionState(_self, SENSOR_WAITING_POWER);
-	*/
+
 	return _self;
 }
 
