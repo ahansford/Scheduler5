@@ -188,43 +188,88 @@ void * Sensor_checkAlarms(void * _self);
 /******** I/O manager interface  ********/
 
 // requires .... #include "..\..\src\i2c\i2c.h"
-void * Sensor_writeDataToSensor(void * _self, void * _dataPointer);
-void * Sensor_readDataFromSensor (void * _self, void * _dataPointer);
+void * Sensor_writeDataToSensor(void * _self,
+		                        void * _dataPointer,
+								int count);
+void * Sensor_readDataFromSensor(void * _self,
+		                         void * _dataPointer,
+								 int count);
 
 
 /******************************************/
 /*** Sensor data member access methods  ***/
 
+/*!  Primary state machine variable.  This would not normally be accessed
+ *   by code calling into a sensor driver.  Access is provided to facilitate
+ *   the detailed code needed to implement other sensor drivers.
+ */
 sensorState_t Sensor_getSensorState(const void  * _self);
 sensorState_t Sensor_setSensorState(void * _self, sensorState_t _sensorState);
 
+/*!  Secondary state machine variable.  This would not normally be accessed
+ *   by code calling into a sensor driver.  Access is provided to facilitate
+ *   the detailed code needed to implement other sensor drivers, where the
+ *   primary state machine variable proves to be too course and additional
+ *   states are needed.
+ */
 miniState_t Sensor_getMiniState(const void  * _self);
 miniState_t Sensor_setMiniState(void * _self, miniState_t _miniState);
 
+/*!  Post enable power CB delay in system scheduler ticks.  The specific
+ *   number of ticks depends on the system wake up frequency.  The specified
+ *   callback fires after the appropriate period to allow the sensor power
+ *   system to stabilize.  This assumes that sensor power is removed when
+ *   the sensor is not in use.  No communication with the sensor should be
+ *   attempted until the sensor is powered AND stable.
+ */
 int Sensor_getEnablePowerDelayTicks(const void * _self);
 int Sensor_setPowerUpDelayTicks(      void * _self, int _delayTicks);
 
+/*!  Post reset and align CB delay in system scheduler ticks.  The specific
+ *   number of ticks depends on the system wake up frequency.  The specified
+ *   callback fires after the appropriate period to allow the sensor to
+ *   stabilize after it has been configured.  This assumes that sensor requires
+ *   some amount of time to stabilize.  No sensor measurements should be
+ *   attempted until the sensor is stable.
+ */
 int Sensor_getResetDelayTicks(const void * _self);
 int Sensor_setResetDelayTicks(      void * _self, int _delayTicks);
 
+/*!  Post measurement delay in system scheduler ticks.  The specific
+ *   number of ticks depends on the system wake up frequency.  The specified
+ *   callback fires after the appropriate period indicating that the sensor
+ *   measurement is complete.
+ */
 int Sensor_getMeasurementDelayTicks(const void * _self);
 int Sensor_setMeasurementDelayTicks(      void * _self, int _delayTicks);
 
+//! Pointer to the unprocessed data buffer
 void * Sensor_getRawDataPointer(const void * _self);
 void * Sensor_setRawDataPointer(      void * _self, void * _rawDataPointer);
 
+//! Pointer to the processed data buffer
 void * Sensor_getFinalDataPointer(const void * _self);
 void * Sensor_setFinalDataPointer(void * _self, void * _finalDataPointer);
 
+//! Pointer alarm level(s) Nodes
 void * Sensor_getAlarmLevelsPointer(const void * _self);
 void * Sensor_setAlarmLevelsPointer(void * _self, void * _alarmLevelsPointer);
 
+/*!  Accessor methods for the primary alarm threshold level.
+ */
 value_t Sensor_getLowerPrimaryAlarmLevel(const void * _self);
 void *  Sensor_setLowerPrimaryAlarmLevel(void * _self, value_t _value);
 
+/*!  Accessor methods for the secondary alarm threshold level.  There will always
+ *   be a primary alarm level if the secondary level is populated.
+ */
 value_t Sensor_getUpperSecondaryAlarmLevel(const void * _self);
 void *  Sensor_setUpperSecondaryAlarmLevel(void * _self, value_t _value);
 
+/*! Current alarm state.  Note that the current alarm state must be compared
+ *  with the expected or normal alarm state to determine if the
+ *  onAlarmLevelTriggered_cb should be fired.
+ */
 alarmType_t Sensor_getAlarmState(const void * _self);
 alarmType_t Sensor_setAlarmState(void * _self, alarmType_t _alarmState);
 

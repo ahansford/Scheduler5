@@ -24,16 +24,18 @@ static void * implement_Sensor_default_dtor (      struct Sensor * _self);
 static void * implement_Sensor_default_copy (      struct Sensor * _copyTo,
                                              const struct Sensor * _copyFrom);
 static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
-		                              const struct Sensor * _comparisonObject);
-static void * implement_Sensor_default_config(      struct Sensor * _self,
-		                              const struct Sensor * _master);
+		                                      const struct Sensor * _comparisonObject);
+static void * implement_Sensor_default_config(struct Sensor * _self,
+		                                      const struct Sensor * _master);
 static puto_return_t implement_Sensor_default_puto(const struct Sensor * _self,
 		                                                  FILE * _fp);
 
 static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
-		                                                  void * _dataPointer);
+		                                                  void * _dataPointer,
+														  int count);
 static void * implement_Sensor_default_readDataFromSensor(struct Sensor * _self,
-		                                                  void * _dataPointer);
+		                                                  void * _dataPointer,
+														  int count);
 
 // only used by ctor and dtor
 static void * implement_Sensor_default_clearAllValues(struct Sensor * _self);
@@ -324,57 +326,57 @@ puto_return_t Sensor_default_puto(const void * _self, FILE * _fp)
 /**************************************/
 /*******  writeDataToSensor   *********/
 
-void *  Sensor_writeDataToSensor(void * _self, void * _dataPointer)
+void *  Sensor_writeDataToSensor(void * _self, void * _dataPointer, int count)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
 	if ( class == NULL )           { return NULL; } // fail
 	if ( class->writeDataToSensor == NULL ) { return NULL; } // fail
-	return class->writeDataToSensor(_self, _dataPointer );
+	return class->writeDataToSensor(_self, _dataPointer, count);
 }
 
-void * super_Sensor_writeDataToSensor(const void * _class, void * _self, void * _dataPointer)
+void * super_Sensor_writeDataToSensor(const void * _class, void * _self, void * _dataPointer, int count)
 {
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                  { return NULL; } // fail
 	if ( superclass->writeDataToSensor == NULL )        { return NULL; } // fail
-	return superclass->writeDataToSensor(_self, _dataPointer );
+	return superclass->writeDataToSensor(_self, _dataPointer, count);
 }
 
-void * Sensor_default_writeDataToSensor(void * _self, void * _dataPointer)
+void * Sensor_default_writeDataToSensor(void * _self, void * _dataPointer, int count)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_Sensor_default_writeDataToSensor(self, _dataPointer );
+	return implement_Sensor_default_writeDataToSensor(self, _dataPointer, count);
 }
 
 /**************************************/
 /******  readDataFromSensor    ********/
 
-void *  Sensor_readDataFromSensor (void * _self, void * _dataPointer)
+void *  Sensor_readDataFromSensor (void * _self, void * _dataPointer, int count)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
 	if ( class == NULL )           { return NULL; } // fail
 	if ( class->readDataFromSensor  == NULL ) { return NULL; } // fail
-	return class->readDataFromSensor (_self, _dataPointer );
+	return class->readDataFromSensor (_self, _dataPointer, count);
 }
 
-void * super_Sensor_default_readDataFromSensor (const void * _class, void * _self, void * _dataPointer)
+void * super_Sensor_default_readDataFromSensor (const void * _class, void * _self, void * _dataPointer, int count)
 {
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                  { return NULL; } // fail
 	if ( superclass->readDataFromSensor  == NULL )        { return NULL; } // fail
-	return superclass->readDataFromSensor (_self, _dataPointer );
+	return superclass->readDataFromSensor (_self, _dataPointer, count);
 }
 
-void * Sensor_default_readDataFromSensor (void * _self, void * _dataPointer)
+void * Sensor_default_readDataFromSensor (void * _self, void * _dataPointer, int count)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_Sensor_default_readDataFromSensor (self, _dataPointer );
+	return implement_Sensor_default_readDataFromSensor (self, _dataPointer, count);
 }
 
 
@@ -1404,13 +1406,17 @@ sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 	return _callback;
 }
 
-static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self, void * _dataPointer)
+static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
+		                                                 void * _dataPointer,
+														 int count)
 {
 	// TODO:  Update with actual code in
 	return _self;
 }
 
-static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self, void * _dataPointer)
+static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self,
+		                                                   void * _dataPointer,
+														   int count)
 {
 	// TODO:  Update with actual code in
 	return _self;
@@ -1422,6 +1428,9 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 
 static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 {
+	// WARNING:  should only be executed when the sensor access structure is
+	//           initiated.  Otherwise, middleware specific items like
+	//           would be reset.
 	Sensor_setSensorState          (_self, SENSOR_STATE_UNKNOWN);
 	Sensor_setMiniState            (_self, SENSOR_MINI_STATE_UNKNOWN);
 	Sensor_setPowerUpDelayTicks    (_self, SENSOR_DELAY_TICKS_UNKNOWN);

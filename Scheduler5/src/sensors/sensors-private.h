@@ -10,24 +10,26 @@
 
 struct Sensor {
 	const struct Object _;	// should the superclass
-	sensorState_t   sensorState;
-	int				miniState;
-	int 			powerUpDelayTicks;
-	int 			resetDelayTicks;
-	int 			measurementDelayTicks;
-	void * 			rawDataPointer;
-	void * 			finalDataPointer;
-	void * 			alarmLevelsPointer;
-	alarmType_t 	alarmState;
-	alarmType_t		normalState;
+	sensorState_t   sensorState;  //! The primary state machine state
+	int				miniState;    //! A generic state variable for sub-states
+	int 			powerUpDelayTicks;  //! Post enable power CB delay in ticks
+	int 			resetDelayTicks;  //! Post align & config CB delay in ticks
+	int 			measurementDelayTicks; //! Post measurement CB delay in ticks
+	void * 			rawDataPointer;  //! Pointer to the unprocessed data buffer
+	void * 			finalDataPointer;  //! Pointer to the processed data buffer
+	void * 			alarmLevelsPointer;  //! Pointer alarm level(s) (nodes)
+	alarmType_t 	alarmState;          //! Current alarm state
+	alarmType_t		normalState;         //! Expected (normal) alarm state
+	//! Callback to middleware when sensor data is ready to be reported out
 	struct Sensor * (*Sensor_onReportReady_cb)    (struct Sensor * _sensor);
+	//! Callback to middleware when alarm state does not match the expected
 	struct Sensor * (*Sensor_onAlarmTriggered_cb) (struct Sensor * _sensor);
 };
 
 struct SensorClass {
 	const struct Class	_;	// should be superclass: Class or "somethingClass"
-	void *    	(*writeDataToSensor)	(void * _self, void * _dataPointer);
-	void *    	(*readDataFromSensor)	(void * _self, void * _dataPointer);
+	void *    	(*writeDataToSensor)	(void * _self, void * _dataPointer, int count);
+	void *    	(*readDataFromSensor)	(void * _self, void * _dataPointer, int count);
 
 	void *    	(*loadDefaults)    (void * _self);
 	void *    	(*enablePower)     (void * _self);
@@ -59,12 +61,12 @@ puto_return_t Sensor_default_puto(const void * _self, FILE * _fp);
 /**********  new methods  *********/
 
 void * super_Sensor_writeDataToSensor(const void * _class,
-		                        void * _self, void * _dataPointer);
-void * Sensor_default_writeDataToSensor(void * _self, void * _dataPointer);
+		                        void * _self, void * _dataPointer, int count);
+void * Sensor_default_writeDataToSensor(void * _self, void * _dataPointer, int count);
 
 void * super_Sensor_default_readDataFromSensor(const void * _class,
-		                       void * _self, void * _dataPointer);
-void * Sensor_default_readDataFromSensor(void * _self, void * _dataPointer);
+		                       void * _self, void * _dataPointer, int count);
+void * Sensor_default_readDataFromSensor(void * _self, void * _dataPointer, int count);
 
 void * super_Sensor_loadDefaults(const void * _class, void * _self);
 void * Sensor_default_loadDefaults(void * _self);
