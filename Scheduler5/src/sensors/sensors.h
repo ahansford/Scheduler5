@@ -100,10 +100,27 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 * Higher level program code creates one of more sensors using new().
 *
 * @code
+* // Initialize Sensor classes structures
 * Sensor_init();
+*
+* // creates a new sensor
 * struct Sensor * mySensorPointer = new(Sensor);
+*
+* // Load sensor access struct defaults
 * Sensor_Start(mySensorPointer);
+*
+* // Set timed delay callbacks if needed for the sensor
+* Sensor_setPowerUpDelayTicks(mySensorPointer, int _delayTicks);
+* Sensor_setResetDelayTicks(mySensorPointer, int _delayTicks);
+* Sensor_setMeasurementDelayTicks(mySensorPointer, int _delayTicks);
+*
+* // Initiate automated measurement cycle
 * Sensor_measureAndProcess(mySensorPointer);
+*
+* // report and alarm callbacks will fire if they are set
+*
+* // Deleting a sensor
+* // safeDelete sets sensor pointer to NULL while deleting sensor structure
 * mySensorPointer = safeDelete(mySensorPointer);
 * @endcode
 *
@@ -111,20 +128,21 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 */
 void Sensor_init(void);
 
-// create a new sensor with new()
-// ... struct Sensor mySensor = new(Sensor);
-
-// sets the data members of a specific sensor to their defaults
-// returns self on success, otherwise NULL
-// callbacks and other individualized settings should be set AFTER start()
-// callbacks require powerUp, reset and measurement delays greater than '0'
+/*! Initializes sensor access structure defaults.  Sets the data members of a
+ *  specific sensor to their defaults values.  Returns self on success,
+ *  otherwise NULL.  Callbacks and other individualized settings should be
+ *  set AFTER start().  Required callback delays are powerUp, reset and
+ *  measurement, which should be greater than '0' ticks.
+*/
 void * Sensor_start(void * _self);
 
 /****************************************/
 /*** interface manager for callbacks  ***/
 
-// arms asynchronous callbacks from the scheduler
-// requires .... #include "..\..\src\scheduler\scheduler.h"
+/*! Arms the asynchronous callbacks from the scheduler.  The callback function
+ *  will be fired with _self as a parameter.
+ *  Requires ... #include "..\..\src\scheduler\scheduler.h"
+ */
 sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 		                                 sensor_cb_fnct _callback,
 										 int            _ticksOfDelay);
@@ -146,12 +164,14 @@ sensor_cb_fnct Sensor_getOnAlarmTriggered_cb(const void * _self);
 /*** Post sensor configuration controls  ***/
 
 /*! Performs complete sensor power up and measurement cycle, processes data
- * and automatically disables power.
+ *  and automatically disables power.
 */
 void * Sensor_measureAndProcess(void * _self);
 
-// power is automatically disabled if Sensor_disablePower() is populated
-// use this manual method if Sensor_disablePower() method is left blank
+/*! Manual method to disable sensor power.  Power is automatically disabled
+ *  if Sensor_disablePower() is populated.  Use this manual method if
+ *  Sensor_disablePower() method is left blank.
+ */
 void * Sensor_stopAndRemovePower(void * _self);
 
 

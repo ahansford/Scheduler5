@@ -10,7 +10,7 @@
 
 struct Sensor {
 	const struct Object _;	// should the superclass
-	sensorState_t   sensorState;  //! The primary state machine state
+	sensorState_t   sensorState;  //! The primary state variable
 	int				miniState;    //! A generic state variable for sub-states
 	int 			powerUpDelayTicks;  //! Post enable power CB delay in ticks
 	int 			resetDelayTicks;  //! Post align & config CB delay in ticks
