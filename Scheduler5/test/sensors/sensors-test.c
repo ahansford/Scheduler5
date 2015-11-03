@@ -1228,6 +1228,7 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_POWER, myTest_Sensor->sensorState);
 
 	// tests below depend on knowledge of the scheduler implementation
+	// verify that the post power up callback was registered
 	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[0].pTask);
 	TEST_ASSERT_EQUAL_PTR(Sensor_postEnablePower,       testTASKS_sensors[0].pTask_wPTR);
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[0].objectPointer);
@@ -1251,6 +1252,7 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	myTest_Sensor->sensorState = SENSOR_GET_RAW_DATA;
 	//TEST_ASSERT_EQUAL(NULL, Sensor_getRawDataPointer(myTest_Sensor));
 
+	// NOTE that the default sensor raw data value is defined as 99 for testing
 	((struct Node *)myTest_Sensor->rawDataPointer)->nodeValue = 99;
 	Sensor_storeRawData(myTest_Sensor);
 
@@ -1272,20 +1274,22 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 
 	// tests below depend on knowledge of the scheduler implementation
+	// verify that the post align and config callback was registered
 	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[1].pTask);
 	TEST_ASSERT_EQUAL_PTR(Sensor_postAlignAndConfig,    testTASKS_sensors[1].pTask_wPTR);
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[1].objectPointer);
 	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[1].taskType);
-	TEST_ASSERT_EQUAL(myTest_Sensor->powerUpDelayTicks, testTASKS_sensors[1].delay);
+	TEST_ASSERT_EQUAL(myTest_Sensor->resetDelayTicks,   testTASKS_sensors[1].delay);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[1].period);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[1].runMe);
 
 	// tests below depend on knowledge of the scheduler implementation
+	// verify that the post measurement callback was registered
 	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[2].pTask);
 	TEST_ASSERT_EQUAL_PTR(Sensor_postStartMeasurement,  testTASKS_sensors[2].pTask_wPTR);
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[2].objectPointer);
 	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[2].taskType);
-	TEST_ASSERT_EQUAL(myTest_Sensor->powerUpDelayTicks, testTASKS_sensors[2].delay);
+	TEST_ASSERT_EQUAL(myTest_Sensor->measurementDelayTicks, testTASKS_sensors[2].delay);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[2].period);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[2].runMe);
 /**/

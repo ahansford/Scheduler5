@@ -1428,16 +1428,17 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 
 static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 {
-	// WARNING:  should only be executed when the sensor access structure is
-	//           initiated.  Otherwise, middleware specific items like
-	//           would be reset.
+	// WARNING:  Should only be executed when the sensor access structure is
+	//           initiated.  Otherwise, middleware-specific items like
+	//           callbacks would be inadvertently reset.
 	Sensor_setSensorState          (_self, SENSOR_STATE_UNKNOWN);
 	Sensor_setMiniState            (_self, SENSOR_MINI_STATE_UNKNOWN);
 	Sensor_setPowerUpDelayTicks    (_self, SENSOR_DELAY_TICKS_UNKNOWN);
 	Sensor_setResetDelayTicks      (_self, SENSOR_DELAY_TICKS_UNKNOWN);
 	Sensor_setMeasurementDelayTicks(_self, SENSOR_DELAY_TICKS_UNKNOWN);
 
-	// WARNING: DO NOT overwrite pointers outside of ctor and dtor
+	// WARNING: DO NOT overwrite pointers outside of ctor and dtor.
+	//          The individual buffers or Nodes are created in the ctor.
 	Sensor_setRawDataPointer       (_self, NULL);
 	Sensor_setFinalDataPointer     (_self, NULL);
 	Sensor_setAlarmLevelsPointer   (_self, NULL);

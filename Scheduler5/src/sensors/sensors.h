@@ -170,7 +170,9 @@ void * Sensor_measureAndProcess(void * _self);
 
 /*! Manual method to disable sensor power.  Power is automatically disabled
  *  if Sensor_disablePower() is populated.  Use this manual method if
- *  Sensor_disablePower() method is left blank.
+ *  Sensor_disablePower() method is left blank.  Does not affect the sensor
+ *  access structure data.  The sensor can be re-powered immediately, or a new
+ *  automatic measurement can be initiated.
  */
 void * Sensor_stopAndRemovePower(void * _self);
 
