@@ -616,7 +616,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	// complete initializations only used for create and destroy
+	// complete initialization method is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
 
 	// generate raw data structures
@@ -1478,6 +1478,8 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	}
 
 	case SENSOR_MINI_STATE_START_0: {
+		// Example:  create write/read sequence for I2C sensor to enable power
+		_self->
 		// Write_I2C_Default(address, regPointer);
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
