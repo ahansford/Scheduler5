@@ -5,9 +5,9 @@
  *      Author: alhansfo
  */
 
-
+#include <stdlib.h>                    // for free() and malloc()
 #include "sensors.h"
-#include "sensors-private.h"            // safety include
+#include "sensors-private.h"           // safety include
 
 #include "..\..\src\nodes\nodes.h"     // safety include
 //#include "..\..\src\node_list\node-list.h"     // safety include
@@ -16,7 +16,7 @@
 #include "..\..\src\objects\objects.h"     // safety include
 #include "..\..\src\scheduler\scheduler.h" // safety include
 //#include "..\..\src\events\events.h" // safety include
-//#include "scratch.c"
+
 /**************************************/
 /***** Implementation Functions  ******/
 static void * implement_Sensor_default_ctor (void * _self);
@@ -93,6 +93,7 @@ void Sensor_init(void)
 					// Do not call superclass->method
 					Sensor_writeDataToSensor,	Sensor_default_writeDataToSensor,
 					Sensor_readDataFromSensor,	Sensor_default_readDataFromSensor,
+
 					Sensor_loadDefaults,		Sensor_default_loadDefaults,
 					Sensor_enablePower,			Sensor_default_enablePower,
 					Sensor_alignAndConfig,		Sensor_default_alignAndConfig,
@@ -329,22 +330,27 @@ puto_return_t Sensor_default_puto(const void * _self, FILE * _fp)
 void *  Sensor_writeDataToSensor(void * _self, void * _dataPointer, int count)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )                    { return NULL; } // fail
 	if ( class->writeDataToSensor == NULL ) { return NULL; } // fail
 	return class->writeDataToSensor(_self, _dataPointer, count);
 }
 
-void * super_Sensor_writeDataToSensor(const void * _class, void * _self, void * _dataPointer, int count)
+void * super_Sensor_writeDataToSensor(const void * _class,
+		                              void * _self,
+									  void * _dataPointer,
+									  int count)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )       { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->writeDataToSensor == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )                    { return NULL; } // fail
+	if ( superclass->writeDataToSensor == NULL ) { return NULL; } // fail
 	return superclass->writeDataToSensor(_self, _dataPointer, count);
 }
 
-void * Sensor_default_writeDataToSensor(void * _self, void * _dataPointer, int count)
+void * Sensor_default_writeDataToSensor(void * _self,
+		                                void * _dataPointer,
+										int count)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
@@ -357,26 +363,33 @@ void * Sensor_default_writeDataToSensor(void * _self, void * _dataPointer, int c
 void *  Sensor_readDataFromSensor (void * _self, void * _dataPointer, int count)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )                      { return NULL; } // fail
 	if ( class->readDataFromSensor  == NULL ) { return NULL; } // fail
 	return class->readDataFromSensor (_self, _dataPointer, count);
 }
 
-void * super_Sensor_default_readDataFromSensor (const void * _class, void * _self, void * _dataPointer, int count)
+void * super_Sensor_default_readDataFromSensor(const void * _class,
+		                                       void * _self,
+											   void * _dataPointer,
+											   int count)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )         { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->readDataFromSensor  == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )                      { return NULL; } // fail
+	if ( superclass->readDataFromSensor  == NULL ) { return NULL; } // fail
 	return superclass->readDataFromSensor (_self, _dataPointer, count);
 }
 
-void * Sensor_default_readDataFromSensor (void * _self, void * _dataPointer, int count)
+void * Sensor_default_readDataFromSensor(void * _self,
+		                                 void * _dataPointer,
+										 int count)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_Sensor_default_readDataFromSensor (self, _dataPointer, count);
+	return implement_Sensor_default_readDataFromSensor(self,
+			                                           _dataPointer,
+													   count);
 }
 
 
@@ -394,10 +407,10 @@ void *  Sensor_loadDefaults(void * _self)
 void * super_Sensor_loadDefaults(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )  { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->loadDefaults == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )               { return NULL; } // fail
+	if ( superclass->loadDefaults == NULL ) { return NULL; } // fail
 	return superclass->loadDefaults(_self);
 }
 
@@ -415,7 +428,7 @@ void * Sensor_default_loadDefaults(void * _self)
 void * Sensor_enablePower(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )              { return NULL; } // fail
 	if ( class->enablePower == NULL ) { return NULL; } // fail
 	return class->enablePower(_self);
 }
@@ -425,8 +438,8 @@ void * super_Sensor_enablePower(const void * _class, void * _self)
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->enablePower == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )              { return NULL; } // fail
+	if ( superclass->enablePower == NULL ) { return NULL; } // fail
 	return superclass->enablePower(_self);
 }
 
@@ -444,7 +457,7 @@ void * Sensor_default_enablePower (void * _self)
 void *  Sensor_alignAndConfig(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )                 { return NULL; } // fail
 	if ( class->alignAndConfig == NULL ) { return NULL; } // fail
 	return class->alignAndConfig(_self);
 }
@@ -452,10 +465,10 @@ void *  Sensor_alignAndConfig(void * _self)
 void * super_Sensor_alignAndConfig(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )   { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->alignAndConfig== NULL )        { return NULL; } // fail
+	if ( superclass == NULL )                { return NULL; } // fail
+	if ( superclass->alignAndConfig== NULL ) { return NULL; } // fail
 	return superclass->alignAndConfig(_self);
 }
 
@@ -480,10 +493,10 @@ void *  Sensor_startMeasurement(void * _self)
 void * super_Sensor_startMeasurement(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )     { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->startMeasurement == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )                   { return NULL; } // fail
+	if ( superclass->startMeasurement == NULL ) { return NULL; } // fail
 	return superclass->startMeasurement(_self);
 }
 
@@ -500,7 +513,7 @@ void * Sensor_default_startMeasurement(void * _self)
 void *  Sensor_storeRawData(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )               { return NULL; } // fail
 	if ( class->storeRawData == NULL ) { return NULL; } // fail
 	return class->storeRawData(_self);
 }
@@ -508,10 +521,10 @@ void *  Sensor_storeRawData(void * _self)
 void * super_Sensor_storeRawData(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )  { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->storeRawData == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )               { return NULL; } // fail
+	if ( superclass->storeRawData == NULL ) { return NULL; } // fail
 	return superclass->storeRawData(_self);
 }
 
@@ -528,7 +541,7 @@ void * Sensor_default_storeRawData(void * _self)
 void *  Sensor_disablePower(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )               { return NULL; } // fail
 	if ( class->disablePower == NULL ) { return NULL; } // fail
 	return class->disablePower(_self);
 }
@@ -536,10 +549,10 @@ void *  Sensor_disablePower(void * _self)
 void * super_Sensor_disablePower(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )  { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->disablePower == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )               { return NULL; } // fail
+	if ( superclass->disablePower == NULL ) { return NULL; } // fail
 	return superclass->disablePower(_self);
 }
 
@@ -556,7 +569,7 @@ void * Sensor_default_disablePower(void * _self)
 void *  Sensor_processRawData(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )                       { return NULL; } // fail
+	if ( class == NULL )                 { return NULL; } // fail
 	if ( class->processRawData == NULL ) { return NULL; } // fail
 	return class->processRawData(_self);
 }
@@ -564,9 +577,9 @@ void *  Sensor_processRawData(void * _self)
 void * super_Sensor_processRawData(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) )          { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )    { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                       { return NULL; } // fail
+	if ( superclass == NULL )                 { return NULL; } // fail
 	if ( superclass->processRawData == NULL ) { return NULL; } // fail
 	return superclass->processRawData(_self);
 }
@@ -584,7 +597,7 @@ void * Sensor_default_processRawData(void * _self)
 void *  Sensor_checkAlarms(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )              { return NULL; } // fail
 	if ( class->checkAlarms == NULL ) { return NULL; } // fail
 	return class->checkAlarms(_self);
 }
@@ -594,8 +607,8 @@ void * super_Sensor_checkSensorAlarms(const void * _class, void * _self)
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) ) { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->checkAlarms == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )              { return NULL; } // fail
+	if ( superclass->checkAlarms == NULL ) { return NULL; } // fail
 	return superclass->checkAlarms(_self);
 }
 
@@ -619,13 +632,18 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// complete initialization method is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
 
+	// allocate memory for the command buffer and assign the pointer
+	command_t * commandBufferPTR =
+			               (command_t *)malloc(sizeof(command_t)*MAX_COMMANDS);
+	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
+	Sensor_setCommandPointer(_self, commandBufferPTR);
 
-	// generate raw data structures
+	// generate raw data object
 	struct Node * rawDataPointer = new(Node);
 	if ( rawDataPointer == NULL ) { return NULL; }  // fail
 	Sensor_setRawDataPointer(_self, rawDataPointer);
 
-	// generate final data structure
+	// generate final data object
 	struct Node * finalDataPointer = new(Node);
 	if ( finalDataPointer == NULL ) { return NULL; }  // fail
 	Sensor_setFinalDataPointer(_self, finalDataPointer);
@@ -633,7 +651,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// assign two linked nodes to alarm data pointer
 	// lowerPrimaryLimit is used for simple above/below tests
 	// upperSecondaryLimit is added for between/outside tests
-	struct Node * lowerPrimaryNodePTR   = new(Node);
+	struct Node * lowerPrimaryNodePTR = new(Node);
 	if ( lowerPrimaryNodePTR == NULL ) { return NULL; }  // fail
 	Sensor_setAlarmLevelsPointer(self, lowerPrimaryNodePTR);
 
@@ -647,6 +665,15 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 static void * implement_Sensor_default_dtor(struct Sensor * _self)
 {
+	// delete command buffer and set pointer to NULL
+	command_t * commandBufferPtr = Sensor_getCommandPointer(_self);
+	if ( commandBufferPtr != NULL ) {
+		free(commandBufferPtr);
+		Sensor_setCommandPointer(_self, NULL);
+		if ( Sensor_getCommandPointer(_self) != NULL )
+			{ return NULL; } // fail
+	}
+
 	// delete raw data pointer object
 	struct Node * rawDataPtr = Sensor_getRawDataPointer(_self);
 	if ( rawDataPtr != NULL ) {
@@ -678,7 +705,8 @@ static void * implement_Sensor_default_dtor(struct Sensor * _self)
 static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 						     const struct Sensor * _copyFromMaster)
 {
-	// copy master data members, except for PTRs and dynamic values
+	// copy master data members, except for PTRs and dynamic
+	// PTRs and dynamic values are unique and should not be copied
 
 	// Dynamic value
 	//Sensor_setSensorState(_copyTo,
@@ -692,6 +720,10 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 
 	Sensor_setMeasurementDelayTicks(_copyTo,
 			Sensor_getMeasurementDelayTicks(_copyFromMaster));
+
+	// Pointer values
+	//Sensor_setCommandPointer(_copyTo,
+	//		Sensor_getCommandPointer(_copyFromMaster));
 
 	//Sensor_setRawDataPointer(_copyTo,
 	//		Sensor_getRawDataPointer(_copyFromMaster));
@@ -744,6 +776,11 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	// data pointers are unique and should not be included in the comparison
 	// data values are unique for separate sensors and should not be compared
 	/*
+
+	if( Sensor_getCommandPointer(self) !=
+			               Sensor_getCommandPointer(comparisonObject) )
+		{return OBJECT_UNEQUAL;}
+
 	if( Sensor_getRawDataPointer(self) !=
 			               Sensor_getRawDataPointer(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
@@ -787,9 +824,13 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 
 	// print local data members
 	fprintf(_fp, "\n  Local data members managed in Sensor:\n");
-/**/
+
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor sensorState:           %i\n",
 			Sensor_getSensorState(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor minState:              %i\n",
+			Sensor_getMiniState(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor powerUpDelayTicks:     %i\n",
@@ -802,6 +843,10 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor measurementDelayTicks: %i\n",
 			Sensor_getMeasurementDelayTicks(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor commandPointer:        %p\n",
+			Sensor_getCommandPointer(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor rawDataPointer:        %p\n",
@@ -824,12 +869,19 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 			Sensor_getNormalState(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor Sensor_onReportReady_cb:    %p\n",
+			Sensor_getOnReportReady_cb(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor Sensor_onAlarmTriggered_cb: %p\n",
+			Sensor_getOnAlarmTriggered_cb(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	fprintf(_fp, "\n  New methods added in Sensor:\n");
 
-	//fprintf(_fp, "    ... no methods were added in Sensor:\n");
+	//fprintf(_fp, "    ... no methods were added in XXXXX:\n");
 
-	if (PUTO_ERROR == fprintf(_fp, "  writeDataToSensor:   %p\n",
+	if (PUTO_ERROR == fprintf(_fp, "  writeDataToSensor:    %p\n",
 			implement_Sensor_default_writeDataToSensor ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
@@ -837,39 +889,37 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 			implement_Sensor_default_readDataFromSensor ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-	if (PUTO_ERROR == fprintf(_fp, "  enablePower:         %p\n",
+	if (PUTO_ERROR == fprintf(_fp, "  loadDefaults:         %p\n",
+			implement_Sensor_default_selectedDefaults ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  enablePower:          %p\n",
 			implement_Sensor_default_enablePower ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-	if (PUTO_ERROR == fprintf(_fp, "  alignAndConfig:     %p\n",
+	if (PUTO_ERROR == fprintf(_fp, "  alignAndConfig:       %p\n",
 			implement_Sensor_default_alignAndConfig ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-	if (PUTO_ERROR == fprintf(_fp, "  startMeasurement:   %p\n",
+	if (PUTO_ERROR == fprintf(_fp, "  startMeasurement:     %p\n",
 			implement_Sensor_default_startMeasurement ))
-		{ printReturnCode = PUTO_ERROR;  } // error detected
-
-	if (PUTO_ERROR == fprintf(_fp, "  disableSensorPower:   %p\n",
-			implement_Sensor_default_disablePower ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  storeRawSensorData:   %p\n",
 			implement_Sensor_default_storeRawData ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-	if (PUTO_ERROR == fprintf(_fp, "  processRawSensorData:   %p\n",
+	if (PUTO_ERROR == fprintf(_fp, "  disableSensorPower:   %p\n",
+			implement_Sensor_default_disablePower ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  processRawSensorData: %p\n",
 			implement_Sensor_default_processRawData ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-
-	if (PUTO_ERROR == fprintf(_fp, "  Sensor_getSensorState:   %p\n",
-			Sensor_getSensorState ))
+	if (PUTO_ERROR == fprintf(_fp, "  checkAlarms:          %p\n",
+			implement_Sensor_default_processRawData ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
-/*
-	if (PUTO_ERROR == fprintf(_fp, "  Sensor_setSensorState:   %p\n",
-			implement_Sensor_storeRawSensorData ))
-		{ printReturnCode = PUTO_ERROR;  } // error detected
-*/
 
 	fprintf(_fp, "\n  Local Sensor methods:\n" );
 
@@ -1252,6 +1302,7 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_START_DATA_DEFAULTS: {    // <<<--- Sensor_start()
+		// load sensor access structure defaults
 		Sensor_loadDefaults(_self);
 		Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
 		break;
@@ -1264,8 +1315,8 @@ void Sensor_update(void * _self)
 
 	case SENSOR_ENABLE_POWER: {    // <<<--- Sensor_measureAndProcess()
 
-		//  WARNING:  must include state machine transition in update method
-		//  serial communication probably required
+		//  WARNING:  must include state machine transition in power-up method
+		//  serial communication probably required to most sensors
 		Sensor_enablePower(_self);
 		break;
 	}
@@ -1276,7 +1327,7 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_ALIGN_CONFIG: {    // <<<--- Sensor_postEnablePower()
-		//  WARNING:  must include state machine transition in update method
+		//  WARNING:  must include state machine transition in config method
 		//  serial communication probably required
 		Sensor_alignAndConfig(_self);
 		break;
@@ -1324,6 +1375,7 @@ void Sensor_update(void * _self)
 		//  WARNING:  must include state machine transition in update method
 		//  serial communication probably required
 		Sensor_processRawData(_self);
+		Sensor_transitionState(_self, SENSOR_CHECK_ALARMS);
 		break;
 	}
 
@@ -1333,10 +1385,11 @@ void Sensor_update(void * _self)
 		// fire alarm triggered callback if needed
 		if ( Sensor_getAlarmState(_self) == ALARM_TRIGGERED )
 			{ implement_Sensor_callAlarmTriggered_CB(_self); }
-		implement_Sensor_callReportReady_CB(_self);
 
 		// regardless of checkAlarms() outcome, transition to next state
 		Sensor_transitionState(_self, SENSOR_REPORT);
+		// fire the report ready callback only once
+		implement_Sensor_callReportReady_CB(_self);
 		break;
 	}
 
@@ -1357,7 +1410,8 @@ void * Sensor_start(void * _self)
 {
 	// asynchronous trigger for the state machine
 
-	// Initializes data values, but does not power the sensor
+	// Initializes sensor access structure data values.
+	// Does not power the sensor
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
@@ -1371,22 +1425,28 @@ void * Sensor_start(void * _self)
 void * Sensor_measureAndProcess(void * _self)
 {
 	// asynchronous trigger for the state machine
-
 	// aligns, enables power, collects and processes data
+
+	// validate sensor access structure
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	// TODO: add SENSOR_READY_IDLE to state machine
-
+	// confirm that sensorState is ready to measure
 	if ( Sensor_getSensorState(_self) >= SENSOR_READY_IDLE ) {
 		// sensor is powered and ready for a measurement
 		Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
 	}
 	else {
-		// sensor is not fully configured, start by powering
+		// sensor is not fully configured
+		// set sensorState based on degree of readiness for measurement
+
+		// TODO: set traps for various pre-READY_IDLE states
+		// TODO: insure that the measurement process will execute
+
 		Sensor_transitionState(_self, SENSOR_ENABLE_POWER);
 	}
 
+	// trigger the state machine to lock in state
 	Sensor_update(_self);
 	return self;
 }
@@ -1394,13 +1454,18 @@ void * Sensor_measureAndProcess(void * _self)
 void * Sensor_stopAndRemovePower(void * _self)
 {
 	// asynchronous trigger for the state machine
+	// assumes that the measurement is complete
+	// only called if the automatic power-down is not implemented
 
+	// validate sensor access structure
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
 	Sensor_disablePower(_self);
 
 	Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
+
+	// trigger the state machine to lock in state
 	Sensor_update(_self);
 	return self;
 }
@@ -1430,6 +1495,7 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
 														 int count)
 {
 	// TODO:  Update with actual code in
+	// TODO:  may need to restructure parameters to incorporate commandBuffer
 	return _self;
 }
 
@@ -1438,6 +1504,7 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 														   int count)
 {
 	// TODO:  Update with actual code in
+	// TODO:  may need to restructure parameters to incorporate commandBuffer
 	return _self;
 }
 
@@ -1449,7 +1516,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 {
 	// WARNING:  Should only be executed when the sensor access structure is
 	//           initiated.  Otherwise, middleware-specific items like
-	//           callbacks would be inadvertently reset.
+	//           the callbacks function pointers would be inadvertently reset.
 	Sensor_setSensorState          (_self, SENSOR_STATE_UNKNOWN);
 	Sensor_setMiniState            (_self, SENSOR_MINI_STATE_UNKNOWN);
 	Sensor_setPowerUpDelayTicks    (_self, SENSOR_DELAY_TICKS_UNKNOWN);
@@ -1466,8 +1533,8 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 
 	Sensor_setAlarmState           (_self, ALARM_TYPE_UNKNOWN);
 	Sensor_setNormalState          (_self, ALARM_TYPE_UNKNOWN);
-	Sensor_setOnReportReady_cb     (_self, (sensor_cb_fnct)Sensor_emptyReportReadyCallback);
-	Sensor_setOnAlarmTriggered_cb  (_self, (sensor_cb_fnct)Sensor_emptyAlarmTriggeredCallback);
+	Sensor_setOnReportReady_cb     (_self, Sensor_emptyReportReadyCallback);
+	Sensor_setOnAlarmTriggered_cb  (_self, Sensor_emptyAlarmTriggeredCallback);
 	return _self;
 }
 
@@ -1476,12 +1543,21 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 	Sensor_setPowerUpDelayTicks    (_self, 1); // >0 triggers callback wait
 	Sensor_setResetDelayTicks      (_self, 1); // >0 triggers callback wait
 	Sensor_setMeasurementDelayTicks(_self, 1); // >0 triggers callback wait
+
+	// Do not modify object pointers.  These are managed in ctor and dtor.
+	//Sensor_setCommandPointer       (_self, NULL);
+	//Sensor_setRawDataPointer       (_self, NULL);
+	//Sensor_setFinalDataPointer     (_self, NULL);
+	//Sensor_setAlarmLevelsPointer   (_self, NULL);
+
 	Sensor_setAlarmState (_self, ALARM_TYPE_UNKNOWN);
-	//  complicates use of automatic Sensor_measureAndProcess() which calls defaults
+
+	// Do not modify normal alarm state.  This are managed by middleware.
 	//Sensor_setNormalState(_self, ALARM_TYPE_UNKNOWN);
 
-	//Sensor_setOnReportReady_cb     (_self, (sensor_cb_fnct)Sensor_emptyReportReadyCallback);
-	//Sensor_setOnAlarmTriggered_cb  (_self, (sensor_cb_fnct)Sensor_emptyAlarmTriggeredCallback);
+	// Do not modify object pointers.  These are managed by middleware.
+	//Sensor_setOnReportReady_cb   (_self, Sensor_emptyReportReadyCallback);
+	//Sensor_setOnAlarmTriggered_cb(_self, Sensor_emptyAlarmTriggeredCallback);
 	return _self;
 }
 
@@ -1498,23 +1574,27 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	}
 
 	case SENSOR_MINI_STATE_START_0: {
-		// Example:  create write/read sequence to enable power for I2C sensor
-		// _self->commandBuffer[0] = registerAddress;
-		// _self->commandBuffer[1] = values;
-		// void * bufPTR= _self->commandBuffer;
-		// int writeCount = 2;
-		// Write_I2C_Default(address, bufPTR, writeCount);
+		// Example:  create write/read sequence to enable power an I2C sensor
+		//command_t * commandBufferPTR = Sensor_getCommandPointer(_self);
+		//int address = 0x40; // slave address of I2C example sensor
+		//commandBufferPTR[0] = 0x03; // register address within the I2C device
+		//commandBufferPTR[1] = 0xF1; // data value to write in target register
+		//int writeCount = 2;
+		//Write_I2C_Default(address, commandBufferPTR, writeCount);
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_1: {
-		// add code if needed
+		// add additional register writes of reads if needed
+		// read the sensor datasheets carefully as some devices require one poll
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_2: {  // last mini-state
+		// all device communication is complete
+		// set callback to fire, or automatically transition to alignAndConfig()
 		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
 		Sensor_armDelayedCallback(_self,
 								  (sensor_cb_fnct)Sensor_postEnablePower,
@@ -1525,6 +1605,11 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		//          scheduler in order to transition the state variable
 		//          past the SENSOR_WAITING_POWER state.
 		Sensor_transitionState(_self, SENSOR_WAITING_POWER);
+
+		// ALTERNATIVE: If no wait is needed to allow power stabilization
+		//              then primary state can be automatically transitioned
+		//              WARNING: use of this approach requires unit test mod
+		//Sensor_transitionState(_self, SENSOR_ALIGN_CONFIG);
 		break;
 	}
 
@@ -1631,10 +1716,7 @@ static void * implement_Sensor_default_processRawData(struct Sensor * _self)
 {
 	struct Node * localRawDataPtr   = Sensor_getRawDataPointer  (_self);
 	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(_self);
-
 	setValue(localFinalDataPtr, (getValue(localRawDataPtr) + 1) );
-
-	Sensor_transitionState(_self, SENSOR_CHECK_ALARMS);
 	return _self;
 }
 
@@ -1676,7 +1758,7 @@ static void * implement_Sensor_default_checkAlarms(struct Sensor * _self)
 		upperValue = getValue(upperSecondaryAlarmPtr);
 	}
 
-	// all data validity checks all pass
+	// all data validity checks pass
 
 	// set default alarm state to NONE pending threshold tests
 	Sensor_setAlarmState( _self, ALARM_NONE );
@@ -1736,9 +1818,7 @@ static void * implement_Sensor_default_checkAlarms(struct Sensor * _self)
 	default: { break; }
 	}
 
-
 	return _self;
-
 }
 
 static void * implement_Sensor_callAlarmTriggered_CB(struct Sensor * _self)
@@ -1765,6 +1845,7 @@ sensorReportStatus_t Sensor_reportReady(const void * _self)
 	else
 		{ return SENSOR_REPORT_IS_READY; }
 }
+
 
 /*************************************************/
 

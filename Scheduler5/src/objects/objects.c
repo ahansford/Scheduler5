@@ -60,13 +60,13 @@ void * new(const void * _class, ...)
 {
 	// verify valid class descriptor and memory size
 	const struct Class * class = _class;
-	if (class == NULL)    { return  NULL; } // failed return path
-	if (class->sizeOfThisClass <= 0) { return  NULL; } // failed return path
+	if (class == NULL)               { return  NULL; } // fail
+	if (class->sizeOfThisClass <= 0) { return  NULL; } // fail
 
 	// verify that memory allocation completed successfully
 	struct Object * object;
 	object = (void *)calloc(1, class->sizeOfThisClass);
-	if (object == NULL)    { return  NULL; } // failed return path
+	if (object == NULL)              { return  NULL; } // fail
 
 	// initialize the class pointer to the appropriate class description
 	object->class = class;
@@ -133,10 +133,10 @@ void * Class_ctor(void * _self, va_list * app)
 	typedef void (* voidf)(); 	// generic function pointer
 
 	// Initialize data and pointers
-	struct Class * self = _self;
-	self->className          = va_arg(* app, char *);
-	self->superclass         = va_arg(* app, struct Class *);
-	self->sizeOfThisClass          = va_arg(* app, int);
+	struct Class * self   = _self;
+	self->className       = va_arg(* app, char *);
+	self->superclass      = va_arg(* app, struct Class *);
+	self->sizeOfThisClass = va_arg(* app, int);
 
 	// Copy the superclass method function pointers
 	if (self->superclass == NULL) { return NULL; } // fail

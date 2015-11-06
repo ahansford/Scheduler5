@@ -93,12 +93,17 @@ TEST(sensor, Sensor_measurementDelayTicks_isUnknownOnCreate)
 	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  myTest_Sensor->measurementDelayTicks);
 }
 
-TEST(sensor, Sensor_rawDataPointer_isUnknownOnCreate)
+TEST(sensor, Sensor_commandPointer_isNullOnCreate)
+{
+	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->commandPointer);
+}
+
+TEST(sensor, Sensor_rawDataPointer_isNullOnCreate)
 {
 	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->rawDataPointer);
 }
-/**/
-TEST(sensor, Sensor_finalDataPointer_isUnknownOnCreate)
+
+TEST(sensor, Sensor_finalDataPointer_isNullOnCreate)
 {
 	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->finalDataPointer);
 }
@@ -107,8 +112,6 @@ TEST(sensor, Sensor_alarmLevelsPointer_isUnknownOnCreate)
 {
 	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->alarmLevelsPointer);
 }
-
-
 
 TEST(sensor, Sensor_alarmState_isUnknownOnCreate)
 {
@@ -378,6 +381,36 @@ TEST(sensor, Sensor_setMeasurementDelayTicks_canSetSpecificValue)
 	Sensor_setMeasurementDelayTicks(myTest_Sensor, 7);
 	TEST_ASSERT_EQUAL(7,  myTest_Sensor->measurementDelayTicks);
 }
+
+/****  Set/Get CommandPointer  ****************/
+/**/
+TEST(sensor, Sensor_getCommandPointer_returns_UnknownOnCreate)
+{
+	TEST_ASSERT_NOT_EQUAL(NULL,  Sensor_getCommandPointer(myTest_Sensor) );
+}
+
+TEST(sensor, Sensor_getCommandPointer_returns_specificValue)
+{
+	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
+	void * originalPTR = myTest_Sensor->commandPointer;
+	myTest_Sensor->commandPointer = (void *)6;
+	TEST_ASSERT_EQUAL_PTR((void *)6,  Sensor_getCommandPointer(myTest_Sensor) );
+	myTest_Sensor->commandPointer = originalPTR;
+}
+
+TEST(sensor, Sensor_setCommandPointer_returnsSpecificValue)
+{
+	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
+	void * originalPTR = myTest_Sensor->commandPointer;
+	TEST_ASSERT_EQUAL_PTR((void *)4,  Sensor_setCommandPointer(myTest_Sensor, (void *)4));
+	myTest_Sensor->commandPointer = originalPTR;
+}
+
+TEST(sensor, Sensor_setCommandPointer_returnsUnknownOnNullPtr)
+{
+	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_setCommandPointer(NULL, (void *)5));
+}
+
 
 /****  Set/Get RawDataPointer  ****************/
 /**/

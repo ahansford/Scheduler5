@@ -45,19 +45,19 @@ typedef enum sensorState_t {
 
 typedef enum miniState_t {
 	SENSOR_MINI_STATE_UNKNOWN = -1, SENSOR_MINI_STATE_START_0, SENSOR_MINI_STATE_1,
-	 SENSOR_MINI_STATE_2, SENSOR_MINI_STATE_3, SENSOR_MINI_STATE_4, SENSOR_MINI_STATE_5,
-	 SENSOR_MINI_STATE_6, SENSOR_MINI_STATE_7, SENSOR_MINI_STATE_8, SENSOR_MINI_STATE_9,
+	SENSOR_MINI_STATE_2, SENSOR_MINI_STATE_3, SENSOR_MINI_STATE_4, SENSOR_MINI_STATE_5,
+	SENSOR_MINI_STATE_6, SENSOR_MINI_STATE_7, SENSOR_MINI_STATE_8, SENSOR_MINI_STATE_9,
 } miniState_t;
+
+typedef enum sensorDelayTicks_t {
+	SENSOR_DELAY_TICKS_UNKNOWN = -1, SENSOR_DELAY_TICKS_ZERO = 0
+} sensorDelayTicks_t;
 
 typedef enum alarmType_t {
 	ALARM_TYPE_UNKNOWN = -1, ALARM_TRIGGERED, ALARM_NONE,
 	ALARM_BELOW, ALARM_BELOW_OR_EQUAL, ALARM_EQUAL, ALARM_ABOVE, ALARM_ABOVE_OR_EQUAL,
 	ALARM_BETWEEN, ALARM_OUTSIDE
 } alarmType_t;
-
-typedef enum sensorDelayTicks_t {
-	SENSOR_DELAY_TICKS_UNKNOWN = -1, SENSOR_DELAY_TICKS_ZERO = 0
-} sensorDelayTicks_t;
 
 typedef enum sensorReportStatus_t {
 	SENSOR_REPORT_NOT_READY = 0, SENSOR_REPORT_IS_READY = 1
@@ -67,9 +67,10 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 
 /*! Maximum number of commands that can be pre-loaded into the command buffer.
  *  Commands are 8-bit char types.  Note that address registers that might be
- *  needed in other communications protocols like I2C also count toward this count.
+ *  needed in other communications protocols like I2C also count in this total.
  */
 #define MAX_COMMANDS 16
+typedef char command_t;
 
 /***********************************************/
 /************ protected includes  **************/
@@ -159,9 +160,13 @@ void Sensor_postStartMeasurement(void * _self);
 
 // returns current callback function on key sensor state machine events
 // can be used to create a callback chains that fire on reportReady or alarm
-sensor_cb_fnct Sensor_setOnReportReady_cb(const void * _self, sensor_cb_fnct _cb);
+sensor_cb_fnct Sensor_setOnReportReady_cb(const void * _self,
+		                                  sensor_cb_fnct _cb);
 sensor_cb_fnct Sensor_getOnReportReady_cb(const void * _self);
-sensor_cb_fnct Sensor_setOnAlarmTriggered_cb(const void * _self, sensor_cb_fnct _cb);
+
+
+sensor_cb_fnct Sensor_setOnAlarmTriggered_cb(const void * _self,
+		                                     sensor_cb_fnct _cb);
 sensor_cb_fnct Sensor_getOnAlarmTriggered_cb(const void * _self);
 
 /*******************************************/
@@ -196,6 +201,7 @@ void * Sensor_alignAndConfig(void * _self);
 // add comment
 void * Sensor_startMeasurement(void * _self);
 
+// add comment
 void * Sensor_storeRawData(void * _self);
 
 // add comment
@@ -248,8 +254,9 @@ miniState_t Sensor_setMiniState(void * _self, miniState_t _miniState);
  *   the sensor is not in use.  No communication with the sensor should be
  *   attempted until the sensor is powered AND stable.
  */
-int Sensor_getEnablePowerDelayTicks(const void * _self);
-int Sensor_setPowerUpDelayTicks(      void * _self, int _delayTicks);
+sensorDelayTicks_t Sensor_getEnablePowerDelayTicks(const void * _self);
+sensorDelayTicks_t Sensor_setPowerUpDelayTicks(void * _self,
+		                                       sensorDelayTicks_t _delayTicks);
 
 /*!  Post reset and align CB delay in system scheduler ticks.  The specific
  *   number of ticks depends on the system wake up frequency.  The specified
@@ -258,16 +265,18 @@ int Sensor_setPowerUpDelayTicks(      void * _self, int _delayTicks);
  *   some amount of time to stabilize.  No sensor measurements should be
  *   attempted until the sensor is stable.
  */
-int Sensor_getResetDelayTicks(const void * _self);
-int Sensor_setResetDelayTicks(      void * _self, int _delayTicks);
+sensorDelayTicks_t Sensor_getResetDelayTicks(const void * _self);
+sensorDelayTicks_t Sensor_setResetDelayTicks(void * _self,
+		                                     sensorDelayTicks_t _delayTicks);
 
 /*!  Post measurement delay in system scheduler ticks.  The specific
  *   number of ticks depends on the system wake up frequency.  The specified
  *   callback fires after the appropriate period indicating that the sensor
  *   measurement is complete.
  */
-int Sensor_getMeasurementDelayTicks(const void * _self);
-int Sensor_setMeasurementDelayTicks(      void * _self, int _delayTicks);
+sensorDelayTicks_t Sensor_getMeasurementDelayTicks(const void * _self);
+sensorDelayTicks_t Sensor_setMeasurementDelayTicks(void * _self,
+		                                           sensorDelayTicks_t _delayTicks);
 
 //! Pointer to the command buffer used to communicate with sensor
 void * Sensor_getCommandPointer(const void * _self);

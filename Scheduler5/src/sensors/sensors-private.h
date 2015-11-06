@@ -12,10 +12,11 @@ struct Sensor {
 	const struct Object _;	// should the superclass
 	sensorState_t   sensorState;  //! The primary state variable
 	int				miniState;    //! A generic state variable for sub-states
-	int 			powerUpDelayTicks;  //! Post enable power CB delay in ticks
+	sensorDelayTicks_t powerUpDelayTicks;  //! Post enable power CB delay in ticks
 	int 			resetDelayTicks;  //! Post align & config CB delay in ticks
-	int 			measurementDelayTicks; //! Post measurement CB delay in ticks
-	void *			commandPointer;  //! Pointer to the command buffer
+	//! Post measurement CB delay in ticks
+	int 			measurementDelayTicks;
+	command_t *		commandPointer;  //! Pointer to the command buffer
 	void * 			rawDataPointer;  //! Pointer to the unprocessed data buffer
 	void * 			finalDataPointer;  //! Pointer to the processed data buffer
 	void * 			alarmLevelsPointer;  //! Pointer alarm level(s) (nodes)
@@ -29,17 +30,17 @@ struct Sensor {
 
 struct SensorClass {
 	const struct Class	_;	// should be superclass: Class or "somethingClass"
-	void *    	(*writeDataToSensor)	(void * _self, void * _dataPointer, int count);
-	void *    	(*readDataFromSensor)	(void * _self, void * _dataPointer, int count);
+	void * (*writeDataToSensor)	(void * _self, void * _dataPointer, int count);
+	void * (*readDataFromSensor)(void * _self, void * _dataPointer, int count);
 
-	void *    	(*loadDefaults)    (void * _self);
-	void *    	(*enablePower)     (void * _self);
-	void *    	(*alignAndConfig)  (void * _self);
-	void *    	(*startMeasurement)(void * _self);
-	void *    	(*storeRawData)    (void * _self);
-	void *    	(*disablePower)    (void * _self);
-	void *    	(*processRawData)  (void * _self);
-	void *    	(*checkAlarms)     (void * _self);
+	void * (*loadDefaults)    (void * _self);
+	void * (*enablePower)     (void * _self);
+	void * (*alignAndConfig)  (void * _self);
+	void * (*startMeasurement)(void * _self);
+	void * (*storeRawData)    (void * _self);
+	void * (*disablePower)    (void * _self);
+	void * (*processRawData)  (void * _self);
+	void * (*checkAlarms)     (void * _self);
 };
 
 /*****************************/
@@ -98,8 +99,6 @@ void * Sensor_default_checkSensorAlarms(void * _self);
 
 void * Sensor_sendDisablePowerCommands(void * _self);
 void   Sensor_update(void * _self);
-
-
 
 struct Sensor * Sensor_emptyReportReadyCallback(struct Sensor * _self);
 struct Sensor * Sensor_emptyAlarmTriggeredCallback(struct Sensor * _self);
