@@ -43,6 +43,14 @@ typedef enum sensorState_t {
 	SENSOR_REPORT
 } sensorState_t;
 
+typedef enum sensorAsyncFlag_t {
+	SENSOR_ASYNC_FLAG_UNKNOWN = -1,
+	SENSOR_ASYNC_START_REQUEST = 0 ,
+	SENSOR_ASYNC_START_DONE,
+	SENSOR_ASYNC_MEASURE_REQUEST,
+	SENSOR_ASYNC_MEASURE_DONE
+} sensorAsyncFlag_t;
+
 typedef enum miniState_t {
 	SENSOR_MINI_STATE_UNKNOWN = -1, SENSOR_MINI_STATE_START_0, SENSOR_MINI_STATE_1,
 	SENSOR_MINI_STATE_2, SENSOR_MINI_STATE_3, SENSOR_MINI_STATE_4, SENSOR_MINI_STATE_5,
@@ -246,6 +254,23 @@ sensorState_t Sensor_setSensorState(void * _self, sensorState_t _sensorState);
  */
 miniState_t Sensor_getMiniState(const void  * _self);
 miniState_t Sensor_setMiniState(void * _self, miniState_t _miniState);
+
+
+/*!  Asynchronous sensor state machine state change requested are captured
+ *   by setting this flag.  The state will initially be unknown.  An
+ *   asynchronous request to start, will set it to SENSOR_ASYNC_START_REQUEST.
+ *   A value of SENSOR_ASYNC_START_DONE indicates that the start process is
+ *   complete and that the sensor methods can be called.  A request for
+ *   measurement using SENSOR_ASYNC_MEASURE_REQUEST, will initiate a
+ *   measurement if the sensor has previously been started, or it will
+ *   initiate a start followed by a measurement if the sensor is un-started.
+ *   SENSOR_ASYNC_MEASURE_DONE indicates that the prior measure request has
+ *   been completed.  Only one measurement request at a time will be monitored.
+ *   Measurement request are not individually counted and processed.
+ */
+sensorAsyncFlag_t Sensor_getAsyncFlag(const void  * _self);
+sensorAsyncFlag_t Sensor_setAsyncFlag(void * _self,
+		                              sensorAsyncFlag_t _asyncFlag);
 
 /*!  Post enable power CB delay in system scheduler ticks.  The specific
  *   number of ticks depends on the system wake up frequency.  The specified

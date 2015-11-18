@@ -68,6 +68,15 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_setSensorState_returnsSpecificValueOnSuccess);
 	RUN_TEST_CASE(sensor, Sensor_setSensorState_canSetSpecificValue);
 
+	/****  Set/Get AsyncFlag  ****************/
+	/**/
+	RUN_TEST_CASE(sensor, Sensor_getAsyncFlag_returns_UnknownOnCreate);
+	RUN_TEST_CASE(sensor, Sensor_getAsyncFlag_returns_specificValue);
+	RUN_TEST_CASE(sensor, Sensor_setAsyncFlag_returnsSpecificValue);
+	RUN_TEST_CASE(sensor, Sensor_setAsyncFlag_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(sensor, Sensor_setAsyncFlag_returnsSpecificValueOnSuccess);
+	RUN_TEST_CASE(sensor, Sensor_setAsyncFlag_canSetSpecificValue);
+
 	/****  Set/Get powerUpDelayTicks  ****************/
 	/**/
 	RUN_TEST_CASE(sensor, Sensor_getPowerUpDelayTicks_returns_UnknownOnCreate);
@@ -216,6 +225,10 @@ TEST_GROUP_RUNNER(sensor)
 
 	/***********  API  **************/
 	/**/
+
+	RUN_TEST_CASE(sensor, Sensor_start_setsAsyncFlagToStart);
+	RUN_TEST_CASE(sensor, Sensor_start_setsAsyncFlagToStartDoneAfterUpdate);
+
 	RUN_TEST_CASE(sensor, Sensor_start_setsAlarmTypeToUnknown);
 	RUN_TEST_CASE(sensor, Sensor_start_setsNormalTypeToUnknown);
 	RUN_TEST_CASE(sensor, Sensor_reset_stateEndsInIdle);
