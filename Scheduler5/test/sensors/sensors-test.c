@@ -1194,27 +1194,64 @@ TEST(sensor, memory_leak)
 /***********  API  **************/
 /**/
 
-TEST(sensor, Sensor_start_setsAsyncFlagToStart)
+TEST(sensor, Sensor_start_setsAsyncFlagToStartRequest)
 {
 	Sensor_start(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_REQUEST, myTest_Sensor->asyncFlag);
 }
 
 TEST(sensor, Sensor_start_setsAsyncFlagToStartDoneAfterUpdate)
-{  //printf("TEST 1208 \n");
-
+{
 	Sensor_start(myTest_Sensor);
-	//printf("TEST 1208 no update:  the main state variable: %i, the asyncVaraiable: %i\n", myTest_Sensor->sensorState, myTest_Sensor->asyncFlag);
-
-	Sensor_update(myTest_Sensor);
-	//printf("TEST 1208 after 1st update:  the main state variable: %i, the asyncVaraiable: %i\n", myTest_Sensor->sensorState, myTest_Sensor->asyncFlag);
-
-	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_DONE, myTest_Sensor->asyncFlag);
 }
 
+TEST(sensor, Sensor_start_doesNotModifiyAsyncFlagIfAlreadyStarted)
+{
+	Sensor_start(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	sensorAsyncFlag_t currentAsyncFlag = myTest_Sensor->asyncFlag;
 
+	Sensor_start(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(currentAsyncFlag, myTest_Sensor->asyncFlag);
+}
+
+TEST(sensor, Sensor_measure_triggeresStartWhenNotStarted)
+{
+	Sensor_measureAndProcess(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
+	Sensor_update(myTest_Sensor);
+	// NOTE:  main state machine transitions to un-powered idle after defaults
+	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
+}
+
+TEST(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle)
+{
+	myTest_Sensor->sensorState = SENSOR_READY_IDLE;
+	Sensor_measureAndProcess(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
+}
+
+TEST(sensor, Sensor_measure_triggeresMeasureWhenReport)
+{
+	myTest_Sensor->sensorState = SENSOR_REPORT;
+	Sensor_measureAndProcess(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
+}
+
+TEST(sensor, Sensor_measure_secondMeasureDoesNotChangeMainSM)
+{
+	myTest_Sensor->sensorState = SENSOR_WAITING_MEASUREMENT;
+	Sensor_setAsyncFlag(myTest_Sensor, SENSOR_ASYNC_MEASURE_IN_PROCESS);
+
+	Sensor_measureAndProcess(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
+}
 
 TEST(sensor, Sensor_start_setsAlarmTypeToUnknown)
 {

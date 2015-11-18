@@ -226,8 +226,14 @@ TEST_GROUP_RUNNER(sensor)
 	/***********  API  **************/
 	/**/
 
-	RUN_TEST_CASE(sensor, Sensor_start_setsAsyncFlagToStart);
+	RUN_TEST_CASE(sensor, Sensor_start_setsAsyncFlagToStartRequest);
 	RUN_TEST_CASE(sensor, Sensor_start_setsAsyncFlagToStartDoneAfterUpdate);
+	RUN_TEST_CASE(sensor, Sensor_start_doesNotModifiyAsyncFlagIfAlreadyStarted);
+
+	RUN_TEST_CASE(sensor, Sensor_measure_triggeresStartWhenNotStarted);
+	RUN_TEST_CASE(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle);
+	RUN_TEST_CASE(sensor, Sensor_measure_triggeresMeasureWhenReport);
+	RUN_TEST_CASE(sensor, Sensor_measure_secondMeasureDoesNotChangeMainSM);
 
 	RUN_TEST_CASE(sensor, Sensor_start_setsAlarmTypeToUnknown);
 	RUN_TEST_CASE(sensor, Sensor_start_setsNormalTypeToUnknown);
