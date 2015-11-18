@@ -52,6 +52,8 @@ static void * implement_Sensor_default_checkAlarms(struct Sensor * _self);
 static void * implement_Sensor_callAlarmTriggered_CB(struct Sensor * _self);
 static void * implement_Sensor_callReportReady_CB(struct Sensor * _self);
 
+static void Sensor_checkAsyncFlag(struct Sensor * _self);
+
 /*****************************/
 /**** INITIALIZATIONS  *******/
 
@@ -999,6 +1001,25 @@ miniState_t Sensor_setMiniState(void * _self, miniState_t _miniState)
 	return _miniState;
 }
 
+/**************************************/
+/*****  set and get AsyncFlag    ******/
+
+sensorAsyncFlag_t Sensor_getAsyncFlag(const void  * _self)
+{
+	const struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return SENSOR_ASYNC_FLAG_UNKNOWN; }
+	return self->asyncFlag;
+}
+
+sensorAsyncFlag_t Sensor_setAsyncFlag(void * _self,
+		                              sensorAsyncFlag_t _asyncFlag)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return SENSOR_ASYNC_FLAG_UNKNOWN; }
+	self->asyncFlag = _asyncFlag;
+	return _asyncFlag;
+}
+
 /********************************************/
 /****  set and get powerUpDelayTicks    *****/
 
@@ -1292,7 +1313,9 @@ struct Sensor *  Sensor_emptyAlarmTriggeredCallback(struct Sensor * _self)
 
 void Sensor_update(void * _self)
 {
-	//int delayTicks;
+	// trap for any asynchronous flags, like start or begin measurement
+	Sensor_checkAsyncFlag(_self);
+
 
 	switch (Sensor_getSensorState(_self)) {
 
@@ -1305,6 +1328,9 @@ void Sensor_update(void * _self)
 		// load sensor access structure defaults
 		Sensor_loadDefaults(_self);
 		Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
+		if ( Sensor_getAsyncFlag(_self) < SENSOR_ASYNC_START_DONE )
+			{ Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE); }
+
 		break;
 	}
 
@@ -1393,7 +1419,10 @@ void Sensor_update(void * _self)
 		break;
 	}
 
-	case SENSOR_REPORT: { break; }  // do nothing
+	case SENSOR_REPORT: {
+		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_DONE);
+		break;
+	}
 
 	default: { break; }
 
@@ -1408,23 +1437,28 @@ void Sensor_update(void * _self)
 
 void * Sensor_start(void * _self)
 {
-	// asynchronous trigger for the state machine
+	// set asynchronous start flag for the state machine
+	// initializes sensor access structure data values
 
-	// Initializes sensor access structure data values.
-	// Does not power the sensor
+	// does not power the sensor
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	//TODO: add watchdog timer task to scheduler
+	// TODO: add watchdog timer task to scheduler
 
-	Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
-	Sensor_update(_self);
+	// take no action if the sensor has already been started
+	if (Sensor_getSensorState(self) >=  SENSOR_START_DATA_DEFAULTS) {
+		return self;
+	}
+
+	// set the asynchronous flag indicating that a sensor start is needed
+	Sensor_setAsyncFlag(self, SENSOR_ASYNC_START_REQUEST);
 	return self;
 }
 
 void * Sensor_measureAndProcess(void * _self)
 {
-	// asynchronous trigger for the state machine
+	// set asynchronous start measurement flag for the state machine
 	// aligns, enables power, collects and processes data
 
 	// validate sensor access structure
@@ -1447,7 +1481,9 @@ void * Sensor_measureAndProcess(void * _self)
 	}
 
 	// trigger the state machine to lock in state
-	Sensor_update(_self);
+	//Sensor_update(_self);
+	// set the asynchronous flag indicating that a sensor start is needed
+	Sensor_setAsyncFlag(self, SENSOR_ASYNC_MEASURE_REQUEST);
 	return self;
 }
 
@@ -1468,6 +1504,69 @@ void * Sensor_stopAndRemovePower(void * _self)
 	// trigger the state machine to lock in state
 	Sensor_update(_self);
 	return self;
+}
+
+static void Sensor_checkAsyncFlag(struct Sensor * _self)
+{
+	//printf("entering Sensor_checkAsyncFlag  the main state variable: %i, the asyncVaraiable: %i\n", _self->sensorState, _self->asyncFlag);
+	switch (Sensor_getAsyncFlag(_self)) {
+
+	case SENSOR_ASYNC_FLAG_UNKNOWN: {
+		//printf("Sensor_checkAsyncFlag:SENSOR_ASYNC_FLAG_UNKNOWN \n");
+		// do nothing
+		break; }
+
+	case SENSOR_ASYNC_START_REQUEST: {
+		//printf("Sensor_checkAsyncFlag:SENSOR_ASYNC_START_REQUEST \n");
+		// if sensor state machine has started, then take no action except
+		// ... to update the AsyncFlag
+		if ( Sensor_getSensorState(_self) >= SENSOR_START_DATA_DEFAULTS ) {
+			Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE);
+			break;
+		}
+
+		// if the sensor has not been started, then trigger main state transition
+		Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
+		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE);
+		break;
+	}
+
+	case SENSOR_ASYNC_START_DONE: {
+		// do nothing
+		break;
+	}
+
+	case SENSOR_ASYNC_MEASURE_REQUEST: {
+		//printf("Sensor_checkAsyncFlag:SENSOR_ASYNC_MEASURE_REQUEST \n");
+
+		sensorState_t currentSensorState = Sensor_getSensorState(_self);
+
+		// start sensor if needed
+		if ( currentSensorState < SENSOR_UNPOWERED_IDLE ) {
+			Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
+			break;
+		}
+
+		// measure now if ready, otherwise apply power and proceed
+		if ( currentSensorState >= SENSOR_READY_IDLE ) {
+			Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
+		}
+		else {
+			Sensor_transitionState(_self, SENSOR_ENABLE_POWER);
+		}
+
+		break;
+	}
+
+	case SENSOR_ASYNC_MEASURE_DONE: {
+		// do nothing
+		break;
+	}
+
+	default: { break; }
+
+	}  // end switch
+	return;
 }
 
 /*******************************************/
@@ -1519,6 +1618,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 	//           the callbacks function pointers would be inadvertently reset.
 	Sensor_setSensorState          (_self, SENSOR_STATE_UNKNOWN);
 	Sensor_setMiniState            (_self, SENSOR_MINI_STATE_UNKNOWN);
+	Sensor_setAsyncFlag            (_self, SENSOR_ASYNC_FLAG_UNKNOWN);
 	Sensor_setPowerUpDelayTicks    (_self, SENSOR_DELAY_TICKS_UNKNOWN);
 	Sensor_setResetDelayTicks      (_self, SENSOR_DELAY_TICKS_UNKNOWN);
 	Sensor_setMeasurementDelayTicks(_self, SENSOR_DELAY_TICKS_UNKNOWN);

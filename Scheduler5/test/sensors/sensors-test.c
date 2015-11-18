@@ -279,6 +279,40 @@ TEST(sensor, Sensor_setSensorState_canSetSpecificValue)
 	TEST_ASSERT_EQUAL(SENSOR_ALIGN_CONFIG,  myTest_Sensor->sensorState);
 }
 
+/****  set and get AsyncFlag  ****************/
+/**/
+TEST(sensor, Sensor_getAsyncFlag_returns_UnknownOnCreate)
+{
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_FLAG_UNKNOWN,  Sensor_getAsyncFlag(myTest_Sensor) );
+}
+
+TEST(sensor, Sensor_getAsyncFlag_returns_specificValue)
+{
+	myTest_Sensor->asyncFlag = SENSOR_ASYNC_START_REQUEST;
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_REQUEST,  Sensor_getAsyncFlag(myTest_Sensor) );
+}
+
+TEST(sensor, Sensor_setAsyncFlag_returnsSpecificValue)
+{
+	TEST_ASSERT_EQUAL(myTest_Sensor->asyncFlag,  Sensor_setAsyncFlag(myTest_Sensor, 2));
+}
+
+TEST(sensor, Sensor_setAsyncFlag_returnsUnknownOnNullPtr)
+{
+	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN,  Sensor_setAsyncFlag(NULL, SENSOR_ASYNC_START_REQUEST));
+}
+
+TEST(sensor, Sensor_setAsyncFlag_returnsSpecificValueOnSuccess)
+{
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_REQUEST,  Sensor_setAsyncFlag(myTest_Sensor, SENSOR_ASYNC_START_REQUEST));
+}
+
+TEST(sensor, Sensor_setAsyncFlag_canSetSpecificValue)
+{
+	Sensor_setAsyncFlag(myTest_Sensor, SENSOR_ASYNC_START_REQUEST);
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_REQUEST,  myTest_Sensor->asyncFlag);
+}
+
 /****  Set/Get setPowerUpDelayTicks  ****************/
 /**/
 TEST(sensor, Sensor_getPowerUpDelayTicks_returns_UnknownOnCreate)
@@ -1159,6 +1193,29 @@ TEST(sensor, memory_leak)
 
 /***********  API  **************/
 /**/
+
+TEST(sensor, Sensor_start_setsAsyncFlagToStart)
+{
+	Sensor_start(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_REQUEST, myTest_Sensor->asyncFlag);
+}
+
+TEST(sensor, Sensor_start_setsAsyncFlagToStartDoneAfterUpdate)
+{  //printf("TEST 1208 \n");
+
+	Sensor_start(myTest_Sensor);
+	//printf("TEST 1208 no update:  the main state variable: %i, the asyncVaraiable: %i\n", myTest_Sensor->sensorState, myTest_Sensor->asyncFlag);
+
+	Sensor_update(myTest_Sensor);
+	//printf("TEST 1208 after 1st update:  the main state variable: %i, the asyncVaraiable: %i\n", myTest_Sensor->sensorState, myTest_Sensor->asyncFlag);
+
+	Sensor_update(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_START_DONE, myTest_Sensor->asyncFlag);
+}
+
+
+
 TEST(sensor, Sensor_start_setsAlarmTypeToUnknown)
 {
 	Sensor_start(myTest_Sensor);
@@ -1174,6 +1231,8 @@ TEST(sensor, Sensor_start_setsNormalTypeToUnknown)
 TEST(sensor, Sensor_reset_stateEndsInIdle)
 {
 	Sensor_start(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL_PTR(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
 }
 
@@ -1251,11 +1310,15 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	// if errors emerge, try adding additional Sensor_updateState() calls
 	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
 	Sensor_start(myTest_Sensor);
+	// Sensor_update() no longer included in start(), requires separate update call
+	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
 	Sensor_update(myTest_Sensor);  // safety update
 	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
 
 	Sensor_measureAndProcess(myTest_Sensor);  // <<<---  main state machine trigger
+	Sensor_update(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_POWER, myTest_Sensor->sensorState);
