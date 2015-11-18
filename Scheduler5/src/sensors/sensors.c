@@ -1420,6 +1420,7 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_REPORT: {
+		// increment asynchronous flag to allow subsequent measurement request
 		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_DONE);
 		break;
 	}
@@ -1465,25 +1466,11 @@ void * Sensor_measureAndProcess(void * _self)
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	// confirm that sensorState is ready to measure
-	if ( Sensor_getSensorState(_self) >= SENSOR_READY_IDLE ) {
-		// sensor is powered and ready for a measurement
-		Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
-	}
-	else {
-		// sensor is not fully configured
-		// set sensorState based on degree of readiness for measurement
-
-		// TODO: set traps for various pre-READY_IDLE states
-		// TODO: insure that the measurement process will execute
-
-		Sensor_transitionState(_self, SENSOR_ENABLE_POWER);
+	// trigger measurement if one is not already in process
+	if ( Sensor_getAsyncFlag(_self) != SENSOR_ASYNC_MEASURE_IN_PROCESS ) {
+			Sensor_setAsyncFlag(self, SENSOR_ASYNC_MEASURE_REQUEST);
 	}
 
-	// trigger the state machine to lock in state
-	//Sensor_update(_self);
-	// set the asynchronous flag indicating that a sensor start is needed
-	Sensor_setAsyncFlag(self, SENSOR_ASYNC_MEASURE_REQUEST);
 	return self;
 }
 
@@ -1517,16 +1504,12 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 		break; }
 
 	case SENSOR_ASYNC_START_REQUEST: {
-		//printf("Sensor_checkAsyncFlag:SENSOR_ASYNC_START_REQUEST \n");
-		// if sensor state machine has started, then take no action except
-		// ... to update the AsyncFlag
-		if ( Sensor_getSensorState(_self) >= SENSOR_START_DATA_DEFAULTS ) {
-			Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE);
-			break;
+		// start sensor state machine if not already started
+		if ( Sensor_getSensorState(_self) < SENSOR_START_DATA_DEFAULTS ) {
+			Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
 		}
 
-		// if the sensor has not been started, then trigger main state transition
-		Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
+		// increment asynchronous flag to block further start requests
 		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE);
 		break;
 	}
@@ -1537,8 +1520,10 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 	}
 
 	case SENSOR_ASYNC_MEASURE_REQUEST: {
-		//printf("Sensor_checkAsyncFlag:SENSOR_ASYNC_MEASURE_REQUEST \n");
+		// increment asynchronous flag to block further measurement requests
+		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_IN_PROCESS);
 
+		// action based on status of main sensor state machine
 		sensorState_t currentSensorState = Sensor_getSensorState(_self);
 
 		// start sensor if needed
@@ -1547,7 +1532,8 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 			break;
 		}
 
-		// measure now if ready, otherwise apply power and proceed
+		// sensor has been started previously ...
+		// measure now if ready, otherwise apply power before proceeding
 		if ( currentSensorState >= SENSOR_READY_IDLE ) {
 			Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
 		}
@@ -1558,6 +1544,10 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 		break;
 	}
 
+	case SENSOR_ASYNC_MEASURE_IN_PROCESS: {
+		// do nothing
+		break;
+	}
 	case SENSOR_ASYNC_MEASURE_DONE: {
 		// do nothing
 		break;
