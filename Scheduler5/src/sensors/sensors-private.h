@@ -98,7 +98,7 @@ void * Sensor_default_processRawData(void * _self);
 void * super_Sensor_checkSensorAlarms(const void * _class, void * _self);
 void * Sensor_default_checkSensorAlarms(void * _self);
 
-void * Sensor_sendDisablePowerCommands(void * _self);
+void * Sensor_default_sendDisablePowerCommands(void * _self);
 void   Sensor_update(void * _self);
 
 struct Sensor * Sensor_emptyReportReadyCallback(struct Sensor * _self);

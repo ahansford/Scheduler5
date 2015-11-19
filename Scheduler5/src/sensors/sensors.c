@@ -717,8 +717,8 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	Sensor_setPowerUpDelayTicks(_copyTo,
 			Sensor_getEnablePowerDelayTicks(_copyFromMaster));
 
-	Sensor_setResetDelayTicks(_copyTo,
-			Sensor_getResetDelayTicks(_copyFromMaster));
+	Sensor_setAlignConfigDelayTicks(_copyTo,
+			Sensor_getAlignConfigDelayTicks(_copyFromMaster));
 
 	Sensor_setMeasurementDelayTicks(_copyTo,
 			Sensor_getMeasurementDelayTicks(_copyFromMaster));
@@ -767,8 +767,8 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 			               Sensor_getEnablePowerDelayTicks(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
-	if( Sensor_getResetDelayTicks(self) !=
-			               Sensor_getResetDelayTicks(comparisonObject) )
+	if( Sensor_getAlignConfigDelayTicks(self) !=
+			               Sensor_getAlignConfigDelayTicks(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
 	if( Sensor_getMeasurementDelayTicks(self) !=
@@ -840,7 +840,7 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor resetDelayTicks:       %i\n",
-			Sensor_getResetDelayTicks(self) ))
+			Sensor_getAlignConfigDelayTicks(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor measurementDelayTicks: %i\n",
@@ -1041,14 +1041,14 @@ int Sensor_setPowerUpDelayTicks(void * _self, int _delayTicks)
 /********************************************/
 /****  set and get resetDelayTicks    *****/
 
-int Sensor_getResetDelayTicks(const void * _self)
+int Sensor_getAlignConfigDelayTicks(const void * _self)
 {
 	const struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return SENSOR_DELAY_TICKS_UNKNOWN; }
 	return self->resetDelayTicks;
 }
 
-int Sensor_setResetDelayTicks(void * _self, int _delayTicks)
+int Sensor_setAlignConfigDelayTicks(void * _self, int _delayTicks)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return SENSOR_DELAY_TICKS_UNKNOWN; }
@@ -1341,9 +1341,21 @@ void Sensor_update(void * _self)
 
 	case SENSOR_ENABLE_POWER: {    // <<<--- Sensor_measureAndProcess()
 
-		//  WARNING:  must include state machine transition in power-up method
-		//  serial communication probably required to most sensors
+		//  WARNING:  serial communication probably required for many sensors
 		Sensor_enablePower(_self);
+
+		// set callback to fire, OR automatically transition
+		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
+		if ( delayTicks > 0 ) {
+			Sensor_armDelayedCallback(_self,
+								      (sensor_cb_fnct)Sensor_postEnablePower,
+								      delayTicks);
+			Sensor_transitionState(_self, SENSOR_WAITING_POWER);
+		} else {
+			// no callback is needed
+			Sensor_transitionState(_self, SENSOR_ALIGN_CONFIG);
+		}
+
 		break;
 	}
 
@@ -1353,9 +1365,21 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_ALIGN_CONFIG: {    // <<<--- Sensor_postEnablePower()
-		//  WARNING:  must include state machine transition in config method
-		//  serial communication probably required
+		//  WARNING:  serial communication probably required
 		Sensor_alignAndConfig(_self);
+
+		// set callback to fire, OTHERWISE automatically transition
+		int delayTicks = Sensor_getAlignConfigDelayTicks(_self);
+		if ( delayTicks > 0 ) {
+			Sensor_armDelayedCallback(_self,
+								      (sensor_cb_fnct)Sensor_postAlignAndConfig,
+								      delayTicks);
+			Sensor_transitionState(_self, SENSOR_WAITING_CONFIG);
+		} else {
+			// no callback is needed
+			Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
+		}
+
 		break;
 	}
 
@@ -1370,9 +1394,20 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_START_MEASUREMENT: {    // <<<--- Sensor_measureAndProcess(), <<<--- Sensor_postAlignAndConfig()
-		//  WARNING:  must include state machine transition in update method
-		//  serial communication probably required
+		//  WARNING:  serial communication probably required
 		Sensor_startMeasurement(_self);
+
+		// set callback to fire, OTHERWISE automatically transition
+		int delayTicks = Sensor_getMeasurementDelayTicks(_self);
+		if ( delayTicks > 0 ) {
+			Sensor_armDelayedCallback(_self,
+								      (sensor_cb_fnct)Sensor_postStartMeasurement,
+								      delayTicks);
+			Sensor_transitionState(_self, SENSOR_WAITING_MEASUREMENT);
+		} else {
+			// no callback is needed
+			Sensor_transitionState(_self, SENSOR_GET_RAW_DATA);
+		}
 		break;
 	}
 
@@ -1478,7 +1513,7 @@ void * Sensor_stopAndRemovePower(void * _self)
 {
 	// asynchronous trigger for the state machine
 	// assumes that the measurement is complete
-	// only called if the automatic power-down is not implemented
+	// will halt sensor operation immediately regardless of status
 
 	// validate sensor access structure
 	struct Sensor * self = cast(Sensor, _self);
@@ -1487,9 +1522,6 @@ void * Sensor_stopAndRemovePower(void * _self)
 	Sensor_disablePower(_self);
 
 	Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
-
-	// trigger the state machine to lock in state
-	Sensor_update(_self);
 	return self;
 }
 
@@ -1610,7 +1642,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 	Sensor_setMiniState            (_self, SENSOR_MINI_STATE_UNKNOWN);
 	Sensor_setAsyncFlag            (_self, SENSOR_ASYNC_FLAG_UNKNOWN);
 	Sensor_setPowerUpDelayTicks    (_self, SENSOR_DELAY_TICKS_UNKNOWN);
-	Sensor_setResetDelayTicks      (_self, SENSOR_DELAY_TICKS_UNKNOWN);
+	Sensor_setAlignConfigDelayTicks(_self, SENSOR_DELAY_TICKS_UNKNOWN);
 	Sensor_setMeasurementDelayTicks(_self, SENSOR_DELAY_TICKS_UNKNOWN);
 
 	// WARNING: DO NOT overwrite pointers outside of ctor and dtor.
@@ -1630,9 +1662,9 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 
 static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 {
-	Sensor_setPowerUpDelayTicks    (_self, 1); // >0 triggers callback wait
-	Sensor_setResetDelayTicks      (_self, 1); // >0 triggers callback wait
-	Sensor_setMeasurementDelayTicks(_self, 1); // >0 triggers callback wait
+	Sensor_setPowerUpDelayTicks    (_self, 0); // >0 triggers callback wait
+	Sensor_setAlignConfigDelayTicks(_self, 0); // >0 triggers callback wait
+	Sensor_setMeasurementDelayTicks(_self, 0); // >0 triggers callback wait
 
 	// Do not modify object pointers.  These are managed in ctor and dtor.
 	//Sensor_setCommandPointer       (_self, NULL);
@@ -1640,7 +1672,7 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 	//Sensor_setFinalDataPointer     (_self, NULL);
 	//Sensor_setAlarmLevelsPointer   (_self, NULL);
 
-	Sensor_setAlarmState (_self, ALARM_TYPE_UNKNOWN);
+	Sensor_setAlarmState(_self, ALARM_TYPE_UNKNOWN);
 
 	// Do not modify normal alarm state.  This are managed by middleware.
 	//Sensor_setNormalState(_self, ALARM_TYPE_UNKNOWN);
@@ -1676,30 +1708,16 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	}
 
 	case SENSOR_MINI_STATE_1: {
-		// add additional register writes of reads if needed
-		// read the sensor datasheets carefully as some devices require one poll
+		// add additional register writes or reads if needed
+		// read the sensor datasheets carefully
+		// some devices may require one or more polling operations
 		Sensor_setMiniState(_self, ++localMiniState);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_2: {  // last mini-state
 		// all device communication is complete
-		// set callback to fire, or automatically transition to alignAndConfig()
-		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
-		Sensor_armDelayedCallback(_self,
-								  (sensor_cb_fnct)Sensor_postEnablePower,
-								  delayTicks);
-		Sensor_setMiniState(_self, SENSOR_MINI_STATE_UNKNOWN);
-
-		// WARNING: Sensor_postEnablePower() should be set and fired by the
-		//          scheduler in order to transition the state variable
-		//          past the SENSOR_WAITING_POWER state.
-		Sensor_transitionState(_self, SENSOR_WAITING_POWER);
-
-		// ALTERNATIVE: If no wait is needed to allow power stabilization
-		//              then primary state can be automatically transitioned
-		//              WARNING: use of this approach requires unit test mod
-		//Sensor_transitionState(_self, SENSOR_ALIGN_CONFIG);
+		// do nothing
 		break;
 	}
 
@@ -1713,8 +1731,8 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 void Sensor_postEnablePower(void * _self)
 {
 	// asynchronous callback from the scheduler
+	// ready to transition to next state
 	Sensor_transitionState(_self, SENSOR_ALIGN_CONFIG);
-	Sensor_update(_self);
 	return;
 }
 
@@ -1723,7 +1741,7 @@ static void * implement_Sensor_default_alignAndConfig(struct Sensor * _self)
 {
 	// TODO: add sensor specific code
 
-	int delayTicks = Sensor_getResetDelayTicks(_self);
+	int delayTicks = Sensor_getAlignConfigDelayTicks(_self);
 	Sensor_armDelayedCallback(_self,
 							  (sensor_cb_fnct)Sensor_postAlignAndConfig,
 							  delayTicks);
@@ -1734,8 +1752,8 @@ static void * implement_Sensor_default_alignAndConfig(struct Sensor * _self)
 void Sensor_postAlignAndConfig(void * _self)
 {
 	// asynchronous callback from the scheduler
+	// ready to transition to next state
 	Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
-	Sensor_update(_self);
 	return;
 }
 
@@ -1754,9 +1772,8 @@ static void * implement_Sensor_default_startMeasurement(struct Sensor * _self)
 void Sensor_postStartMeasurement(void * _self)
 {
 	// asynchronous callback from the scheduler
-	//printf("Sensor_postStartMeasurement\n");
+	// ready to transition to next state
 	Sensor_transitionState(_self, SENSOR_GET_RAW_DATA);
-	Sensor_update(_self);
 	return;
 }
 
@@ -1784,7 +1801,7 @@ void * implement_Sensor_default_disablePower(struct Sensor * _self)
 
 	if ( mode == AUTOMATICALY_DIABLE_POWER ) {
 		Sensor_transitionState(_self, SENSOR_PROCESS_RAW_DATA);
-		return Sensor_sendDisablePowerCommands(_self);
+		return Sensor_default_sendDisablePowerCommands(_self);
 	}
 
 	if ( mode == MANUALLY_DISABLE_POWER ) {
@@ -1795,7 +1812,7 @@ void * implement_Sensor_default_disablePower(struct Sensor * _self)
 	return NULL;  // unexpected failing path
 }
 
-void * Sensor_sendDisablePowerCommands(void * _self)
+void * Sensor_default_sendDisablePowerCommands(void * _self)
 {
 	// TODO: add actual code
 	return _self;

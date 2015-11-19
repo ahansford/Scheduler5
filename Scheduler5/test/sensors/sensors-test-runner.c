@@ -237,7 +237,7 @@ TEST_GROUP_RUNNER(sensor)
 
 	RUN_TEST_CASE(sensor, Sensor_start_setsAlarmTypeToUnknown);
 	RUN_TEST_CASE(sensor, Sensor_start_setsNormalTypeToUnknown);
-	RUN_TEST_CASE(sensor, Sensor_reset_stateEndsInIdle);
+	RUN_TEST_CASE(sensor, Sensor_start_stateEndsInIdle);
 	RUN_TEST_CASE(sensor, Sensor_start_returnsSelfOnSuccess);
 	RUN_TEST_CASE(sensor, Sensor_start_returnsNullOnNullPtr);
 
@@ -252,6 +252,11 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_stateEndsInReport);
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_returnsSelfOnSuccess);
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_returnsNullOnNullPtr);
+
+	RUN_TEST_CASE(sensor, Sensor_stop_endsInUnpoweredIdle);
+
+	RUN_TEST_CASE(sensor, Sensor_stop_endsInUnpoweredIdle);
+	//RUN_TEST_CASE(sensor, Sensor_stop_sendsPowerDownCommands);
 
 	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_sendsResetAndConfigCommands);
 	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_armsSchedulerCallback_forReset);

@@ -117,11 +117,20 @@ typedef char command_t;
 * // Initialize Sensor classes structures
 * Sensor_init();
 *
-* // creates a new sensor
+* // create a new sensor
 * struct Sensor * mySensorPointer = new(Sensor);
 *
+* // Set recurrent scheduler task specifying a suitable period in ticks
+* scheduler_AddTask_wPTR(Sensor_update,
+*                        mySensorPointer,
+*                        _ticksOfDelay,
+*						 _period);
+*
 * // Load sensor access struct defaults
-* Sensor_Start(mySensorPointer);
+* Sensor_start(mySensorPointer);
+*
+* // call update() once to guarantee that the selected defaults are loaded once
+* Sensor_update(mySensorPointer);
 *
 * // Set timed delay callbacks if needed for the sensor
 * Sensor_setPowerUpDelayTicks(mySensorPointer, int _delayTicks);
@@ -153,15 +162,16 @@ void * Sensor_start(void * _self);
 /****************************************/
 /*** interface manager for callbacks  ***/
 
+// TODO:  Move delay callback materials to the private header file
 /*! Arms the asynchronous callbacks from the scheduler.  The callback function
- *  will be fired with _self as a parameter.
+ *  will be fired with the sensor access structure pointer _self as a parameter.
  *  Requires ... include scheduler.h
  */
 sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 		                                 sensor_cb_fnct _callback,
 										 int            _ticksOfDelay);
 
-// required callbacks to be setup as tasks on the scheduler using above
+// Required callbacks to be setup as tasks on the scheduler using above
 // _ticksOfDelay setting depends on duration of the scheduler tick
 void Sensor_postEnablePower(void * _self);
 void Sensor_postAlignAndConfig(void * _self);
@@ -291,8 +301,8 @@ sensorDelayTicks_t Sensor_setPowerUpDelayTicks(void * _self,
  *   some amount of time to stabilize.  No sensor measurements should be
  *   attempted until the sensor is stable.
  */
-sensorDelayTicks_t Sensor_getResetDelayTicks(const void * _self);
-sensorDelayTicks_t Sensor_setResetDelayTicks(void * _self,
+sensorDelayTicks_t Sensor_getAlignConfigDelayTicks(const void * _self);
+sensorDelayTicks_t Sensor_setAlignConfigDelayTicks(void * _self,
 		                                     sensorDelayTicks_t _delayTicks);
 
 /*!  Post measurement delay in system scheduler ticks.  The specific

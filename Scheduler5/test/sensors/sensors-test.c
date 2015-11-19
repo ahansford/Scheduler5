@@ -351,33 +351,33 @@ TEST(sensor, Sensor_setPowerUpDelayTicks_canSetSpecificValue)
 /**/
 TEST(sensor, Sensor_getResetDelayTicks_returns_UnknownOnCreate)
 {
-	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  Sensor_getResetDelayTicks(myTest_Sensor) );
+	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  Sensor_getAlignConfigDelayTicks(myTest_Sensor) );
 }
 
 TEST(sensor, Sensor_getResetDelayTicks_returns_specificValue)
 {
 	myTest_Sensor->resetDelayTicks = 6;
-	TEST_ASSERT_EQUAL(6,  Sensor_getResetDelayTicks(myTest_Sensor) );
+	TEST_ASSERT_EQUAL(6,  Sensor_getAlignConfigDelayTicks(myTest_Sensor) );
 }
 
 TEST(sensor, Sensor_setResetDelayTicks_returnsSpecificValue)
 {
-	TEST_ASSERT_EQUAL(4,  Sensor_setResetDelayTicks(myTest_Sensor, 4));
+	TEST_ASSERT_EQUAL(4,  Sensor_setAlignConfigDelayTicks(myTest_Sensor, 4));
 }
 
 TEST(sensor, Sensor_setResetDelayTicks_returnsUnknownOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  Sensor_setResetDelayTicks(NULL, 5));
+	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  Sensor_setAlignConfigDelayTicks(NULL, 5));
 }
 
 TEST(sensor, Sensor_setResetDelayTicks_returnsSpecificValueOnSuccess)
 {
-	TEST_ASSERT_EQUAL(6,  Sensor_setResetDelayTicks(myTest_Sensor, 6));
+	TEST_ASSERT_EQUAL(6,  Sensor_setAlignConfigDelayTicks(myTest_Sensor, 6));
 }
 
 TEST(sensor, Sensor_setResetDelayTicks_canSetSpecificValue)
 {
-	Sensor_setResetDelayTicks(myTest_Sensor, 7);
+	Sensor_setAlignConfigDelayTicks(myTest_Sensor, 7);
 	TEST_ASSERT_EQUAL(7,  myTest_Sensor->resetDelayTicks);
 }
 
@@ -1011,7 +1011,7 @@ TEST(sensor, equal_UnequalSensorStateReturn_Unequal)
 TEST(sensor, equal_UnequalResetDelayTicksReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
-	Sensor_setResetDelayTicks(masterSensor, 2);
+	Sensor_setAlignConfigDelayTicks(masterSensor, 2);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
 }
@@ -1230,6 +1230,7 @@ TEST(sensor, Sensor_measure_triggeresStartWhenNotStarted)
 TEST(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle)
 {
 	myTest_Sensor->sensorState = SENSOR_READY_IDLE;
+	myTest_Sensor->measurementDelayTicks = 5;
 	Sensor_measureAndProcess(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
@@ -1238,6 +1239,7 @@ TEST(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle)
 TEST(sensor, Sensor_measure_triggeresMeasureWhenReport)
 {
 	myTest_Sensor->sensorState = SENSOR_REPORT;
+	myTest_Sensor->measurementDelayTicks = 5;
 	Sensor_measureAndProcess(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
@@ -1265,7 +1267,7 @@ TEST(sensor, Sensor_start_setsNormalTypeToUnknown)
 	TEST_ASSERT_EQUAL_PTR(ALARM_TYPE_UNKNOWN, myTest_Sensor->normalState);
 }
 
-TEST(sensor, Sensor_reset_stateEndsInIdle)
+TEST(sensor, Sensor_start_stateEndsInIdle)
 {
 	Sensor_start(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
@@ -1346,7 +1348,14 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	// NOTE:  sequences the state machine through all states
 	// if errors emerge, try adding additional Sensor_updateState() calls
 	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
-	Sensor_start(myTest_Sensor);
+	Sensor_start(myTest_Sensor);  // loads selected defaults
+	Sensor_update(myTest_Sensor);
+
+	// can update the delay ticks AFTER the selected defaults are loaded above
+	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 1); // >0 triggers callback wait
+	Sensor_setAlignConfigDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
+	Sensor_setMeasurementDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
+
 	// Sensor_update() no longer included in start(), requires separate update call
 	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
@@ -1419,7 +1428,7 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post measurement callback was registered
 	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[2].pTask);
-	TEST_ASSERT_EQUAL_PTR(Sensor_postStartMeasurement,  testTASKS_sensors[2].pTask_wPTR);
+	TEST_ASSERT_EQUAL_PTR(Sensor_postAlignAndConfig,    testTASKS_sensors[2].pTask_wPTR);
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[2].objectPointer);
 	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[2].taskType);
 	TEST_ASSERT_EQUAL(myTest_Sensor->measurementDelayTicks, testTASKS_sensors[2].delay);
@@ -1491,6 +1500,22 @@ TEST(sensor, Sensor_measureAndProcess_returnsNullOnNullPtr)
 	TEST_ASSERT_EQUAL(NULL, Sensor_measureAndProcess(NULL));
 }
 
+TEST(sensor, Sensor_stop_endsInUnpoweredIdle)
+{
+	Sensor_start(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	Sensor_stopAndRemovePower(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
+}
+
+TEST(sensor, Sensor_stop_sendsPowerDownCommands)
+{
+	Sensor_start(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	Sensor_stopAndRemovePower(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
+}
 
 //****  Support Methods  ****************
 
