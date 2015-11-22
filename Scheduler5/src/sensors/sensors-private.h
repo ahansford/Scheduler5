@@ -14,7 +14,7 @@ struct Sensor {
 	int				   miniState;    //! A generic state variable for sub-states
 	sensorAsyncFlag_t  asyncFlag;   //! registers external asynchronous state machine change requests
 	sensorDelayTicks_t powerUpDelayTicks;  //! Post enable power CB delay in ticks
-	int 			   resetDelayTicks;    //! Post align & config CB delay in ticks
+	int 			   configDelayTicks;    //! Post align & config CB delay in ticks
 	//! Post measurement CB delay in ticks
 	int 			measurementDelayTicks;
 	command_t *		commandPointer;  //! Pointer to the command buffer

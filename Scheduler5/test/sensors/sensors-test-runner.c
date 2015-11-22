@@ -248,7 +248,11 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_armDelayedCallback_returnsNullOnTickLessThanOne);
 
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_sendsAllCommands);
-	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks);
+
+	RUN_TEST_CASE(sensor, Sensor_enablePower_armsPowerUpCallback);
+	RUN_TEST_CASE(sensor, Sensor_configAndAlign_armsConfigAlignCallback);
+	RUN_TEST_CASE(sensor, Sensor_measure_armsMeasureCallback);
+
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_stateEndsInReport);
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_returnsSelfOnSuccess);
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_returnsNullOnNullPtr);

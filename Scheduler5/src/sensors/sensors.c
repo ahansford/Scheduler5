@@ -1045,14 +1045,14 @@ int Sensor_getAlignConfigDelayTicks(const void * _self)
 {
 	const struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return SENSOR_DELAY_TICKS_UNKNOWN; }
-	return self->resetDelayTicks;
+	return self->configDelayTicks;
 }
 
 int Sensor_setAlignConfigDelayTicks(void * _self, int _delayTicks)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return SENSOR_DELAY_TICKS_UNKNOWN; }
-	self->resetDelayTicks = _delayTicks;
+	self->configDelayTicks = _delayTicks;
 	return _delayTicks;
 }
 

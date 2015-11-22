@@ -85,7 +85,7 @@ TEST(sensor, Sensor_powerUpDelayTicks_isUnknownOnCreate)
 
 TEST(sensor, Sensor_resetDelayTicks_isUnknownOnCreate)
 {
-	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  myTest_Sensor->resetDelayTicks);
+	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  myTest_Sensor->configDelayTicks);
 }
 
 TEST(sensor, Sensor_measurementDelayTicks_isUnknownOnCreate)
@@ -356,7 +356,7 @@ TEST(sensor, Sensor_getResetDelayTicks_returns_UnknownOnCreate)
 
 TEST(sensor, Sensor_getResetDelayTicks_returns_specificValue)
 {
-	myTest_Sensor->resetDelayTicks = 6;
+	myTest_Sensor->configDelayTicks = 6;
 	TEST_ASSERT_EQUAL(6,  Sensor_getAlignConfigDelayTicks(myTest_Sensor) );
 }
 
@@ -378,7 +378,7 @@ TEST(sensor, Sensor_setResetDelayTicks_returnsSpecificValueOnSuccess)
 TEST(sensor, Sensor_setResetDelayTicks_canSetSpecificValue)
 {
 	Sensor_setAlignConfigDelayTicks(myTest_Sensor, 7);
-	TEST_ASSERT_EQUAL(7,  myTest_Sensor->resetDelayTicks);
+	TEST_ASSERT_EQUAL(7,  myTest_Sensor->configDelayTicks);
 }
 
 
@@ -1343,30 +1343,15 @@ TEST(sensor, Sensor_measureAndProcess_sendsAllCommands)
 
 }
 
-TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
+TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 {
-	// NOTE:  sequences the state machine through all states
-	// if errors emerge, try adding additional Sensor_updateState() calls
-	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
-	Sensor_start(myTest_Sensor);  // loads selected defaults
-	Sensor_update(myTest_Sensor);
-
-	// can update the delay ticks AFTER the selected defaults are loaded above
 	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 1); // >0 triggers callback wait
-	Sensor_setAlignConfigDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
-	Sensor_setMeasurementDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
+	Sensor_transitionState(myTest_Sensor, SENSOR_ENABLE_POWER);
 
-	// Sensor_update() no longer included in start(), requires separate update call
-	Sensor_update(myTest_Sensor);
-	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
-	Sensor_update(myTest_Sensor);  // safety update
-	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
-
-	Sensor_measureAndProcess(myTest_Sensor);  // <<<---  main state machine trigger
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_POWER, myTest_Sensor->sensorState);
 
 	// tests below depend on knowledge of the scheduler implementation
@@ -1378,67 +1363,50 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	TEST_ASSERT_EQUAL(myTest_Sensor->powerUpDelayTicks, testTASKS_sensors[0].delay);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].period);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
+}
 
-	Sensor_postEnablePower(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
+TEST(sensor, Sensor_configAndAlign_armsConfigAlignCallback)
+{
+	Sensor_setAlignConfigDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
+	Sensor_transitionState(myTest_Sensor, SENSOR_ALIGN_CONFIG);
+
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_CONFIG, myTest_Sensor->sensorState);
 
-	Sensor_postAlignAndConfig(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
+	// tests below depend on knowledge of the scheduler implementation
+	// verify that the post power up callback was registered
+	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[0].pTask);
+	TEST_ASSERT_EQUAL_PTR(Sensor_postAlignAndConfig,    testTASKS_sensors[0].pTask_wPTR);
+	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[0].objectPointer);
+	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[0].taskType);
+	TEST_ASSERT_EQUAL(myTest_Sensor->configDelayTicks,  testTASKS_sensors[0].delay);
+	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].period);
+	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
+}
+
+TEST(sensor, Sensor_measure_armsMeasureCallback)
+{
+	Sensor_setMeasurementDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
+	Sensor_transitionState(myTest_Sensor, SENSOR_START_MEASUREMENT);
+
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
-	Sensor_update(myTest_Sensor);
-	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
-	Sensor_update(myTest_Sensor);
-	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
-
-	myTest_Sensor->sensorState = SENSOR_GET_RAW_DATA;
-	//TEST_ASSERT_EQUAL(NULL, Sensor_getRawDataPointer(myTest_Sensor));
-
-	// NOTE that the default sensor raw data value is defined as 99 for testing
-	((struct Node *)myTest_Sensor->rawDataPointer)->nodeValue = 99;
-	Sensor_storeRawData(myTest_Sensor);
-
-	Sensor_update(myTest_Sensor);
-
-	Sensor_postStartMeasurement(myTest_Sensor);
-
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
-
-	Sensor_postStartMeasurement(myTest_Sensor);
-
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);  // safety update
-	Sensor_update(myTest_Sensor);  // safety update
-	Sensor_update(myTest_Sensor);  // safety update
-	Sensor_update(myTest_Sensor);  // safety update
-	Sensor_update(myTest_Sensor);  // safety update
-	Sensor_update(myTest_Sensor);  // safety update
-	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 
 	// tests below depend on knowledge of the scheduler implementation
-	// verify that the post align and config callback was registered
-	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[1].pTask);
-	TEST_ASSERT_EQUAL_PTR(Sensor_postAlignAndConfig,    testTASKS_sensors[1].pTask_wPTR);
-	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[1].objectPointer);
-	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[1].taskType);
-	TEST_ASSERT_EQUAL(myTest_Sensor->resetDelayTicks,   testTASKS_sensors[1].delay);
-	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[1].period);
-	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[1].runMe);
-
-	// tests below depend on knowledge of the scheduler implementation
-	// verify that the post measurement callback was registered
-	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[2].pTask);
-	TEST_ASSERT_EQUAL_PTR(Sensor_postStartMeasurement,  testTASKS_sensors[2].pTask_wPTR);
-	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[2].objectPointer);
-	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[2].taskType);
-	TEST_ASSERT_EQUAL(myTest_Sensor->measurementDelayTicks, testTASKS_sensors[2].delay);
-	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[2].period);
-	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[2].runMe);
-/**/
+	// verify that the post power up callback was registered
+	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[0].pTask);
+	TEST_ASSERT_EQUAL_PTR(Sensor_postStartMeasurement,    testTASKS_sensors[0].pTask_wPTR);
+	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[0].objectPointer);
+	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[0].taskType);
+	TEST_ASSERT_EQUAL(myTest_Sensor->measurementDelayTicks,  testTASKS_sensors[0].delay);
+	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].period);
+	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
 }
 
 
