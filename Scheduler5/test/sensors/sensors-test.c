@@ -1458,6 +1458,11 @@ TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 	Sensor_setUpperSecondaryAlarmLevel(myTest_Sensor, 110);
 	Sensor_setNormalState(myTest_Sensor, ALARM_BETWEEN);
 
+	// set the raw data value to 100 for testing, base code does not access an actual sensor
+	struct Node * localRawDataPtr = Sensor_getRawDataPointer(myTest_Sensor);
+	setValue(localRawDataPtr, 100 );
+
+
 	// on first pass, Sensor_measureAndProcess() will drop back
 	// to SENSOR_START_DATA_DEFAULTS state
 	Sensor_measureAndProcess(myTest_Sensor);
@@ -1484,10 +1489,7 @@ TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 
-	// set the raw data value to 100 for testing, base code does not access an actual sensor
-
-	struct Node * localRawDataPtr = Sensor_getRawDataPointer(myTest_Sensor);
-	setValue(localRawDataPtr, 100 );
+TEST_ASSERT_EQUAL(100, getValue(localRawDataPtr) );
 
 	TEST_ASSERT_EQUAL(1, Sensor_reportReady(myTest_Sensor) );
 

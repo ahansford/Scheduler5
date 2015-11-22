@@ -1337,24 +1337,28 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_ENABLE_POWER: {    // <<<--- Sensor_measureAndProcess()
-		//  WARNING:  serial communication probably required for many sensors
+		//  WARNING:  must include state machine transition in update method
+		//  serial communication probably required
 		Sensor_enablePower(_self);
 		break;
 	}
 
 	case SENSOR_WAITING_POWER: {
 		// do nothing
+		// transition is via Sensor_postEnablePower()
 		break;
 	}
 
 	case SENSOR_ALIGN_CONFIG: {    // <<<--- Sensor_postEnablePower()
-		//  WARNING:  serial communication probably required
+		//  WARNING:  must include state machine transition in update method
+		//  serial communication probably required
 		Sensor_alignAndConfig(_self);
 		break;
 	}
 
 	case SENSOR_WAITING_CONFIG: {
 		// do nothing
+		// transition is via Sensor_postAlignAndConfig()
 		break;
 	}
 
@@ -1364,15 +1368,15 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_START_MEASUREMENT: {    // <<<--- Sensor_measureAndProcess(), <<<--- Sensor_postAlignAndConfig()
-		//  WARNING:  serial communication probably required
+		//  WARNING:  must include state machine transition in update method
+		//  serial communication probably required
 		Sensor_startMeasurement(_self);
 		break;
 	}
 
 	case SENSOR_WAITING_MEASUREMENT: {
 		// do nothing
-		// state is incremented by callback from scheduler
-		// alternate method would be to periodically poll sensor for ready data
+		// transition is via Sensor_postStartMeasurement()
 		break;
 	}
 
@@ -1407,6 +1411,7 @@ void Sensor_update(void * _self)
 
 		// regardless of checkAlarms() outcome, transition to next state
 		Sensor_transitionState(_self, SENSOR_REPORT);
+
 		// fire the report ready callback only once
 		implement_Sensor_callReportReady_CB(_self);
 		break;
@@ -1415,6 +1420,8 @@ void Sensor_update(void * _self)
 	case SENSOR_REPORT: {
 		// increment asynchronous flag to allow subsequent measurement request
 		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_DONE);
+
+		// hold in this state until a new measurement is requested
 		break;
 	}
 
@@ -1438,10 +1445,8 @@ void * Sensor_start(void * _self)
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	// TODO: add watchdog timer task to scheduler
-
 	// return without taking action if the sensor has already been started
-	if (Sensor_getSensorState(self) >=  SENSOR_START_DATA_DEFAULTS) {
+	if ( Sensor_getSensorState(self) >=  SENSOR_START_DATA_DEFAULTS ) {
 		return self;
 	}
 
@@ -1477,9 +1482,18 @@ void * Sensor_stopAndRemovePower(void * _self)
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	Sensor_disablePower(_self);
+	// disable power if sensor has been previously powered
+	if ( Sensor_getSensorState(self) >=  SENSOR_WAITING_POWER ) {
+		Sensor_disablePower(_self);
+	}
 
-	Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
+	// set main state as uppowered  idle if previously running
+	if ( Sensor_getSensorState(self) >  SENSOR_UNPOWERED_IDLE ) {
+		Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
+	}
+
+	// TODO: add protection against previously registered async communication calls
+
 	return self;
 }
 
@@ -1777,6 +1791,8 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 	struct Node * localRawDataPtr = Sensor_getRawDataPointer  (_self);
 	if ( localRawDataPtr == NULL ) { return NULL; }
 
+	// default sensor is virtual and does not read actual data
+	// any raw data needed for testing should be set externally prior to test
 	//localRawDataPtr->nodeValue = 99;
 
 	Sensor_transitionState(_self, SENSOR_DISABLE_POWER);
@@ -1808,7 +1824,6 @@ void * Sensor_default_sendDisablePowerCommands(void * _self)
 	return _self;
 }
 
-
 static void * implement_Sensor_default_processRawData(struct Sensor * _self)
 {
 	struct Node * localRawDataPtr = Sensor_getRawDataPointer(_self);
@@ -1817,7 +1832,8 @@ static void * implement_Sensor_default_processRawData(struct Sensor * _self)
 	if ( localFinalDataPtr == NULL ) { return NULL; }
 
 	// add correct processing code here
-	setValue(localFinalDataPtr, (getValue(localRawDataPtr) + 1 - 1) );
+	// default case simply copies the raw data to the final data area
+	setValue(localFinalDataPtr, getValue(localRawDataPtr) );
 	return _self;
 }
 
