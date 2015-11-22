@@ -354,5 +354,7 @@ alarmType_t Sensor_setNormalState(void * _self, alarmType_t _normalState);
 sensorReportStatus_t Sensor_reportReady(const void * _self);
 
 void Sensor_transitionState(struct Sensor * _self, sensorState_t _state);
+void * Sensor_resetMiniState(struct Sensor * _self);
+void * Sensor_incrementMiniState(struct Sensor * _self);
 
 #endif /* SRC_BUTTON_BUTTON_H_ */

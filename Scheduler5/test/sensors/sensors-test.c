@@ -1413,6 +1413,10 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);  // safety update
 	Sensor_update(myTest_Sensor);  // safety update
+	Sensor_update(myTest_Sensor);  // safety update
+	Sensor_update(myTest_Sensor);  // safety update
+	Sensor_update(myTest_Sensor);  // safety update
+	Sensor_update(myTest_Sensor);  // safety update
 	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 
 	// tests below depend on knowledge of the scheduler implementation
@@ -1428,7 +1432,7 @@ TEST(sensor, Sensor_measureAndProcess_armsSchedulerCallbacks)
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post measurement callback was registered
 	TEST_ASSERT_EQUAL_PTR(NULL,                         testTASKS_sensors[2].pTask);
-	TEST_ASSERT_EQUAL_PTR(Sensor_postAlignAndConfig,    testTASKS_sensors[2].pTask_wPTR);
+	TEST_ASSERT_EQUAL_PTR(Sensor_postStartMeasurement,  testTASKS_sensors[2].pTask_wPTR);
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,                testTASKS_sensors[2].objectPointer);
 	TEST_ASSERT_EQUAL(SCHEDULER_TASK_TYPE_VOID_PTR,     testTASKS_sensors[2].taskType);
 	TEST_ASSERT_EQUAL(myTest_Sensor->measurementDelayTicks, testTASKS_sensors[2].delay);
@@ -1480,8 +1484,17 @@ TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 
+	// set the raw data value to 100 for testing, base code does not access an actual sensor
+
+	struct Node * localRawDataPtr = Sensor_getRawDataPointer(myTest_Sensor);
+	setValue(localRawDataPtr, 100 );
+
 	TEST_ASSERT_EQUAL(1, Sensor_reportReady(myTest_Sensor) );
-	TEST_ASSERT_EQUAL(100, ((struct Node *)myTest_Sensor->finalDataPointer)->nodeValue );
+
+	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(myTest_Sensor);
+	TEST_ASSERT_EQUAL(100, getValue(localFinalDataPtr) );
+	TEST_ASSERT_EQUAL(100, ((struct Node *)(myTest_Sensor->finalDataPointer))->nodeValue );
+
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb, myTest_Sensor->Sensor_onReportReady_cb);
 
 	TEST_ASSERT_EQUAL(ALARM_BETWEEN, Sensor_getNormalState(myTest_Sensor));
@@ -1515,6 +1528,19 @@ TEST(sensor, Sensor_stop_sendsPowerDownCommands)
 	Sensor_stopAndRemovePower(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
+}
+
+TEST(sensor, Sensor_resetMiniState_setsToStateZero)
+{
+	Sensor_resetMiniState(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_MINI_STATE_START_0, Sensor_getMiniState(myTest_Sensor));
+}
+
+TEST(sensor, Sensor_irincrementMiniState_movesToNextState)
+{
+	Sensor_setMiniState(myTest_Sensor, SENSOR_MINI_STATE_3);
+	Sensor_incrementMiniState(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_MINI_STATE_4, Sensor_getMiniState(myTest_Sensor));
 }
 
 //****  Support Methods  ****************

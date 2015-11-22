@@ -1328,9 +1328,6 @@ void Sensor_update(void * _self)
 		// load sensor access structure defaults
 		Sensor_loadDefaults(_self);
 		Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
-		if ( Sensor_getAsyncFlag(_self) < SENSOR_ASYNC_START_DONE )
-			{ Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE); }
-
 		break;
 	}
 
@@ -1340,22 +1337,8 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_ENABLE_POWER: {    // <<<--- Sensor_measureAndProcess()
-
 		//  WARNING:  serial communication probably required for many sensors
 		Sensor_enablePower(_self);
-
-		// set callback to fire, OR automatically transition
-		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
-		if ( delayTicks > 0 ) {
-			Sensor_armDelayedCallback(_self,
-								      (sensor_cb_fnct)Sensor_postEnablePower,
-								      delayTicks);
-			Sensor_transitionState(_self, SENSOR_WAITING_POWER);
-		} else {
-			// no callback is needed
-			Sensor_transitionState(_self, SENSOR_ALIGN_CONFIG);
-		}
-
 		break;
 	}
 
@@ -1367,19 +1350,6 @@ void Sensor_update(void * _self)
 	case SENSOR_ALIGN_CONFIG: {    // <<<--- Sensor_postEnablePower()
 		//  WARNING:  serial communication probably required
 		Sensor_alignAndConfig(_self);
-
-		// set callback to fire, OTHERWISE automatically transition
-		int delayTicks = Sensor_getAlignConfigDelayTicks(_self);
-		if ( delayTicks > 0 ) {
-			Sensor_armDelayedCallback(_self,
-								      (sensor_cb_fnct)Sensor_postAlignAndConfig,
-								      delayTicks);
-			Sensor_transitionState(_self, SENSOR_WAITING_CONFIG);
-		} else {
-			// no callback is needed
-			Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
-		}
-
 		break;
 	}
 
@@ -1396,18 +1366,6 @@ void Sensor_update(void * _self)
 	case SENSOR_START_MEASUREMENT: {    // <<<--- Sensor_measureAndProcess(), <<<--- Sensor_postAlignAndConfig()
 		//  WARNING:  serial communication probably required
 		Sensor_startMeasurement(_self);
-
-		// set callback to fire, OTHERWISE automatically transition
-		int delayTicks = Sensor_getMeasurementDelayTicks(_self);
-		if ( delayTicks > 0 ) {
-			Sensor_armDelayedCallback(_self,
-								      (sensor_cb_fnct)Sensor_postStartMeasurement,
-								      delayTicks);
-			Sensor_transitionState(_self, SENSOR_WAITING_MEASUREMENT);
-		} else {
-			// no callback is needed
-			Sensor_transitionState(_self, SENSOR_GET_RAW_DATA);
-		}
 		break;
 	}
 
@@ -1482,7 +1440,7 @@ void * Sensor_start(void * _self)
 
 	// TODO: add watchdog timer task to scheduler
 
-	// take no action if the sensor has already been started
+	// return without taking action if the sensor has already been started
 	if (Sensor_getSensorState(self) >=  SENSOR_START_DATA_DEFAULTS) {
 		return self;
 	}
@@ -1527,7 +1485,6 @@ void * Sensor_stopAndRemovePower(void * _self)
 
 static void Sensor_checkAsyncFlag(struct Sensor * _self)
 {
-	//printf("entering Sensor_checkAsyncFlag  the main state variable: %i, the asyncVaraiable: %i\n", _self->sensorState, _self->asyncFlag);
 	switch (Sensor_getAsyncFlag(_self)) {
 
 	case SENSOR_ASYNC_FLAG_UNKNOWN: {
@@ -1691,7 +1648,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	switch (localMiniState) {
 
 	case SENSOR_MINI_STATE_UNKNOWN: {
-		Sensor_setMiniState(_self, SENSOR_MINI_STATE_START_0);
+		Sensor_resetMiniState(_self);
 		break;
 	}
 
@@ -1703,21 +1660,40 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		//commandBufferPTR[1] = 0xF1; // data value to write in target register
 		//int writeCount = 2;
 		//Write_I2C_Default(address, commandBufferPTR, writeCount);
-		Sensor_setMiniState(_self, ++localMiniState);
+		Sensor_incrementMiniState(_self);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_1: {
-		// add additional register writes or reads if needed
-		// read the sensor datasheets carefully
-		// some devices may require one or more polling operations
-		Sensor_setMiniState(_self, ++localMiniState);
+		// add a wait state that takes no action if the callback is used above
+
+		// incrementMiniState() is used
+		Sensor_incrementMiniState(_self);
 		break;
 	}
 
-	case SENSOR_MINI_STATE_2: {  // last mini-state
+	case SENSOR_MINI_STATE_2: {
+		// add additional register writes or reads if needed
+		// read the sensor datasheets carefully
+		// some devices may require one or more polling operations
+		Sensor_incrementMiniState(_self);
+		break;
+	}
+
+	case SENSOR_MINI_STATE_3: {
+		// last mini-state
 		// all device communication is complete
-		// do nothing
+		// set callback to fire, OR automatically transition if delay is zero
+		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
+		if ( delayTicks > 0 ) {
+			Sensor_armDelayedCallback(_self,
+								      (sensor_cb_fnct)Sensor_postEnablePower,
+								      delayTicks);
+			Sensor_transitionState(_self, SENSOR_WAITING_POWER);
+		} else {
+			// no callback is needed
+			Sensor_transitionState(_self, SENSOR_ALIGN_CONFIG);
+		}
 		break;
 	}
 
@@ -1741,12 +1717,18 @@ static void * implement_Sensor_default_alignAndConfig(struct Sensor * _self)
 {
 	// TODO: add sensor specific code
 
+	// set callback to fire, OTHERWISE automatically transition
 	int delayTicks = Sensor_getAlignConfigDelayTicks(_self);
-	Sensor_armDelayedCallback(_self,
-							  (sensor_cb_fnct)Sensor_postAlignAndConfig,
-							  delayTicks);
-	Sensor_transitionState(_self, SENSOR_WAITING_CONFIG);
-	return NULL;
+	if ( delayTicks > 0 ) {
+		Sensor_armDelayedCallback(_self,
+							      (sensor_cb_fnct)Sensor_postAlignAndConfig,
+							      delayTicks);
+		Sensor_transitionState(_self, SENSOR_WAITING_CONFIG);
+	} else {
+		// no callback is needed
+		Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
+	}
+	return _self;
 }
 
 void Sensor_postAlignAndConfig(void * _self)
@@ -1761,11 +1743,17 @@ static void * implement_Sensor_default_startMeasurement(struct Sensor * _self)
 {
 	// TODO:  Update with actual code
 
+	// set callback to fire, OTHERWISE automatically transition
 	int delayTicks = Sensor_getMeasurementDelayTicks(_self);
-	Sensor_armDelayedCallback(_self,
-							  (sensor_cb_fnct)Sensor_postStartMeasurement,
-							  delayTicks);
-	Sensor_transitionState(_self, SENSOR_WAITING_MEASUREMENT);
+	if ( delayTicks > 0 ) {
+		Sensor_armDelayedCallback(_self,
+							      (sensor_cb_fnct)Sensor_postStartMeasurement,
+							      delayTicks);
+		Sensor_transitionState(_self, SENSOR_WAITING_MEASUREMENT);
+	} else {
+		// no callback is needed
+		Sensor_transitionState(_self, SENSOR_GET_RAW_DATA);
+	}
 	return _self;
 }
 
@@ -1786,8 +1774,10 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL) { return NULL; }// fail
 
-	struct Node * rawDataPtr = Sensor_getRawDataPointer(self);
-	rawDataPtr->nodeValue = 99;
+	struct Node * localRawDataPtr = Sensor_getRawDataPointer  (_self);
+	if ( localRawDataPtr == NULL ) { return NULL; }
+
+	//localRawDataPtr->nodeValue = 99;
 
 	Sensor_transitionState(_self, SENSOR_DISABLE_POWER);
 	return _self;
@@ -1821,9 +1811,13 @@ void * Sensor_default_sendDisablePowerCommands(void * _self)
 
 static void * implement_Sensor_default_processRawData(struct Sensor * _self)
 {
-	struct Node * localRawDataPtr   = Sensor_getRawDataPointer  (_self);
+	struct Node * localRawDataPtr = Sensor_getRawDataPointer(_self);
+	if ( localRawDataPtr == NULL )   { return NULL; }
 	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(_self);
-	setValue(localFinalDataPtr, (getValue(localRawDataPtr) + 1) );
+	if ( localFinalDataPtr == NULL ) { return NULL; }
+
+	// add correct processing code here
+	setValue(localFinalDataPtr, (getValue(localRawDataPtr) + 1 - 1) );
 	return _self;
 }
 
@@ -1959,6 +1953,26 @@ sensorReportStatus_t Sensor_reportReady(const void * _self)
 void Sensor_transitionState(struct Sensor * _self, sensorState_t _state)
 {
 	Sensor_setSensorState(_self, _state);
-	Sensor_setMiniState(_self, SENSOR_MINI_STATE_START_0);
+	// always reset the miniState when transitioning the main state
+	Sensor_resetMiniState(_self);
 	return;
 }
+
+void * Sensor_resetMiniState(struct Sensor * _self)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }  // fail
+	Sensor_setMiniState(self, SENSOR_MINI_STATE_START_0);
+	return self;
+}
+
+void * Sensor_incrementMiniState(struct Sensor * _self)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }  // fail
+	miniState_t localMiniState = Sensor_getMiniState(self);
+	localMiniState++;
+	Sensor_setMiniState(self, localMiniState);
+	return self;
+}
+Sensor_getMiniState(self);

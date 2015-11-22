@@ -258,6 +258,9 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_stop_endsInUnpoweredIdle);
 	//RUN_TEST_CASE(sensor, Sensor_stop_sendsPowerDownCommands);
 
+	RUN_TEST_CASE(sensor, Sensor_resetMiniState_setsToStateZero);
+	RUN_TEST_CASE(sensor, Sensor_irincrementMiniState_movesToNextState);
+
 	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_sendsResetAndConfigCommands);
 	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_armsSchedulerCallback_forReset);
 	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_stateEndsInWaitingReset);
