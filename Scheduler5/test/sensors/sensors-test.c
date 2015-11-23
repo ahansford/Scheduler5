@@ -1352,7 +1352,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	TEST_ASSERT_EQUAL(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
 
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post power up callback was registered
@@ -1371,9 +1371,9 @@ TEST(sensor, Sensor_configAndAlign_armsConfigAlignCallback)
 	Sensor_transitionState(myTest_Sensor, SENSOR_ALIGN_CONFIG);
 
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_CONFIG);
 
 	// tests below depend on knowledge of the scheduler implementation
@@ -1393,9 +1393,9 @@ TEST(sensor, Sensor_measure_armsMeasureCallback)
 	Sensor_transitionState(myTest_Sensor, SENSOR_START_MEASUREMENT);
 
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_MEASUREMENT);
 
 	// tests below depend on knowledge of the scheduler implementation
@@ -1427,9 +1427,9 @@ TEST(sensor, Sensor_configAndAlign_doesNotArmPowerUpCallbackOnZeroDelay)
 	Sensor_transitionState(myTest_Sensor, SENSOR_ALIGN_CONFIG);
 
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState > SENSOR_WAITING_CONFIG);
 }
 
@@ -1439,9 +1439,9 @@ TEST(sensor, Sensor_measure_doesNotArmPowerUpCallbackOnZeroDelay)
 	Sensor_transitionState(myTest_Sensor, SENSOR_START_MEASUREMENT);
 
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState > SENSOR_WAITING_MEASUREMENT);
 }
 
@@ -1452,7 +1452,7 @@ TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 	// NOTE:  sequences the state machine through all states
 	// if errors emerge, try adding additional Sensor_updateState() calls
 	Sensor_start(myTest_Sensor);
-	Sensor_update(myTest_Sensor);  // safety update
+	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);  // safety update
 
 	Sensor_setOnReportReady_cb(myTest_Sensor, Sensor_test_general_cb);
@@ -1465,9 +1465,6 @@ TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 	struct Node * localRawDataPtr = Sensor_getRawDataPointer(myTest_Sensor);
 	setValue(localRawDataPtr, 100 );
 
-
-	// on first pass, Sensor_measureAndProcess() will drop back
-	// to SENSOR_START_DATA_DEFAULTS state
 	Sensor_measureAndProcess(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
@@ -1488,24 +1485,19 @@ TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
-	Sensor_update(myTest_Sensor);  // Safety update
 	Sensor_update(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
+	Sensor_update(myTest_Sensor);
 
-TEST_ASSERT_EQUAL(100, getValue(localRawDataPtr) );
-
-	TEST_ASSERT_EQUAL(1, Sensor_reportReady(myTest_Sensor) );
-
+	// confirm that data processing was successfully completed
 	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(myTest_Sensor);
 	TEST_ASSERT_EQUAL(100, getValue(localFinalDataPtr) );
-	TEST_ASSERT_EQUAL(100, ((struct Node *)(myTest_Sensor->finalDataPointer))->nodeValue );
 
-	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb, myTest_Sensor->Sensor_onReportReady_cb);
+	//confirm that reportReady() returns true
+	TEST_ASSERT_EQUAL(1, Sensor_reportReady(myTest_Sensor) );
 
-	TEST_ASSERT_EQUAL(ALARM_BETWEEN, Sensor_getNormalState(myTest_Sensor));
-	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb2, myTest_Sensor->Sensor_onAlarmTriggered_cb);
-	TEST_ASSERT_TRUE(sensor_test_cb_count  >= 1);
-	TEST_ASSERT_TRUE(sensor_test_cb_count2 >= 1);
+	// confirm state is REPORT
+	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 }
 
 TEST(sensor, Sensor_measureAndProcess_returnsSelfOnSuccess)
@@ -1541,7 +1533,7 @@ TEST(sensor, Sensor_resetMiniState_setsToStateZero)
 	TEST_ASSERT_EQUAL(SENSOR_MINI_STATE_START_0, Sensor_getMiniState(myTest_Sensor));
 }
 
-TEST(sensor, Sensor_irincrementMiniState_movesToNextState)
+TEST(sensor, Sensor_incrementMiniState_movesToNextState)
 {
 	Sensor_setMiniState(myTest_Sensor, SENSOR_MINI_STATE_3);
 	Sensor_incrementMiniState(myTest_Sensor);
