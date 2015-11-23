@@ -13,14 +13,14 @@
 typedef int8_t scheduler_taskIndex_t;
 
 typedef struct {
-	void       (* pTask)(void);                 // void function
+	void       (* pTask)(void);      // void function
 	void       (* pTask_wPTR)(void * objectPointer); // function pointer with PTR
 	void *	   objectPointer;
-	scheduler_task_type_t taskType;				// void-void, or void-voidPTR
-	uint16_t   delay;           // delay before cycles start
-	uint16_t   period;	        // time between cycles
-	uint8_t    runMe;           // task should be run
-	bool       blocking;        // true = a blocking task
+	scheduler_task_type_t taskType;  // void-void, or void-voidPTR
+	uint16_t   delay;                // delay before cycles start
+	uint16_t   period;	             // time between cycles
+	uint8_t    runMe;                // task should be run
+	bool       blocking;             // true = a blocking task
 } struct_task_t;
 
 

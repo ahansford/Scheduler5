@@ -1352,7 +1352,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	TEST_ASSERT_EQUAL(SENSOR_WAITING_POWER, myTest_Sensor->sensorState);
+	TEST_ASSERT_EQUAL(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
 
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post power up callback was registered
@@ -1374,7 +1374,7 @@ TEST(sensor, Sensor_configAndAlign_armsConfigAlignCallback)
 	//Sensor_update(myTest_Sensor); // mini states may need additional update()
 	//Sensor_update(myTest_Sensor); // mini states may need additional update()
 	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	TEST_ASSERT_EQUAL(SENSOR_WAITING_CONFIG, myTest_Sensor->sensorState);
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_CONFIG);
 
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post power up callback was registered
@@ -1396,7 +1396,7 @@ TEST(sensor, Sensor_measure_armsMeasureCallback)
 	//Sensor_update(myTest_Sensor); // mini states may need additional update()
 	//Sensor_update(myTest_Sensor); // mini states may need additional update()
 	//Sensor_update(myTest_Sensor); // mini states may need additional update()
-	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, myTest_Sensor->sensorState);
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_MEASUREMENT);
 
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post power up callback was registered
@@ -1409,6 +1409,41 @@ TEST(sensor, Sensor_measure_armsMeasureCallback)
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
 }
 
+TEST(sensor, Sensor_enablePower_doesNotArmPowerUpCallbackOnZeroDelay)
+{
+	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 0); // >0 triggers callback wait
+	Sensor_transitionState(myTest_Sensor, SENSOR_ENABLE_POWER);
+
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState > SENSOR_WAITING_POWER);
+}
+
+TEST(sensor, Sensor_configAndAlign_doesNotArmPowerUpCallbackOnZeroDelay)
+{
+	Sensor_setAlignConfigDelayTicks(myTest_Sensor, 0); // >0 triggers callback wait
+	Sensor_transitionState(myTest_Sensor, SENSOR_ALIGN_CONFIG);
+
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState > SENSOR_WAITING_CONFIG);
+}
+
+TEST(sensor, Sensor_measure_doesNotArmPowerUpCallbackOnZeroDelay)
+{
+	Sensor_setMeasurementDelayTicks(myTest_Sensor, 0); // >0 triggers callback wait
+	Sensor_transitionState(myTest_Sensor, SENSOR_START_MEASUREMENT);
+
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	//Sensor_update(myTest_Sensor); // mini states may need additional update()
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState > SENSOR_WAITING_MEASUREMENT);
+}
 
 TEST(sensor, Sensor_measureAndProcess_stateEndsInReport)
 {
