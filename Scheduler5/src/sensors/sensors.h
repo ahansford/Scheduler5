@@ -83,7 +83,7 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 typedef char command_t;
 
 #define SENSOR_DEFAULT_ADDRESS NULL
-
+#define SENSOR_DEFAULT_IO_TYPE IO
 /***********************************************/
 /************ protected includes  **************/
 /***** must be after externs and typedefs  *****/

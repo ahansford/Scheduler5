@@ -648,7 +648,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 	//                ... be created external to sensor.  This weakness should
 	//                ... be corrected
 	// create new IO access structure object
-	struct IO * ioStructPointer = new(IO, commandBufferPTR);
+	struct IO * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
 	Sensor_setIoStructPointer(_self, ioStructPointer);
 
 	// set the IO address to NULL for safety
