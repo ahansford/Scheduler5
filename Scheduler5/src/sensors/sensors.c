@@ -71,6 +71,9 @@ void Sensor_init(void)
 	if (!Node)      {Node_init();}
 	if (!NodeClass) {Node_init();}
 
+	//if (!IO)      {IO_init();}
+	//if (!IOClass) {IO_init();}
+
 	if (! SensorClass) {
 		SensorClass = new(Class,  		// should be "Class"
 						"SensorClass",	// should be "SomethingClass"
@@ -634,13 +637,25 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 	// complete initialization method is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
-/*
+
+	// create IO access structure and its data objects
 	// allocate memory for the command buffer and assign the pointer
 	command_t * commandBufferPTR =
-			               (command_t *)malloc(sizeof(command_t)*MAX_COMMANDS);
+			               (command_t *)malloc(sizeof(command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
-	Sensor_setCommandPointer(_self, commandBufferPTR);
-*/
+
+	// WARNING TODO:  the internal IO management list and IO_init() should
+	//                ... be created external to sensor.  This weakness should
+	//                ... be corrected
+	// create new IO access structure object
+	struct IO * ioStructPointer = new(IO, commandBufferPTR);
+	Sensor_setIoStructPointer(_self, ioStructPointer);
+
+	// set the IO address to NULL for safety
+	// Ordinary drivers will select a non-NULL value
+	// can be overwitten externally for testing
+	ioStructPointer->address = SENSOR_DEFAULT_ADDRESS;
+
 	// generate raw data object
 	struct Node * rawDataPointer = new(Node);
 	if ( rawDataPointer == NULL ) { return NULL; }  // fail
@@ -668,16 +683,16 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 static void * implement_Sensor_default_dtor(struct Sensor * _self)
 {
-	/*
-	// delete command buffer and set pointer to NULL
-	command_t * commandBufferPtr = Sensor_getCommandPointer(_self);
-	if ( commandBufferPtr != NULL ) {
-		free(commandBufferPtr);
-		Sensor_setCommandPointer(_self, NULL);
-		if ( Sensor_getCommandPointer(_self) != NULL )
+	/**/
+	// delete strict IO access object and set pointer to NULL
+	struct IO * ioStructPointer = Sensor_getIoStructPointer(_self);
+	if ( ioStructPointer != NULL ) {
+		delete(ioStructPointer);
+		Sensor_setIoStructPointer(_self, NULL);
+		if ( Sensor_getIoStructPointer(_self) != NULL )
 			{ return NULL; } // fail
 	}
-*/
+
 	// delete raw data pointer object
 	struct Node * rawDataPtr = Sensor_getRawDataPointer(_self);
 	if ( rawDataPtr != NULL ) {
@@ -2001,4 +2016,3 @@ void * Sensor_incrementMiniState(struct Sensor * _self)
 	Sensor_setMiniState(self, localMiniState);
 	return self;
 }
-Sensor_getMiniState(self);

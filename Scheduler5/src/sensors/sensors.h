@@ -79,8 +79,10 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
  *  Commands are 8-bit char types.  Note that address registers that might be
  *  needed in other communications protocols like I2C also count in this total.
  */
-#define MAX_COMMANDS 16
+#define SENSOR_DEFAULT_MAX_COMMANDS 4
 typedef char command_t;
+
+#define SENSOR_DEFAULT_ADDRESS NULL
 
 /***********************************************/
 /************ protected includes  **************/

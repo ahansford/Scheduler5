@@ -81,9 +81,9 @@ void IO_init(struct List * _ioSequenceList)
 					puto,	IO_io_puto,
 					// New functions added in this class
 					// Do not call superclass->method
-					IO_addWriteCommandToSequence,	IO_io_addWriteValue,
-					IO_processSequence,		IO_io_processSequence,
-					IO_xxxx,		IO_io_xxxx,
+					IO_addWriteCommandToSequence, IO_io_addWriteValue,
+					IO_processSequence,		      IO_io_processSequence,
+					IO_xxxx,		              IO_io_xxxx,
 
 					0);	// Terminator
 	}
