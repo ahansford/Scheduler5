@@ -19,12 +19,13 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_powerUpDelayTicks_isUnknownOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_resetDelayTicks_isUnknownOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_measurementDelayTicks_isUnknownOnCreate);
-	RUN_TEST_CASE(sensor, Sensor_commandPointer_isNullOnCreate);
+
 	RUN_TEST_CASE(sensor, Sensor_rawDataPointer_isNullOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_finalDataPointer_isNullOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_alarmLevelsPointer_isUnknownOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_alarmState_isUnknownOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_normalState_isUnknownOnCreate);
+	RUN_TEST_CASE(sensor, Sensor_ioStructPointer_isNullOnCreate);
 
 	/**************************************/
 	/*************  Sensors  ***************/
@@ -104,14 +105,7 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_setMeasurementDelayTicks_returnsSpecificValueOnSuccess);
 	RUN_TEST_CASE(sensor, Sensor_setMeasurementDelayTicks_canSetSpecificValue);
 
-	/****  Set/Get CommandPointer  ****************/
-	/**/
-	RUN_TEST_CASE(sensor, Sensor_getCommandPointer_returns_UnknownOnCreate);
-	RUN_TEST_CASE(sensor, Sensor_getCommandPointer_returns_specificValue);
-	RUN_TEST_CASE(sensor, Sensor_setCommandPointer_returnsSpecificValue);
-	RUN_TEST_CASE(sensor, Sensor_setCommandPointer_returnsUnknownOnNullPtr);
-
-	/****  Set/Get RawDataPointer  ****************/
+		/****  Set/Get RawDataPointer  ****************/
 	/**/
 	RUN_TEST_CASE(sensor, Sensor_getRawDataPointer_returns_UnknownOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_getRawDataPointer_returns_specificValue);
@@ -178,6 +172,15 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_reportReady_returns_NotReadyOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_reportReady_returns_ReadyOnValidReport);
 	RUN_TEST_CASE(sensor, Sensor_reportReady_returnsNotReadyOnNullPtr);
+
+	/****  Set/Get IoStructPointer  ****************/
+	/**/
+	RUN_TEST_CASE(sensor, Sensor_getIoStructPointer_returns_UnknownOnCreate);
+	RUN_TEST_CASE(sensor, Sensor_getIoStructPointer_returns_specificValue);
+	RUN_TEST_CASE(sensor, Sensor_setIoStructPointer_returnsSpecificValue);
+	RUN_TEST_CASE(sensor, Sensor_setIoStructPointer_returnsUnknownOnNullPtr);
+
+
 
 	//****  copy/Time_copy  ****************
 	/**/

@@ -17,7 +17,7 @@ struct Sensor {
 	int 			   configDelayTicks;    //! Post align & config CB delay in ticks
 	//! Post measurement CB delay in ticks
 	int 			measurementDelayTicks;
-	command_t *		commandPointer;  //! Pointer to the command buffer
+	//command_t *		commandPointer;  //! Pointer to the command buffer
 	void * 			rawDataPointer;  //! Pointer to the unprocessed data buffer
 	void * 			finalDataPointer;  //! Pointer to the processed data buffer
 	void * 			alarmLevelsPointer;  //! Pointer alarm level(s) (nodes)
@@ -27,6 +27,7 @@ struct Sensor {
 	struct Sensor * (*Sensor_onReportReady_cb)    (struct Sensor * _sensor);
 	//! Callback to middleware when alarm state does not match the expected
 	struct Sensor * (*Sensor_onAlarmTriggered_cb) (struct Sensor * _sensor);
+	struct IO *		ioStructPtr // pointer to the IO object managing sensor I/O
 };
 
 struct SensorClass {

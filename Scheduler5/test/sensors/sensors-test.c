@@ -92,12 +92,6 @@ TEST(sensor, Sensor_measurementDelayTicks_isUnknownOnCreate)
 {
 	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  myTest_Sensor->measurementDelayTicks);
 }
-
-TEST(sensor, Sensor_commandPointer_isNullOnCreate)
-{
-	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->commandPointer);
-}
-
 TEST(sensor, Sensor_rawDataPointer_isNullOnCreate)
 {
 	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->rawDataPointer);
@@ -122,6 +116,13 @@ TEST(sensor, Sensor_normalState_isUnknownOnCreate)
 {
 	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  myTest_Sensor->normalState);
 }
+
+TEST(sensor, Sensor_ioStructPointer_isNullOnCreate)
+{
+	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->ioStructPtr);
+}
+
+
 /**/
 
 /**************************************/
@@ -416,36 +417,6 @@ TEST(sensor, Sensor_setMeasurementDelayTicks_canSetSpecificValue)
 	TEST_ASSERT_EQUAL(7,  myTest_Sensor->measurementDelayTicks);
 }
 
-/****  Set/Get CommandPointer  ****************/
-/**/
-TEST(sensor, Sensor_getCommandPointer_returns_UnknownOnCreate)
-{
-	TEST_ASSERT_NOT_EQUAL(NULL,  Sensor_getCommandPointer(myTest_Sensor) );
-}
-
-TEST(sensor, Sensor_getCommandPointer_returns_specificValue)
-{
-	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
-	void * originalPTR = myTest_Sensor->commandPointer;
-	myTest_Sensor->commandPointer = (void *)6;
-	TEST_ASSERT_EQUAL_PTR((void *)6,  Sensor_getCommandPointer(myTest_Sensor) );
-	myTest_Sensor->commandPointer = originalPTR;
-}
-
-TEST(sensor, Sensor_setCommandPointer_returnsSpecificValue)
-{
-	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
-	void * originalPTR = myTest_Sensor->commandPointer;
-	TEST_ASSERT_EQUAL_PTR((void *)4,  Sensor_setCommandPointer(myTest_Sensor, (void *)4));
-	myTest_Sensor->commandPointer = originalPTR;
-}
-
-TEST(sensor, Sensor_setCommandPointer_returnsUnknownOnNullPtr)
-{
-	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_setCommandPointer(NULL, (void *)5));
-}
-
-
 /****  Set/Get RawDataPointer  ****************/
 /**/
 TEST(sensor, Sensor_getRawDataPointer_returns_UnknownOnCreate)
@@ -636,6 +607,37 @@ TEST(sensor, Sensor_setNormalState_canSetSpecificValue)
 	Sensor_setNormalState(myTest_Sensor, 7);
 	TEST_ASSERT_EQUAL(7,  myTest_Sensor->normalState);
 }
+
+/****  Set/Get ioStructPointer  ****************/
+/**/
+TEST(sensor, Sensor_getIoStructPointer_returns_UnknownOnCreate)
+{
+	TEST_ASSERT_NOT_EQUAL(NULL,  Sensor_getIoStructPointer(myTest_Sensor) );
+}
+
+TEST(sensor, Sensor_getIoStructPointer_returns_specificValue)
+{
+	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
+	void * originalPTR = myTest_Sensor->ioStructPtr;
+	myTest_Sensor->ioStructPtr = (void *)6;
+	TEST_ASSERT_EQUAL_PTR((void *)6,  Sensor_getIoStructPointer(myTest_Sensor) );
+	myTest_Sensor->ioStructPtr = originalPTR;
+}
+
+TEST(sensor, Sensor_setIoStructPointer_returnsSpecificValue)
+{
+	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
+	void * originalPTR = myTest_Sensor->ioStructPtr;
+	TEST_ASSERT_EQUAL_PTR((void *)4,  Sensor_setIoStructPointer(myTest_Sensor, (void *)4));
+	myTest_Sensor->ioStructPtr = originalPTR;
+}
+
+TEST(sensor, Sensor_setIoStructPointer_returnsUnknownOnNullPtr)
+{
+	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_setIoStructPointer(NULL, (void *)5));
+}
+
+
 
 /****  check alarm state  ****************/
 

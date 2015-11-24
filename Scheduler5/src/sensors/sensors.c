@@ -15,6 +15,7 @@
 //#include "..\..\src\lists\lists.h"       // supports class registration
 #include "..\..\src\objects\objects.h"     // safety include
 #include "..\..\src\scheduler\scheduler.h" // safety include
+#include "..\..\src\io\io.h"               // safety include
 //#include "..\..\src\events\events.h" // safety include
 
 /**************************************/
@@ -633,13 +634,13 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 	// complete initialization method is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
-
+/*
 	// allocate memory for the command buffer and assign the pointer
 	command_t * commandBufferPTR =
 			               (command_t *)malloc(sizeof(command_t)*MAX_COMMANDS);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 	Sensor_setCommandPointer(_self, commandBufferPTR);
-
+*/
 	// generate raw data object
 	struct Node * rawDataPointer = new(Node);
 	if ( rawDataPointer == NULL ) { return NULL; }  // fail
@@ -667,6 +668,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 static void * implement_Sensor_default_dtor(struct Sensor * _self)
 {
+	/*
 	// delete command buffer and set pointer to NULL
 	command_t * commandBufferPtr = Sensor_getCommandPointer(_self);
 	if ( commandBufferPtr != NULL ) {
@@ -675,7 +677,7 @@ static void * implement_Sensor_default_dtor(struct Sensor * _self)
 		if ( Sensor_getCommandPointer(_self) != NULL )
 			{ return NULL; } // fail
 	}
-
+*/
 	// delete raw data pointer object
 	struct Node * rawDataPtr = Sensor_getRawDataPointer(_self);
 	if ( rawDataPtr != NULL ) {
@@ -724,9 +726,6 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 			Sensor_getMeasurementDelayTicks(_copyFromMaster));
 
 	// Pointer values
-	//Sensor_setCommandPointer(_copyTo,
-	//		Sensor_getCommandPointer(_copyFromMaster));
-
 	//Sensor_setRawDataPointer(_copyTo,
 	//		Sensor_getRawDataPointer(_copyFromMaster));
 
@@ -747,6 +746,10 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 
 	Sensor_setOnAlarmTriggered_cb(_copyTo,
 			Sensor_getOnAlarmTriggered_cb(_copyFromMaster));
+
+	// Pointer values
+	//Sensor_setIoStructPointer(_copyTo,
+	//		Sensor_getIoStructPointer(_copyFromMaster));
 
 	return _copyTo;
 }
@@ -779,9 +782,7 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	// data values are unique for separate sensors and should not be compared
 	/*
 
-	if( Sensor_getCommandPointer(self) !=
-			               Sensor_getCommandPointer(comparisonObject) )
-		{return OBJECT_UNEQUAL;}
+
 
 	if( Sensor_getRawDataPointer(self) !=
 			               Sensor_getRawDataPointer(comparisonObject) )
@@ -807,6 +808,12 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	if( Sensor_getOnReportReady_cb(self) !=
 			               Sensor_getOnReportReady_cb(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
+
+	/* pointer values
+	if( Sensor_getCommandPointer(self) !=
+			               Sensor_getCommandPointer(comparisonObject) )
+		{return OBJECT_UNEQUAL;}
+	*/
 
 	// all data members are congruent
 	return OBJECT_EQUAL;
@@ -847,10 +854,6 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 			Sensor_getMeasurementDelayTicks(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-	if (PUTO_ERROR == fprintf(_fp, "  Sensor commandPointer:        %p\n",
-			Sensor_getCommandPointer(self) ))
-		{ printReturnCode = PUTO_ERROR;  } // error detected
-
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor rawDataPointer:        %p\n",
 			Sensor_getRawDataPointer(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
@@ -877,6 +880,10 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor Sensor_onAlarmTriggered_cb: %p\n",
 			Sensor_getOnAlarmTriggered_cb(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor IoStructPointer:            %p\n",
+			Sensor_getIoStructPointer(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	fprintf(_fp, "\n  New methods added in Sensor:\n");
@@ -1072,24 +1079,6 @@ int Sensor_setMeasurementDelayTicks(void * _self, int _delayTicks)
 	if ( self == NULL ) { return SENSOR_DELAY_TICKS_UNKNOWN; }
 	self->measurementDelayTicks = _delayTicks;
 	return _delayTicks;
-}
-
-/********************************************/
-/*****  set and get commandPointer    *******/
-
-void * Sensor_getCommandPointer(const void * _self)
-{
-	const struct Sensor * self = cast(Sensor, _self);
-	if ( self == NULL ) { return NULL; }
-	return self->commandPointer;
-}
-
-void * Sensor_setCommandPointer(void * _self, void * _commandPointer)
-{
-	struct Sensor * self = cast(Sensor, _self);
-	if ( self == NULL ) { return NULL; }
-	self->commandPointer = _commandPointer;
-	return _commandPointer;
 }
 
 /********************************************/
@@ -1307,6 +1296,26 @@ struct Sensor *  Sensor_emptyAlarmTriggeredCallback(struct Sensor * _self)
 	//printf("  XXX Sensor_emptyAlarmTriggeredCallback\n");
 	return _self;
 }
+
+
+/********************************************/
+/*****  set and get ioStruct pointer    *******/
+/**/
+void * Sensor_getIoStructPointer(const void * _self)
+{
+	const struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }
+	return self->ioStructPtr;
+}
+
+void * Sensor_setIoStructPointer(void * _self, void * _ioStructPtr)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }
+	self->ioStructPtr = _ioStructPtr;
+	return _ioStructPtr;
+}
+
 
 /*************************************/
 /****    sensor state machine    *****/
@@ -1618,7 +1627,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 
 	// WARNING: DO NOT overwrite pointers outside of ctor and dtor.
 	//          The individual buffers or Nodes are created in the ctor.
-	Sensor_setCommandPointer       (_self, NULL);
+
 	Sensor_setRawDataPointer       (_self, NULL);
 	Sensor_setFinalDataPointer     (_self, NULL);
 	Sensor_setAlarmLevelsPointer   (_self, NULL);
@@ -1628,6 +1637,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 	Sensor_setNormalState          (_self, ALARM_TYPE_UNKNOWN);
 	Sensor_setOnReportReady_cb     (_self, Sensor_emptyReportReadyCallback);
 	Sensor_setOnAlarmTriggered_cb  (_self, Sensor_emptyAlarmTriggeredCallback);
+	Sensor_setIoStructPointer      (_self, NULL);
 	return _self;
 }
 
@@ -1638,7 +1648,6 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 	Sensor_setMeasurementDelayTicks(_self, 0); // >0 triggers callback wait
 
 	// Do not modify object pointers.  These are managed in ctor and dtor.
-	//Sensor_setCommandPointer       (_self, NULL);
 	//Sensor_setRawDataPointer       (_self, NULL);
 	//Sensor_setFinalDataPointer     (_self, NULL);
 	//Sensor_setAlarmLevelsPointer   (_self, NULL);
@@ -1651,6 +1660,7 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 	// Do not modify object pointers.  These are managed by middleware.
 	//Sensor_setOnReportReady_cb   (_self, Sensor_emptyReportReadyCallback);
 	//Sensor_setOnAlarmTriggered_cb(_self, Sensor_emptyAlarmTriggeredCallback);
+	//Sensor_setIoStructPointer      (_self, NULL);
 	return _self;
 }
 
@@ -1839,7 +1849,7 @@ static void * implement_Sensor_default_processRawData(struct Sensor * _self)
 
 static void * implement_Sensor_default_checkAlarms(struct Sensor * _self)
 {
-	// set alarm state as unknown prior to passing valid data checks
+	// set alarm state as unknown prior to passing the valid data checks
 	Sensor_setAlarmState( _self, ALARM_TYPE_UNKNOWN );
 
 	// test for an active/valid normal alarm type

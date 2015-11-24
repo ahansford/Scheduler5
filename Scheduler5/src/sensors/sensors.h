@@ -14,7 +14,8 @@
 //#include "..\cross_compiler_defs.h"
 #include "..\..\src\objects\objects.h"
 #include "..\..\src\scheduler\scheduler.h"
-#include "..\..\src\nodes\nodes.h"     // supports class registration
+#include "..\..\src\nodes\nodes.h" // supports class registration
+#include "..\..\src\io\io.h"       // supports IO class communication
 //#include "..\..\src\node_list\node-list.h"
 //#include "..\..\src\times\times.h"     // supports class registration
 //#include "..\..\src\events\events.h"     // supports class registration
@@ -313,11 +314,6 @@ sensorDelayTicks_t Sensor_setAlignConfigDelayTicks(void * _self,
 sensorDelayTicks_t Sensor_getMeasurementDelayTicks(const void * _self);
 sensorDelayTicks_t Sensor_setMeasurementDelayTicks(void * _self,
 		                                           sensorDelayTicks_t _delayTicks);
-
-//! Pointer to the command buffer used to communicate with sensor
-void * Sensor_getCommandPointer(const void * _self);
-void * Sensor_setCommandPointer(      void * _self, void * _commandPointer);
-
 //! Pointer to the unprocessed data buffer
 void * Sensor_getRawDataPointer(const void * _self);
 void * Sensor_setRawDataPointer(      void * _self, void * _rawDataPointer);
@@ -352,6 +348,10 @@ alarmType_t Sensor_getNormalState(const void * _self);
 alarmType_t Sensor_setNormalState(void * _self, alarmType_t _normalState);
 
 sensorReportStatus_t Sensor_reportReady(const void * _self);
+
+//! Pointer to the IO structure used to communicate with sensor
+void * Sensor_getIoStructPointer(const void * _self);
+void * Sensor_setIoStructPointer(      void * _self, void * _ioStructPtr);
 
 void Sensor_transitionState(struct Sensor * _self, sensorState_t _state);
 void * Sensor_resetMiniState(struct Sensor * _self);
