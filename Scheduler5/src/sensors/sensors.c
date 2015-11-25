@@ -1624,7 +1624,7 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
 
 	int i;
 	for (i = 0; i < writeCount; i++) {
-		address[i] = commandBufferPTR[i];
+		((command_t *)address)[i] = commandBufferPTR[i];
 	}
 	// IO_setWriteCount(localIoStructPtr, count);
 
