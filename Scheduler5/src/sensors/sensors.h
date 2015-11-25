@@ -243,11 +243,10 @@ void * Sensor_checkAlarms(void * _self);
 
 // requires .... #include "..\..\src\i2c\i2c.h"
 void * Sensor_writeDataToSensor(void * _self,
-		                        void * _dataPointer,
-								int count);
+		                        int _writeCount);
 void * Sensor_readDataFromSensor(void * _self,
-		                         void * _dataPointer,
-								 int count);
+								 int _writeCount,
+								 int _readCount);
 
 
 /******************************************/

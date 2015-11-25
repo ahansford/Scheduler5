@@ -32,11 +32,10 @@ static puto_return_t implement_Sensor_default_puto(const struct Sensor * _self,
 		                                                  FILE * _fp);
 
 static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
-		                                                  void * _dataPointer,
-														  int count);
+        												 int _writeCount);
 static void * implement_Sensor_default_readDataFromSensor(struct Sensor * _self,
-		                                                  void * _dataPointer,
-														  int count);
+		                                                  int _writeCount,
+														  int _readCount);
 
 // only used by ctor and dtor
 static void * implement_Sensor_default_clearAllValues(struct Sensor * _self);
@@ -333,69 +332,67 @@ puto_return_t Sensor_default_puto(const void * _self, FILE * _fp)
 /**************************************/
 /*******  writeDataToSensor   *********/
 
-void *  Sensor_writeDataToSensor(void * _self, void * _dataPointer, int count)
+void *  Sensor_writeDataToSensor(void * _self, int _writeCount)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
 	if ( class == NULL )                    { return NULL; } // fail
 	if ( class->writeDataToSensor == NULL ) { return NULL; } // fail
-	return class->writeDataToSensor(_self, _dataPointer, count);
+	return class->writeDataToSensor(_self, _writeCount);
 }
 
 void * super_Sensor_writeDataToSensor(const void * _class,
-		                              void * _self,
-									  void * _dataPointer,
-									  int count)
+                                      void *       _self,
+									  int          _writeCount)
 {
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) )       { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                    { return NULL; } // fail
 	if ( superclass->writeDataToSensor == NULL ) { return NULL; } // fail
-	return superclass->writeDataToSensor(_self, _dataPointer, count);
+	return superclass->writeDataToSensor(_self, _writeCount);
 }
 
 void * Sensor_default_writeDataToSensor(void * _self,
-		                                void * _dataPointer,
-										int count)
+		                                int _writeCount)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_Sensor_default_writeDataToSensor(self, _dataPointer, count);
+	return implement_Sensor_default_writeDataToSensor(self, _writeCount);
 }
 
 /**************************************/
 /******  readDataFromSensor    ********/
 
-void *  Sensor_readDataFromSensor (void * _self, void * _dataPointer, int count)
+void *  Sensor_readDataFromSensor (void * _self, int _writeCount, int _readCount)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
 	if ( class == NULL )                      { return NULL; } // fail
 	if ( class->readDataFromSensor  == NULL ) { return NULL; } // fail
-	return class->readDataFromSensor (_self, _dataPointer, count);
+	return class->readDataFromSensor (_self, _writeCount, _readCount);
 }
 
 void * super_Sensor_default_readDataFromSensor(const void * _class,
-		                                       void * _self,
-											   void * _dataPointer,
-											   int count)
+											   void * _self,
+											   int _writeCount,
+											   int _readCount)
 {
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) )         { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                      { return NULL; } // fail
 	if ( superclass->readDataFromSensor  == NULL ) { return NULL; } // fail
-	return superclass->readDataFromSensor (_self, _dataPointer, count);
+	return superclass->readDataFromSensor(_self, _writeCount, _readCount);
 }
 
 void * Sensor_default_readDataFromSensor(void * _self,
-		                                 void * _dataPointer,
-										 int count)
+										 int    _writeCount,
+										 int    _readCount)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
 	return implement_Sensor_default_readDataFromSensor(self,
-			                                           _dataPointer,
-													   count);
+														_writeCount,
+														_readCount);
 }
 
 
@@ -1607,23 +1604,28 @@ sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 }
 
 static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
-		                                                 int writeCount)
+		                                                 int _writeCount)
 {
-	// get struct IO pointer
+	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
 	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 	                                    Sensor_getIoStructPointer(_self);
-	if ( localIoStructPtr == NULL ) { return NULL; }  // fail
+	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
 	//  get command buffer pointer
 	command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
-	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
+	if ( commandBufferPTR == NULL ) { return NULL; }  // fail no cmd buffer
 
 	//comm address is usually set externally once just after new(Sensor)
 	void * address = IO_getAddress(localIoStructPtr);
 	if ( address == NULL ) { return NULL; }  // fail
 
+	// set for sequential writes to successive locations starting with "address"
+	IO_setIOAction(localIoStructPtr, IO_WRITE_SEQUENTIAL);
+
+	IO_setWriteCount(localIoStructPtr, _writeCount);
+
 	int i;
-	for (i = 0; i < writeCount; i++) {
+	for (i = 0; i < _writeCount; i++) {
 		((command_t *)address)[i] = commandBufferPTR[i];
 	}
 	// IO_setWriteCount(localIoStructPtr, count);
@@ -1634,8 +1636,8 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
 }
 
 static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self,
-		                                                   void * _dataPointer,
-														   int count)
+														   int _writeCount,
+														   int _readCount)
 {
 	// TODO:  Update with actual code in
 	// TODO:  may need to restructure parameters to incorporate commandBuffer
