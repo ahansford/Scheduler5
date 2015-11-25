@@ -1607,9 +1607,27 @@ sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 }
 
 static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
-		                                                 void * _dataPointer,
-														 int count)
+		                                                 int writeCount)
 {
+	// get struct IO pointer
+	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+	                                    Sensor_getIoStructPointer(_self);
+	if ( localIoStructPtr == NULL ) { return NULL; }  // fail
+
+	//  get command buffer pointer
+	command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
+
+	//comm address is usually set externally once just after new(Sensor)
+	void * address = IO_getAddress(localIoStructPtr);
+	if ( address == NULL ) { return NULL; }  // fail
+
+	int i;
+	for (i = 0; i < writeCount; i++) {
+		address[i] = commandBufferPTR[i];
+	}
+	// IO_setWriteCount(localIoStructPtr, count);
+
 	// TODO:  Update with actual code in
 	// TODO:  may need to restructure parameters to incorporate commandBuffer
 	return _self;
@@ -1685,19 +1703,35 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 
 	miniState_t localMiniState = Sensor_getMiniState(_self);
 	switch (localMiniState) {
-
+/*
 	case SENSOR_MINI_STATE_UNKNOWN: {
 		Sensor_resetMiniState(_self);
 		break;
 	}
-
+*/
 	case SENSOR_MINI_STATE_START_0: {
 		// Example:  create write/read sequence to enable power an I2C sensor
-		//command_t * commandBufferPTR = Sensor_getCommandPointer(_self);
-		//int address = 0x40; // slave address of I2C example sensor
-		//commandBufferPTR[0] = 0x03; // register address within the I2C device
-		//commandBufferPTR[1] = 0xF1; // data value to write in target register
-		//int writeCount = 2;
+
+		// get struct IO pointer
+		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+		                                    Sensor_getIoStructPointer(_self);
+		if ( localIoStructPtr == NULL ) {
+			Sensor_incrementMiniState(_self);  // fail
+			break;
+		}
+
+		//  get command buffer pointer
+		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+		if ( commandBufferPTR == NULL ) {
+			Sensor_incrementMiniState(_self);   // fail
+			break;
+		}
+
+		//comm address is usually set externally once just after new(Sensor)
+		IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
+		commandBufferPTR[0] = 0x03; // register address within the I2C device
+		commandBufferPTR[1] = 0xF1; // data value to write in target register
+		IO_setWriteCount(localIoStructPtr,  2);
 		//Write_I2C_Default(address, commandBufferPTR, writeCount);
 		Sensor_incrementMiniState(_self);
 		break;
@@ -2015,4 +2049,23 @@ void * Sensor_incrementMiniState(struct Sensor * _self)
 	localMiniState++;
 	Sensor_setMiniState(self, localMiniState);
 	return self;
+}
+
+void * Sensor_getIoCommandBufPointer( void * _self)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+										Sensor_getIoStructPointer(self);
+	if ( localIoStructPtr == NULL ) {
+		Sensor_incrementMiniState(self);  // fail
+		return NULL;
+	}
+
+	//  get command buffer pointer
+	command_t * commandBufferPTR = IO_getBufferPointer(localIoStructPtr);
+	if ( commandBufferPTR == NULL ) {
+		Sensor_incrementMiniState(self);   // fail
+		return NULL;
+	}
+	return commandBufferPTR;
 }

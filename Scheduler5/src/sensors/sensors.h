@@ -82,8 +82,8 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 #define SENSOR_DEFAULT_MAX_COMMANDS 4
 typedef char command_t;
 
-#define SENSOR_DEFAULT_ADDRESS NULL
-#define SENSOR_DEFAULT_IO_TYPE IO
+#define SENSOR_DEFAULT_ADDRESS NULL  // default memory address of 0x00
+#define SENSOR_DEFAULT_IO_TYPE IO    // the default IO type
 /***********************************************/
 /************ protected includes  **************/
 /***** must be after externs and typedefs  *****/
@@ -354,6 +354,8 @@ sensorReportStatus_t Sensor_reportReady(const void * _self);
 //! Pointer to the IO structure used to communicate with sensor
 void * Sensor_getIoStructPointer(const void * _self);
 void * Sensor_setIoStructPointer(      void * _self, void * _ioStructPtr);
+
+void * Sensor_getIoCommandBufPointer( void * _self);
 
 void Sensor_transitionState(struct Sensor * _self, sensorState_t _state);
 void * Sensor_resetMiniState(struct Sensor * _self);
