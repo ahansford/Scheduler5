@@ -371,7 +371,8 @@ void * IO_addIOSequenceToList(void * _self)
 {
 	struct IO * self = cast(IO, _self);
 	if( self == NULL ) { return NULL; } // fail
-	add(ioSequenceList, self);
+	void * itemAddedToListPtr = add(ioSequenceList, self);
+	if ( itemAddedToListPtr == NULL ) { printf("IO_addIOSequenceToList fail\n"); }
 	return _self;
 }
 
@@ -393,15 +394,16 @@ void IO_update(void)
 {
 	switch (io_update_state) {
 
-	case IO_UPDATE_UNKNOWN: {
+	case IO_UPDATE_UNKNOWN: { printf("IO_update: IO_UPDATE_UNKNOWN\n");
 		io_update_state = IO_UPDATE_IDLE;
 		break;
 	}
 
-	case IO_UPDATE_IDLE: {
+	case IO_UPDATE_IDLE: { printf("IO_update: IO_UPDATE_IDLE\n");
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time
 		sequence = IO_getActionFromList();
+		printf("IO action from list: %p\n", sequence);
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
 			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
@@ -410,7 +412,7 @@ void IO_update(void)
 		break;
 	}
 
-	case IO_UPDATE_EXECUTE_COMMAND: {
+	case IO_UPDATE_EXECUTE_COMMAND: { printf("IO_update: IO_UPDATE_EXECUTE_COMMAND\n");
 		// set next transition to WAITING ... assumes the wait is needed
 		// the IO_processSequence() method can override with COMPLETE if needed
 		// immediate action drivers should override
@@ -425,13 +427,13 @@ void IO_update(void)
 		break;
 	}
 
-	case IO_UPDATE_WAITING_COMMAND: {
+	case IO_UPDATE_WAITING_COMMAND: { printf("IO_update: IO_UPDATE_WAITING_COMMAND\n");
 		// do nothing
 		// wait for IO_commandExecuteComplete_cb() callback to transition state
 		break;
 	}
 
-	case IO_UPDATE_SEQUENCE_COMPLETE: {
+	case IO_UPDATE_SEQUENCE_COMPLETE: { printf("IO_update: IO_UPDATE_SEQUENCE_COMPLETE\n");
 		// transition to IDLE on next call, regardless of callback status
 		io_update_state = IO_UPDATE_IDLE;
 
@@ -445,7 +447,7 @@ void IO_update(void)
 		break;
 	}
 
-	default: { break; }
+	default: { printf("IO_update: default\n"); break; }
 	}  //  end switch
 
 	return;
@@ -671,6 +673,15 @@ static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp)
 	return 0;
 }
 
+void * IO_clearCommandSequences(void * _self)
+{
+	io_data_t * bufferPointer = IO_getBufferPointer(_self);
+	if ( bufferPointer == NULL ) { return NULL; } // fail
+	IO_setWriteCount(_self, 0);
+	IO_setReadCount(_self, 0);
+	return _self;
+}
+
 static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 {
 	io_data_t * bufferPointer = IO_getBufferPointer(_self);
@@ -736,6 +747,11 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	default: { break; }
 
 	}// end switch
+
+	// fire the callback designated in the struct IO object
+	io_cb_fnct function_CB = IO_get_actionDone_cb(_self);
+	void *     pointer     = IO_getObjectPointer(_self);
+	if ( function_CB != NULL ) { function_CB(pointer); }
 
 	// fire the sequence complete cb since transfer activity is immediate
 	// overloaded methods might prefer to have the hardware driver

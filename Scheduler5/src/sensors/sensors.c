@@ -31,11 +31,8 @@ static void * implement_Sensor_default_config(struct Sensor * _self,
 static puto_return_t implement_Sensor_default_puto(const struct Sensor * _self,
 		                                                  FILE * _fp);
 
-static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
-        												 int _writeCount);
-static void * implement_Sensor_default_readDataFromSensor(struct Sensor * _self,
-		                                                  int _writeCount,
-														  int _readCount);
+static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self);
+static void * implement_Sensor_default_readDataFromSensor(struct Sensor * _self);
 
 // only used by ctor and dtor
 static void * implement_Sensor_default_clearAllValues(struct Sensor * _self);
@@ -332,67 +329,57 @@ puto_return_t Sensor_default_puto(const void * _self, FILE * _fp)
 /**************************************/
 /*******  writeDataToSensor   *********/
 
-void *  Sensor_writeDataToSensor(void * _self, int _writeCount)
+void *  Sensor_writeDataToSensor(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
 	if ( class == NULL )                    { return NULL; } // fail
 	if ( class->writeDataToSensor == NULL ) { return NULL; } // fail
-	return class->writeDataToSensor(_self, _writeCount);
+	return class->writeDataToSensor(_self);
 }
 
-void * super_Sensor_writeDataToSensor(const void * _class,
-                                      void *       _self,
-									  int          _writeCount)
+void * super_Sensor_writeDataToSensor(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) )       { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                    { return NULL; } // fail
 	if ( superclass->writeDataToSensor == NULL ) { return NULL; } // fail
-	return superclass->writeDataToSensor(_self, _writeCount);
+	return superclass->writeDataToSensor(_self);
 }
 
-void * Sensor_default_writeDataToSensor(void * _self,
-		                                int _writeCount)
+void * Sensor_default_writeDataToSensor(void * _self)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_Sensor_default_writeDataToSensor(self, _writeCount);
+	return implement_Sensor_default_writeDataToSensor(self);
 }
 
 /**************************************/
 /******  readDataFromSensor    ********/
 
-void *  Sensor_readDataFromSensor (void * _self, int _writeCount, int _readCount)
+void *  Sensor_readDataFromSensor (void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
 	if ( class == NULL )                      { return NULL; } // fail
 	if ( class->readDataFromSensor  == NULL ) { return NULL; } // fail
-	return class->readDataFromSensor (_self, _writeCount, _readCount);
+	return class->readDataFromSensor (_self);
 }
 
-void * super_Sensor_default_readDataFromSensor(const void * _class,
-											   void * _self,
-											   int _writeCount,
-											   int _readCount)
+void * super_Sensor_default_readDataFromSensor(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
 	if ( ! isOfSuper(SensorClass, _self) )         { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                      { return NULL; } // fail
 	if ( superclass->readDataFromSensor  == NULL ) { return NULL; } // fail
-	return superclass->readDataFromSensor(_self, _writeCount, _readCount);
+	return superclass->readDataFromSensor(_self);
 }
 
-void * Sensor_default_readDataFromSensor(void * _self,
-										 int    _writeCount,
-										 int    _readCount)
+void * Sensor_default_readDataFromSensor(void * _self)
 {
 	struct Sensor * self = cast(Sensor, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_Sensor_default_readDataFromSensor(self,
-														_writeCount,
-														_readCount);
+	return implement_Sensor_default_readDataFromSensor(self);
 }
 
 
@@ -1603,41 +1590,37 @@ sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 	return _callback;
 }
 
-static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self,
-		                                                 int _writeCount)
+static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 {
 	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
 	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 	                                    Sensor_getIoStructPointer(_self);
 	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
-	//  get command buffer pointer
+	// get command buffer pointer
 	command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail no cmd buffer
 
-	//comm address is usually set externally once just after new(Sensor)
+	// comm address is usually set externally once just after new(Sensor)
+	// do not allow default sensor to attempt reads/writes to a NULL address
 	void * address = IO_getAddress(localIoStructPtr);
-	if ( address == NULL ) { return NULL; }  // fail
+	if ( address == NULL ) { printf("FAIL: NULL address\n"); return NULL; }  // fail
 
 	// set for sequential writes to successive locations starting with "address"
+	// default sensor is a simple memory access module and assumes sequential
 	IO_setIOAction(localIoStructPtr, IO_WRITE_SEQUENTIAL);
 
-	IO_setWriteCount(localIoStructPtr, _writeCount);
-
-	int i;
-	for (i = 0; i < _writeCount; i++) {
-		((command_t *)address)[i] = commandBufferPTR[i];
+	// add the command sequence to the IO list for processing when possible
+	if ( IO_addIOSequenceToList(localIoStructPtr) == localIoStructPtr) {
+		return _self;  // expected return path
 	}
-	// IO_setWriteCount(localIoStructPtr, count);
-
-	// TODO:  Update with actual code in
-	// TODO:  may need to restructure parameters to incorporate commandBuffer
-	return _self;
+	else {
+		return NULL;  // fail in IO
+	}
+	return NULL; // fail
 }
 
-static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self,
-														   int _writeCount,
-														   int _readCount)
+static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self)
 {
 	// TODO:  Update with actual code in
 	// TODO:  may need to restructure parameters to incorporate commandBuffer
@@ -1705,16 +1688,14 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 
 	miniState_t localMiniState = Sensor_getMiniState(_self);
 	switch (localMiniState) {
-/*
-	case SENSOR_MINI_STATE_UNKNOWN: {
-		Sensor_resetMiniState(_self);
-		break;
-	}
-*/
-	case SENSOR_MINI_STATE_START_0: {
-		// Example:  create write/read sequence to enable power an I2C sensor
 
-		// get struct IO pointer
+	case SENSOR_MINI_STATE_START_0: {
+		printf("default sensor enable power: miniState_0\n");
+		// Example:  create write/read sequence to enable power an I2C sensor
+		//           ... this command example only will take no action if
+		//           ... address is set to NULL
+
+		// get pointer to the struct IO
 		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 		                                    Sensor_getIoStructPointer(_self);
 		if ( localIoStructPtr == NULL ) {
@@ -1722,40 +1703,54 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 			break;
 		}
 
-		//  get command buffer pointer
+		//  get pointer to the command buffer
 		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
 		if ( commandBufferPTR == NULL ) {
 			Sensor_incrementMiniState(_self);   // fail
 			break;
 		}
 
-		//comm address is usually set externally once just after new(Sensor)
-		IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
-		commandBufferPTR[0] = 0x03; // register address within the I2C device
-		commandBufferPTR[1] = 0xF1; // data value to write in target register
-		IO_setWriteCount(localIoStructPtr,  2);
-		//Write_I2C_Default(address, commandBufferPTR, writeCount);
+		//comm address is usually set externally once, just after new(Sensor)
+		//IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
+
+		IO_clearCommandSequences    (localIoStructPtr);        // clear buffer
+		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);  // register
+		IO_addWriteCommandToSequence(localIoStructPtr, 0xF1);  // data value
+
+		// set the callbacks from IO once the command sequence has been processed
+		IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct)Sensor_incrementMiniState);
+		IO_set_actionDone_cb(localIoStructPtr, (void *)_self);
+
+		if ( Sensor_writeDataToSensor(_self) == NULL )
+			{ printf("FAIL: implement_Sensor_default_enablePower: Sensor_writeDataToSensor\n "); }
+
 		Sensor_incrementMiniState(_self);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_1: {
-		// add a wait state that takes no action if the callback is used above
+		printf("default sensor enable power: miniState_1\n");
+		// a wait state that takes no action
+		// transition to next miniState is usually through io_cb_fnct callback
+		// Sensor_incrementMiniState(_self);
 
-		// incrementMiniState() is used
+		// NOTE:  this example includes Sensor_incrementMiniState()
+		//        ... but it would not normally be explicitly included here
 		Sensor_incrementMiniState(_self);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_2: {
+		printf("default sensor enable power: miniState_2\n");
 		// add additional register writes or reads if needed
 		// read the sensor datasheets carefully
 		// some devices may require one or more polling operations
-		Sensor_incrementMiniState(_self);
+		//Sensor_incrementMiniState(_self);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_3: {
+		printf("default sensor enable power: miniState_3\n");
 		// last mini-state
 		// all device communication is complete
 		// set callback to fire, OR automatically transition if delay is zero
@@ -1772,7 +1767,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		break;
 	}
 
-	default: { break; }
+	default: { printf("default sensor enable power: miniState_default\n"); break; }
 
 	} // end switch
 

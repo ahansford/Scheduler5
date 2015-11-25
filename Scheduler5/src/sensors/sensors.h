@@ -242,11 +242,8 @@ void * Sensor_checkAlarms(void * _self);
 /******** I/O manager interface  ********/
 
 // requires .... #include "..\..\src\i2c\i2c.h"
-void * Sensor_writeDataToSensor(void * _self,
-		                        int _writeCount);
-void * Sensor_readDataFromSensor(void * _self,
-								 int _writeCount,
-								 int _readCount);
+void * Sensor_writeDataToSensor(void * _self);
+void * Sensor_readDataFromSensor(void * _self);
 
 
 /******************************************/

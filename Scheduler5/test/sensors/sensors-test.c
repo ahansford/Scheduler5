@@ -1347,13 +1347,32 @@ TEST(sensor, Sensor_measureAndProcess_sendsAllCommands)
 
 TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 {
+
+	// enable an IO list
+	void * IOTest_ioActionBuffer[16];
+	struct List * IOTest_ioActionList = new(List, IOTest_ioActionBuffer);
+	IO_init(IOTest_ioActionList);
+
+	// set the address element in the IO object to a known buffer address
+	io_data_t knownCharBuffer[16];
+	struct IO * localIoPtr = Sensor_getIoStructPointer(myTest_Sensor);
+	IO_setAddress(localIoPtr, knownCharBuffer);
+	//localIoPtr->address = knownCharBuffer;
+
 	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 1); // >0 triggers callback wait
 	Sensor_transitionState(myTest_Sensor, SENSOR_ENABLE_POWER);
 
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	IO_update();
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	IO_update();
+	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	IO_update();
+
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
 
 	// tests below depend on knowledge of the scheduler implementation
@@ -1365,6 +1384,8 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	TEST_ASSERT_EQUAL(myTest_Sensor->powerUpDelayTicks, testTASKS_sensors[0].delay);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].period);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
+
+	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
 TEST(sensor, Sensor_configAndAlign_armsConfigAlignCallback)

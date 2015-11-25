@@ -27,7 +27,7 @@ io_data_t testBuffer[4];
 io_data_t otherTestBuffer[4];
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
-struct IO * io_test_general_cb(struct IO * _self);
+void * io_test_general_cb(void * _self);
 //struct Sensor * Sensor_test_general_cb2(struct Sensor * _self);
 int io_test_cb_count;
 //int sensor_test_cb_count2;
@@ -864,8 +864,8 @@ TEST(io, IO_update_firesCallback)
 	IO_addWriteCommandToSequence(myTest_IO, 0xFF);
 	IO_setAddress   (myTest_IO, otherTestBuffer);
 	IO_setIOAction  (myTest_IO, IO_WRITE_SINGLE);
-	IO_set_actionDone_cb(myTest_IO, io_test_general_cb);
-	IO_setObjectPointer(myTest_IO, myTest_IO);
+	IO_set_actionDone_cb(myTest_IO, (void *)io_test_general_cb);
+	IO_setObjectPointer(myTest_IO, (void *)myTest_IO);
 	IO_addIOSequenceToList(myTest_IO);
 	IO_update();
 	IO_update();
@@ -900,7 +900,7 @@ TEST(io, IO_update_canBecalledMultipleTimesWithEmplyList)
 //****  Support Methods  ****************
 
 /**/
-struct IO * io_test_general_cb(struct IO * _self)
+void * io_test_general_cb(void * _self)
 {
 	io_test_cb_count++;
 	//printf("  XXX io_test_general_cb\n");

@@ -35,7 +35,8 @@ typedef enum io_read_write_t {
 	IO_READ_SEQUENTIAL
 } io_read_write_t;
 
-typedef struct IO * (* io_cb_fnct)(struct IO * _io);
+//typedef struct IO * (* io_cb_fnct)(struct IO * _io);
+typedef void * (* io_cb_fnct)(void * _io);
 
 
 
@@ -55,6 +56,9 @@ void IO_init(struct List * _ioSequenceList);
 
 // create a new sensor with new(), must specified
 // ... struct IO myIO = new(IO, ioActionList);
+
+// resets write and read counts indicating that the CMD buffer is clear
+void * IO_clearCommandSequences(void * _self);
 
 // write value to the sequence buffer
 // values will be written to IO address when IO_update() is called

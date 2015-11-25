@@ -32,8 +32,8 @@ struct Sensor {
 
 struct SensorClass {
 	const struct Class	_;	// should be superclass: Class or "somethingClass"
-	void * (*writeDataToSensor)	(void * _self, int _writeCount);
-	void * (*readDataFromSensor)(void * _self, int _writeCount, int _readCount);
+	void * (*writeDataToSensor)	(void * _self);
+	void * (*readDataFromSensor)(void * _self);
 
 	void * (*loadDefaults)    (void * _self);
 	void * (*enablePower)     (void * _self);
@@ -64,13 +64,12 @@ puto_return_t Sensor_default_puto(const void * _self, FILE * _fp);
 /**********************************/
 /**********  new methods  *********/
 
-void * super_Sensor_writeDataToSensor(const void * _class,
-		                                void * _self, int _writeCount);
-void * Sensor_default_writeDataToSensor(void * _self, int _writeCount);
+void * super_Sensor_writeDataToSensor(const void * _class, void * _self);
+void * Sensor_default_writeDataToSensor(void * _self);
 
 void * super_Sensor_default_readDataFromSensor(const void * _class,
-		                                 void * _self, int _writeCount, int _readCount);
-void * Sensor_default_readDataFromSensor(void * _self, int _writeCount, int _readCount);
+		                                 void * _self);
+void * Sensor_default_readDataFromSensor(void * _self);
 
 void * super_Sensor_loadDefaults(const void * _class, void * _self);
 void * Sensor_default_loadDefaults(void * _self);
