@@ -637,7 +637,21 @@ TEST(sensor, Sensor_setIoStructPointer_returnsUnknownOnNullPtr)
 	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_setIoStructPointer(NULL, (void *)5));
 }
 
+/****  getIoCommandBufPointer  ****************/
+/**/
+TEST(sensor, Sensor_getIoCommandBufPointer_returns_UnknownOnCreate)
+{
+	TEST_ASSERT_NOT_EQUAL(NULL,  Sensor_getIoCommandBufPointer(myTest_Sensor) );
+}
 
+TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
+{
+	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
+	void * originalPTR = myTest_Sensor->ioStructPtr->bufferPointer;
+	myTest_Sensor->ioStructPtr->bufferPointer = (void *)6;
+	TEST_ASSERT_EQUAL_PTR((void *)6,  Sensor_getIoCommandBufPointer(myTest_Sensor) );
+	myTest_Sensor->ioStructPtr->bufferPointer = originalPTR;
+}
 
 /****  check alarm state  ****************/
 
@@ -1347,7 +1361,6 @@ TEST(sensor, Sensor_measureAndProcess_sendsAllCommands)
 
 TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 {
-
 	// enable an IO list
 	void * IOTest_ioActionBuffer[16];
 	struct List * IOTest_ioActionList = new(List, IOTest_ioActionBuffer);
@@ -1356,14 +1369,15 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	// set the address element in the IO object to a known buffer address
 	io_data_t knownCharBuffer[16];
 	struct IO * localIoPtr = Sensor_getIoStructPointer(myTest_Sensor);
-	void * originalAddress = IO_setAddress(localIoPtr);
+	void * originalAddress = IO_getAddress(localIoPtr);
 	IO_setAddress(localIoPtr, knownCharBuffer);
 	//localIoPtr->address = knownCharBuffer;
 
 	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 1); // >0 triggers callback wait
 	Sensor_transitionState(myTest_Sensor, SENSOR_ENABLE_POWER);
 
-	// WARNING:  there need to be enough Sensor_update() calls to complete the state machine processing
+	// WARNING:  there need to be enough Sensor_update() calls to complete the
+	//           state machine processing ... reason is that example comm code shown
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
@@ -1377,7 +1391,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-
+	IO_update();
 
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
 
@@ -1602,11 +1616,56 @@ TEST(sensor, Sensor_resetMiniState_setsToStateZero)
 	TEST_ASSERT_EQUAL(SENSOR_MINI_STATE_START_0, Sensor_getMiniState(myTest_Sensor));
 }
 
-TEST(sensor, Sensor_irincrementMiniState_movesToNextState)
+TEST(sensor, Sensor_incrementMiniState_movesToNextState)
 {
 	Sensor_setMiniState(myTest_Sensor, SENSOR_MINI_STATE_3);
 	Sensor_incrementMiniState(myTest_Sensor);
 	TEST_ASSERT_EQUAL(SENSOR_MINI_STATE_4, Sensor_getMiniState(myTest_Sensor));
+}
+
+/***********  Sensor_postXXXXcallbacks  **************/
+/**/
+
+TEST(sensor, Sensor_postEnableSensorPower_stateEndsInAlignConfig)
+{
+	Sensor_transitionState(myTest_Sensor, SENSOR_WAITING_POWER);
+	Sensor_postEnablePower(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_ALIGN_CONFIG, Sensor_getSensorState(myTest_Sensor));
+}
+
+TEST(sensor, Sensor_postEnableSensorPower_NoStateChangeOnNullPtr)
+{
+	Sensor_transitionState(myTest_Sensor, SENSOR_WAITING_POWER);
+	Sensor_postEnablePower(NULL);
+	TEST_ASSERT_EQUAL(SENSOR_WAITING_POWER, Sensor_getSensorState(myTest_Sensor));
+}
+
+TEST(sensor, Sensor_postAlignAndConfig_stateEndsInStartMeasure)
+{
+	Sensor_transitionState(myTest_Sensor, SENSOR_WAITING_CONFIG);
+	Sensor_postAlignAndConfig(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_START_MEASUREMENT, Sensor_getSensorState(myTest_Sensor));
+}
+
+TEST(sensor, Sensor_postAlignAndConfig_NoStateChangeOnNullPtr)
+{
+	Sensor_transitionState(myTest_Sensor, SENSOR_WAITING_CONFIG);
+	Sensor_postAlignAndConfig(NULL);
+	TEST_ASSERT_EQUAL(SENSOR_WAITING_CONFIG, Sensor_getSensorState(myTest_Sensor));
+}
+
+TEST(sensor, Sensor_postStartMeasurement_stateEndsInGetRawData)
+{
+	Sensor_transitionState(myTest_Sensor, SENSOR_WAITING_MEASUREMENT);
+	Sensor_postStartMeasurement(myTest_Sensor);
+	TEST_ASSERT_EQUAL(SENSOR_GET_RAW_DATA, Sensor_getSensorState(myTest_Sensor));
+}
+
+TEST(sensor, Sensor_postStartMeasurement_NoStateChangeOnNullPtr)
+{
+	Sensor_transitionState(myTest_Sensor, SENSOR_WAITING_MEASUREMENT);
+	Sensor_postStartMeasurement(NULL);
+	TEST_ASSERT_EQUAL(SENSOR_WAITING_MEASUREMENT, Sensor_getSensorState(myTest_Sensor));
 }
 
 //****  Support Methods  ****************

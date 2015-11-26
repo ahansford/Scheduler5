@@ -180,7 +180,10 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_setIoStructPointer_returnsSpecificValue);
 	RUN_TEST_CASE(sensor, Sensor_setIoStructPointer_returnsUnknownOnNullPtr);
 
-
+	/****  getIoCommandBufPointer  ****************/
+	/**/
+	RUN_TEST_CASE(sensor, Sensor_getIoCommandBufPointer_returns_UnknownOnCreate);
+	RUN_TEST_CASE(sensor, Sensor_getIoCommandBufPointer_returns_specificValue);
 
 	//****  copy/Time_copy  ****************
 	/**/
@@ -266,17 +269,19 @@ TEST_GROUP_RUNNER(sensor)
 	//RUN_TEST_CASE(sensor, Sensor_stop_sendsPowerDownCommands);
 
 	RUN_TEST_CASE(sensor, Sensor_resetMiniState_setsToStateZero);
-	RUN_TEST_CASE(sensor, Sensor_irincrementMiniState_movesToNextState);
+	RUN_TEST_CASE(sensor, Sensor_incrementMiniState_movesToNextState);
 
-	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_sendsResetAndConfigCommands);
-	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_armsSchedulerCallback_forReset);
-	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_stateEndsInWaitingReset);
-	//RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_NoStateChangeOnNullPtr);
 
-	//RUN_TEST_CASE(sensor, Sensor_postResetAndConfig_sendsMeasurementCommands);
-	//RUN_TEST_CASE(sensor, Sensor_postResetAndConfig_armsSchedulerCallback_forMeasurement);
-	//RUN_TEST_CASE(sensor, Sensor_postResetAndConfig_stateEndsInWaitingReset);
-	//RUN_TEST_CASE(sensor, Sensor_postResetAndConfig_NoStateChangeOnNullPtr);
+	/***********  Sensor_postXXXXcallbacks  **************/
+	/**/
+	RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_stateEndsInAlignConfig);
+	RUN_TEST_CASE(sensor, Sensor_postEnableSensorPower_NoStateChangeOnNullPtr);
+
+	RUN_TEST_CASE(sensor, Sensor_postAlignAndConfig_stateEndsInStartMeasure);
+	RUN_TEST_CASE(sensor, Sensor_postAlignAndConfig_NoStateChangeOnNullPtr);
+
+	RUN_TEST_CASE(sensor, Sensor_postStartMeasurement_stateEndsInGetRawData);
+	RUN_TEST_CASE(sensor, Sensor_postStartMeasurement_NoStateChangeOnNullPtr);
 
 }
 

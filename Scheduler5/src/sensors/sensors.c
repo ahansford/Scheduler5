@@ -1604,7 +1604,7 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 	// comm address is usually set externally once just after new(Sensor)
 	// do not allow default sensor to attempt reads/writes to a NULL address
 	void * address = IO_getAddress(localIoStructPtr);
-	if ( address == NULL ) { printf("FAIL: NULL address\n"); return NULL; }  // fail
+	if ( address == NULL ) { return NULL; }  // fail
 
 	// set for sequential writes to successive locations starting with "address"
 	// default sensor is a simple memory access module and assumes sequential
@@ -1684,13 +1684,15 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 
 static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 {
-	//  WARNING:  Must add primary state machine transition in last mini-state
+	//  Example power enable process:
+	//  miniState 0: load command buffer and add write sequence to IO manager
+	//  miniState 1: wait for IO manager callback fire to increment miniState
+	//  miniState 2: arm scheduler task with power delay + transition main SM
 
 	miniState_t localMiniState = Sensor_getMiniState(_self);
 	switch (localMiniState) {
 
 	case SENSOR_MINI_STATE_START_0: {
-		printf("default sensor enable power: miniState_0\n");
 		// Example:  create write/read sequence to enable power an I2C sensor
 		//           ... this command example only will take no action if
 		//           ... address is set to NULL
@@ -1710,60 +1712,40 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 			break;
 		}
 
-		//comm address is usually set externally once, just after new(Sensor)
-		//IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
+		// comm address is usually set externally once, just after new(Sensor)
+		// IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
+		// a NULL address will fail
 
 		// clear the command buffer
 		IO_clearCommandSequences(localIoStructPtr);
 
-		// add register value to command buffer
-		if ( IO_addWriteCommandToSequence(localIoStructPtr, 0x03) == NULL )  {
-			printf("FAIL: implement_Sensor_default_enablePower: IO_addWriteCommandToSequence\n ");
-			return NULL;
-		}
+		// add register and data values to command buffer
+		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
+		IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
 
-		// add data value to command buffer
-		if ( IO_addWriteCommandToSequence(localIoStructPtr, 0x41) == NULL )  {
-			printf("FAIL: implement_Sensor_default_enablePower: IO_addWriteCommandToSequence\n ");
-			return NULL;
-		}
-
+		// set communication complete callback to Sensor_incrementMiniState()
 		IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct)Sensor_incrementMiniState);
 		IO_setObjectPointer(localIoStructPtr, _self);
 
-		if ( Sensor_writeDataToSensor(_self) == NULL )
-			{ printf("FAIL: implement_Sensor_default_enablePower: Sensor_writeDataToSensor\n "); }
+		// transmit the IO object to the IO manager via Sensor_writeDataToSensor()
+		Sensor_writeDataToSensor(_self);
 
+		// transition to a waiting miniState
 		Sensor_incrementMiniState(_self);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_1: {
-		printf("default sensor enable power: miniState_1\n");
 		// a wait state that takes no action
 		// transition to next miniState is usually through io_cb_fnct callback
 		// Sensor_incrementMiniState(_self);
-
-		// NOTE:  this example includes Sensor_incrementMiniState()
-		//        ... but it would not normally be explicitly included here
-		Sensor_incrementMiniState(_self);
 		break;
 	}
 
 	case SENSOR_MINI_STATE_2: {
-		printf("default sensor enable power: miniState_2\n");
-		// add additional register writes or reads if needed
-		// read the sensor datasheets carefully
-		// some devices may require one or more polling operations
-		//Sensor_incrementMiniState(_self);
-		break;
-	}
-
-	case SENSOR_MINI_STATE_3: {
-		printf("default sensor enable power: miniState_3\n");
 		// last mini-state
 		// all device communication is complete
-		// set callback to fire, OR automatically transition if delay is zero
+		// arm scheduler task to fire, OR automatically transition on 0 delay
 		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
 		if ( delayTicks > 0 ) {
 			Sensor_armDelayedCallback(_self,
@@ -1777,7 +1759,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		break;
 	}
 
-	default: { printf("default sensor enable power: miniState_default\n"); break; }
+	default: { break; }
 
 	} // end switch
 

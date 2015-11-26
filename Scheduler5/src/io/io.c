@@ -394,16 +394,15 @@ void IO_update(void)
 {
 	switch (io_update_state) {
 
-	case IO_UPDATE_UNKNOWN: { printf("IO_update: IO_UPDATE_UNKNOWN\n");
+	case IO_UPDATE_UNKNOWN: {
 		io_update_state = IO_UPDATE_IDLE;
 		break;
 	}
 
-	case IO_UPDATE_IDLE: { printf("IO_update: IO_UPDATE_IDLE\n");
+	case IO_UPDATE_IDLE: {
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time
 		sequence = IO_getActionFromList();
-		printf("IO action from list: %p\n", sequence);
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
 			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
@@ -412,7 +411,7 @@ void IO_update(void)
 		break;
 	}
 
-	case IO_UPDATE_EXECUTE_COMMAND: { printf("IO_update: IO_UPDATE_EXECUTE_COMMAND\n");
+	case IO_UPDATE_EXECUTE_COMMAND: {
 		// set next transition to WAITING ... assumes the wait is needed
 		// the IO_processSequence() method can override with COMPLETE if needed
 		// immediate action drivers should override
@@ -427,27 +426,26 @@ void IO_update(void)
 		break;
 	}
 
-	case IO_UPDATE_WAITING_COMMAND: { printf("IO_update: IO_UPDATE_WAITING_COMMAND\n");
+	case IO_UPDATE_WAITING_COMMAND: {
 		// do nothing
 		// wait for IO_commandExecuteComplete_cb() callback to transition state
 		break;
 	}
 
-	case IO_UPDATE_SEQUENCE_COMPLETE: { printf("IO_update: IO_UPDATE_SEQUENCE_COMPLETE\n");
+	case IO_UPDATE_SEQUENCE_COMPLETE: {
 		// transition to IDLE on next call, regardless of callback status
 		io_update_state = IO_UPDATE_IDLE;
 
 		//sequence processing is complete, fire the sequence callback
 		io_cb_fnct callbackFunctionPointer = IO_get_actionDone_cb(sequence);
 		if ( callbackFunctionPointer != NULL ) {
-			printf("firing callback from IO_UPDATE_SEQUENCE_COMPLETE\n");
 			sequence->actionDone_cb(sequence->objectPointer);
 		}
 
 		break;
 	}
 
-	default: { printf("IO_update: default\n"); break; }
+	default: { break; }
 	}  //  end switch
 
 	return;
