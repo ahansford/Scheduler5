@@ -1700,21 +1700,15 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		// get pointer to the struct IO
 		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 		                                    Sensor_getIoStructPointer(_self);
-		if ( localIoStructPtr == NULL ) {
-			Sensor_incrementMiniState(_self);  // fail
-			break;
-		}
+		if ( localIoStructPtr == NULL ) { return NULL; }  // fail
 
 		//  get pointer to the command buffer
 		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
-		if ( commandBufferPTR == NULL ) {
-			Sensor_incrementMiniState(_self);   // fail
-			break;
-		}
+		if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
 		// comm address is usually set externally once, just after new(Sensor)
-		// IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
-		// a NULL address will fail
+		// IO_setAddress(localIoStructPtr, 0x40);  // I2C example address
+		// a NULL address will fail to write in IO
 
 		// clear the command buffer
 		IO_clearCommandSequences(localIoStructPtr);
@@ -1724,10 +1718,12 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
 
 		// set communication complete callback to Sensor_incrementMiniState()
-		IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct)Sensor_incrementMiniState);
+		IO_set_actionDone_cb(localIoStructPtr,
+										(io_cb_fnct)Sensor_incrementMiniState);
 		IO_setObjectPointer(localIoStructPtr, _self);
 
-		// transmit the IO object to the IO manager via Sensor_writeDataToSensor()
+		// transmit the IO object to IO manager via Sensor_writeDataToSensor()
+		// NOTE: might place write operation inside a NULL test to return error
 		Sensor_writeDataToSensor(_self);
 
 		// transition to a waiting miniState
@@ -1834,14 +1830,104 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 
 	// store raw data
 	struct Sensor * self = cast(Sensor, _self);
-	if ( self == NULL) { return NULL; }// fail
+	if ( self == NULL)             { return NULL; }  // fail
 
 	struct Node * localRawDataPtr = Sensor_getRawDataPointer  (_self);
-	if ( localRawDataPtr == NULL ) { return NULL; }
+	if ( localRawDataPtr == NULL ) { return NULL; }  // fail
 
-	// default sensor is virtual and does not read actual data
-	// any raw data needed for testing should be set externally prior to test
-	//localRawDataPtr->nodeValue = 99;
+	//  Example power enable process:
+	//  miniState 0: load command buffer and add write sequence to IO manager
+	//  miniState 1: wait while IO manager reads data back into the buffer
+	//  miniState 2: transfer data into the rawDataBuffer + transition state
+
+	miniState_t localMiniState = Sensor_getMiniState(_self);
+	switch (localMiniState) {
+
+	case SENSOR_MINI_STATE_START_0: {
+		// Example:  create write/read sequence to enable power an I2C sensor
+		//           ... this command example only will take no action if
+		//           ... address is set to NULL
+
+		// get pointer to the struct IO
+		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+											Sensor_getIoStructPointer(_self);
+		if ( localIoStructPtr == NULL ) { return NULL; }  // fail
+
+		//  get pointer to the command buffer
+		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+		if ( commandBufferPTR == NULL ) { return NULL; }  // fail
+
+		// comm address is usually set externally once, just after new(Sensor)
+		// IO_setAddress(localIoStructPtr, 0x40);  // I2C example address
+		// a NULL address will fail to write in IO
+
+		// clear the command buffer
+		IO_clearCommandSequences(localIoStructPtr);
+
+		// add register/data values to command buffer to trigger read operation
+		// in example code no values are written to buffer
+		// ... unit test can externally set a test value
+		// ... write commands are not needed in example
+		//IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
+		//IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
+
+		// load the number of bytes to read back into the readCount "1" here
+		// the write counts are automatically handled
+		IO_setReadCount(localIoStructPtr, 1);
+
+		// set communication complete callback as Sensor_incrementMiniState()
+		IO_set_actionDone_cb(localIoStructPtr,
+										(io_cb_fnct)Sensor_incrementMiniState);
+		IO_setObjectPointer(localIoStructPtr, _self);
+
+		// transmit the IO object to IO manager via Sensor_writeDataToSensor()
+		// NOTE: might test for NULL return errors
+		Sensor_readDataFromSensor(_self);
+
+		// transition to a waiting miniState
+		Sensor_incrementMiniState(_self);
+		break;
+	}
+
+	case SENSOR_MINI_STATE_1: {
+		// a wait state that takes no action
+		// transition to next miniState is usually through io_cb_fnct callback
+		// Sensor_incrementMiniState(_self);
+		break;
+	}
+
+	case SENSOR_MINI_STATE_2: {
+		// last mini-state
+		// all device communication is complete
+
+		// transfer data to the rawDataBuffer
+		// get pointer to the buffer in the struct IO object
+		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+											Sensor_getIoStructPointer(_self);
+		if ( localIoStructPtr == NULL )  { return NULL; }  // fail
+		io_data_t * localBufferPointer = IO_getBufferPointer(localIoStructPtr);
+		if ( localBufferPointer == NULL ) { return NULL; }  // fail
+
+		// get the raw buffer pointer in the sensor structure
+		struct Node * localRawDataPtr = Sensor_getRawDataPointer(_self);
+		if ( localRawDataPtr == NULL )   { return NULL; }
+
+		// copy data from IO buffer to sensor raw data buffer
+		// WARNING:  the sensor data is held in a Node structure while the
+		//           ... IO buffer is an array of char ... be careful
+		//           ... processing multiple sequential read values
+		setValue(localRawDataPtr, localBufferPointer[0];
+
+
+		// transition to next state
+		Sensor_transitionState(_self, SENSOR_DISABLE_POWER);
+		break;
+	}
+
+	default: { break; }
+
+	} // end switch
+
 
 	Sensor_transitionState(_self, SENSOR_DISABLE_POWER);
 	return _self;
