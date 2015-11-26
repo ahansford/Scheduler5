@@ -1916,7 +1916,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		// WARNING:  the sensor data is held in a Node structure while the
 		//           ... IO buffer is an array of char ... be careful
 		//           ... processing multiple sequential read values
-		setValue(localRawDataPtr, localBufferPointer[0];
+		setValue(localRawDataPtr, localBufferPointer[0]);
 
 
 		// transition to next state
