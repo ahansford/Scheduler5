@@ -861,6 +861,7 @@ TEST(io, IO_update_readMultipleValuesfromSingleLocation)
 
 TEST(io, IO_update_firesCallback)
 {
+	printf("TEST %i: IO_update_firesCallback\n", __LINE__);
 	IO_addWriteCommandToSequence(myTest_IO, 0xFF);
 	IO_setAddress   (myTest_IO, otherTestBuffer);
 	IO_setIOAction  (myTest_IO, IO_WRITE_SINGLE);
@@ -872,6 +873,10 @@ TEST(io, IO_update_firesCallback)
 	//IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(0xFF, otherTestBuffer[0] );
 	//IO_sequenceComplete_cb();
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(1, io_test_cb_count );

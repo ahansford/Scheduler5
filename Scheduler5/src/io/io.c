@@ -748,11 +748,6 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 
 	}// end switch
 
-	// fire the callback designated in the struct IO object
-	io_cb_fnct function_CB = IO_get_actionDone_cb(_self);
-	void *     pointer     = IO_getObjectPointer(_self);
-	if ( function_CB != NULL ) { function_CB(pointer); }
-
 	// fire the sequence complete cb since transfer activity is immediate
 	// overloaded methods might prefer to have the hardware driver
 	// determine the time when the sequence complete callback is fired

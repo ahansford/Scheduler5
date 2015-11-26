@@ -1713,13 +1713,23 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		//comm address is usually set externally once, just after new(Sensor)
 		//IO_setAddress(localIoStructPtr, (void *)0x40);  // I2C example address
 
-		IO_clearCommandSequences    (localIoStructPtr);        // clear buffer
-		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);  // register
-		IO_addWriteCommandToSequence(localIoStructPtr, 0xF1);  // data value
+		// clear the command buffer
+		IO_clearCommandSequences(localIoStructPtr);
 
-		// set the callbacks from IO once the command sequence has been processed
+		// add register value to command buffer
+		if ( IO_addWriteCommandToSequence(localIoStructPtr, 0x03) == NULL )  {
+			printf("FAIL: implement_Sensor_default_enablePower: IO_addWriteCommandToSequence\n ");
+			return NULL;
+		}
+
+		// add data value to command buffer
+		if ( IO_addWriteCommandToSequence(localIoStructPtr, 0x41) == NULL )  {
+			printf("FAIL: implement_Sensor_default_enablePower: IO_addWriteCommandToSequence\n ");
+			return NULL;
+		}
+
 		IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct)Sensor_incrementMiniState);
-		IO_set_actionDone_cb(localIoStructPtr, (void *)_self);
+		IO_setObjectPointer(localIoStructPtr, _self);
 
 		if ( Sensor_writeDataToSensor(_self) == NULL )
 			{ printf("FAIL: implement_Sensor_default_enablePower: Sensor_writeDataToSensor\n "); }
