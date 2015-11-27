@@ -185,6 +185,12 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_getIoCommandBufPointer_returns_UnknownOnCreate);
 	RUN_TEST_CASE(sensor, Sensor_getIoCommandBufPointer_returns_specificValue);
 
+	/****  Sensor_writeCommandsToSensor  ****************/
+	/**/
+	RUN_TEST_CASE(sensor, Sensor_writesCommandDataToSpecifiedLocation);
+	RUN_TEST_CASE(sensor, Sensor_takesNoActionOnNullAddress);
+	RUN_TEST_CASE(sensor, Sensor_takesNoActionOnNullObject);
+
 	//****  copy/Time_copy  ****************
 	/**/
 	RUN_TEST_CASE(sensor, copy_returnsSelfOnSuccess);

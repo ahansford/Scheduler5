@@ -369,10 +369,11 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self)
 {
+	printf("IO_addIOSequenceToList\n");
 	struct IO * self = cast(IO, _self);
 	if( self == NULL ) { return NULL; } // fail
 	void * itemAddedToListPtr = add(ioSequenceList, self);
-	if ( itemAddedToListPtr == NULL ) { printf("IO_addIOSequenceToList fail\n"); }
+	if ( itemAddedToListPtr == NULL ) { printf("FAIL: IO_addIOSequenceToList\n"); }
 	return _self;
 }
 
@@ -395,16 +396,19 @@ void IO_update(void)
 	switch (io_update_state) {
 
 	case IO_UPDATE_UNKNOWN: {
+		printf("IO_UPDATE_UNKNOWN\n");
 		io_update_state = IO_UPDATE_IDLE;
 		break;
 	}
 
 	case IO_UPDATE_IDLE: {
+		//printf("IO_UPDATE_IDLE\n");
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time
 		sequence = IO_getActionFromList();
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
+			printf("IO sequence found\n");
 			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
 		}
 		// no sequence to transmit ... do nothing
@@ -412,6 +416,7 @@ void IO_update(void)
 	}
 
 	case IO_UPDATE_EXECUTE_COMMAND: {
+		printf("IO_UPDATE_EXECUTE_COMMAND\n");
 		// set next transition to WAITING ... assumes the wait is needed
 		// the IO_processSequence() method can override with COMPLETE if needed
 		// immediate action drivers should override
@@ -427,12 +432,14 @@ void IO_update(void)
 	}
 
 	case IO_UPDATE_WAITING_COMMAND: {
+		printf("IO_UPDATE_WAITING_COMMAND\n");
 		// do nothing
 		// wait for IO_commandExecuteComplete_cb() callback to transition state
 		break;
 	}
 
 	case IO_UPDATE_SEQUENCE_COMPLETE: {
+		printf("IO_UPDATE_SEQUENCE_COMPLETE\n");
 		// transition to IDLE on next call, regardless of callback status
 		io_update_state = IO_UPDATE_IDLE;
 
@@ -716,6 +723,7 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	}
 
 	case IO_WRITE_SEQUENTIAL: {
+		printf("executing IO_WRITE_SEQUENTIAL sequence\n");
 		IO_io_writeSequential(address, bufferAddress, writeCount);
 		break;
 	}
@@ -769,6 +777,7 @@ static void IO_io_writeSingle(void * _to, void * _from, int _writeCount)
 
 static void IO_io_writeSequential(void * _to, void * _from, int _writeCount)
 {
+	printf("IO_io_writeSequential\n");
 	int i;
 	io_data_t * to = _to;
 	io_data_t * from = _from;
