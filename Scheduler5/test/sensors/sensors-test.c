@@ -653,6 +653,56 @@ TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
 	myTest_Sensor->ioStructPtr->bufferPointer = originalPTR;
 }
 
+/****  Sensor_writeCommandsToSensor  ****************/
+/**/
+TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
+{
+	printf("\nTEST: Sensor_writesCommandDataToSpecifiedLocation line: %i\n", __LINE__);
+
+	void * IO_actionBuffer[0];
+	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
+	IO_init(IOTest_ioActionList);
+
+	io_data_t targetArray[4];
+	targetArray[0] = 0;
+	targetArray[1] = 0;
+	TEST_ASSERT_EQUAL(0,  targetArray[0] );
+	TEST_ASSERT_EQUAL(0,  targetArray[1] );
+
+	struct IO * IO_struct = Sensor_getIoStructPointer(myTest_Sensor);
+	IO_struct->address = targetArray;
+	IO_struct->bufferPointer[0]= 0x05;
+	IO_struct->bufferPointer[1]= 0x06;
+	IO_struct->writeCount = 2;
+	//myTest_Sensor->ioStructPtr->ioAction = IO_WRITE_SEQUENTIAL;
+	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
+	IO_update();
+	IO_update();
+	IO_update();
+	IO_update();
+	IO_update();
+
+	TEST_ASSERT_EQUAL(0x05,  targetArray[0] );
+	TEST_ASSERT_EQUAL(0x06,  targetArray[1] );
+
+	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
+	printf("TEST END\n");
+}
+
+TEST(sensor, Sensor_takesNoActionOnNullAddress)
+{
+	myTest_Sensor->ioStructPtr->address = NULL;
+	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_writeDataToSensor(myTest_Sensor) );
+}
+
+TEST(sensor, Sensor_takesNoActionOnNullObject)
+{
+	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_writeDataToSensor(NULL) );
+}
+
+
+
+
 /****  check alarm state  ****************/
 
 TEST(sensor, Sensor_checkAlarms_detects_Below)
