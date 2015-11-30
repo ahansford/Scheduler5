@@ -799,8 +799,6 @@ TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 
 }
 
-
-
 TEST(io, IO_update_readSingleValue)
 {
 	otherTestBuffer[0] = 0x01;
@@ -881,7 +879,7 @@ TEST(io, IO_update_firesCallback)
 	TEST_ASSERT_EQUAL(1, io_test_cb_count );
 }
 
-TEST(io, IO_update_canBecalledMultipleTimesWithEmplyList)
+TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 {
 	IO_update();
 	IO_update();

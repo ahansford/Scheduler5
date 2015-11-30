@@ -30,7 +30,7 @@ static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp);
 
 static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value);
 static void * implement_IO_io_processSequence(struct IO * _self);
-static void * implement_IO_io_read(struct IO * _self);
+static void * implement_IO_io_xxxx(struct IO * _self);
 
 static void IO_io_writeSingle    (void * _to, void * _from, int _writeCount);
 static void IO_io_writeSequential(void * _to, void * _from, int _writeCount);
@@ -361,7 +361,7 @@ void * IO_io_xxxx(void * _self)
 {
 	struct IO * self = cast(IO, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_IO_io_read(self);
+	return implement_IO_io_xxxx(self);
 }
 
 /*************************************************************/
@@ -819,7 +819,7 @@ static void IO_io_readSequential(void * _to, void * _from, int _readCount)
 }
 
 
-static void * implement_IO_io_read(struct IO * _self)
+static void * implement_IO_io_xxxx(struct IO * _self)
 {
 	// TODO:  Update with actual code in
 	return NULL;  // remove this fail

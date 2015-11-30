@@ -169,7 +169,7 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_update_readMultipleValuesfromSingleLocation);
 
 	RUN_TEST_CASE(io, IO_update_firesCallback);
-	RUN_TEST_CASE(io, IO_update_canBecalledMultipleTimesWithEmplyList);
+	RUN_TEST_CASE(io, IO_update_canBeCalledMultipleTimesWithEmplyList);
 
 
 }

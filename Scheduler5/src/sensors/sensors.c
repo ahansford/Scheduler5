@@ -1623,9 +1623,33 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 
 static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self)
 {
-	// TODO:  Update with actual code in
-	// TODO:  may need to restructure parameters to incorporate commandBuffer
-	return _self;
+	printf("implement_Sensor_default_writeDataToSensor\n");
+		// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
+		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+		                                    Sensor_getIoStructPointer(_self);
+		if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
+
+		// get command buffer pointer
+		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+		if ( commandBufferPTR == NULL ) { return NULL; }  // fail no cmd buffer
+
+		// do not allow default sensor to attempt reads/writes to a NULL address
+		// comm address is usually set externally once just after new(Sensor)
+		void * address = IO_getAddress(localIoStructPtr);
+		if ( address == NULL ) { return NULL; }  // fail
+
+		// set for sequential writes to successive locations starting with "address"
+		// default sensor is a simple memory access module and assumes sequential
+		IO_setIOAction(localIoStructPtr, IO_READ_SEQUENTIAL);
+
+		// add the command sequence to the IO list for processing when possible
+		if ( IO_addIOSequenceToList(localIoStructPtr) == localIoStructPtr) {
+			return _self;  // expected return path
+		}
+		else {
+			return NULL;  // fail in IO
+		}
+		return NULL; // fail
 }
 
 

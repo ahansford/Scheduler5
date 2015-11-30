@@ -188,8 +188,15 @@ TEST_GROUP_RUNNER(sensor)
 	/****  Sensor_writeCommandsToSensor  ****************/
 	/**/
 	RUN_TEST_CASE(sensor, Sensor_writesCommandDataToSpecifiedLocation);
-	RUN_TEST_CASE(sensor, Sensor_takesNoActionOnNullAddress);
-	RUN_TEST_CASE(sensor, Sensor_takesNoActionOnNullObject);
+	RUN_TEST_CASE(sensor, Sensor_writesCommandtakesNoActionOnNullAddress);
+	RUN_TEST_CASE(sensor, Sensor_writesCommandtakesNoActionOnNullObject);
+
+	/****  Sensor_readCommandsFromSensor  ****************/
+	/**/
+	RUN_TEST_CASE(sensor, Sensor_readsCommandDataFromSpecifiedLocation);
+	RUN_TEST_CASE(sensor, Sensor_readsCommandtakesNoActionOnNullAddress);
+	RUN_TEST_CASE(sensor, Sensor_readsCommandtakesNoActionOnNullObject);
+
 
 	//****  copy/Time_copy  ****************
 	/**/

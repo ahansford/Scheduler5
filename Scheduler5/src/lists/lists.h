@@ -19,6 +19,9 @@
 /**** forward declarations and typedefs  *******/
 
 extern const void * List; 		// new(List, void * []);
+// WARNING:  void * array[] should have at least one element
+// TODO: modify List code to trap zero initial elements in list
+// TODO:  modify List test code to confirm zero elements does not crash
 extern const void * ListClass;
 
 typedef enum containts_t { DOES_NOT_CONTAIN = 0,
