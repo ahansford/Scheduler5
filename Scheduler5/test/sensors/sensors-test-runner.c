@@ -166,6 +166,7 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_checkAlarms_Returns_UnknownOnMissingThresholds);
 	RUN_TEST_CASE(sensor, Sensor_checkAlarms_Returns_UnknownOnMissingUpperThreshold);
 	RUN_TEST_CASE(sensor, Sensor_checkAlarms_Returns_UnknownOnMissingLowerThreshold);
+	RUN_TEST_CASE(sensor, Sensor_checkAlarms_Returns_UnknownOnUnknownNormalState);
 
 	/****  Sensor_dataReady  ****************/
 	/**/

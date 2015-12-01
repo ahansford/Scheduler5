@@ -628,8 +628,8 @@ static void * implement_Sensor_default_ctor(void * _self)
 			               (command_t *)malloc(sizeof(command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
-	// WARNING TODO:  the internal IO management list and IO_init() should
-	//                ... be created external to sensor.  This weakness should
+	// WARNING TODO:  the internal IO management List needed for IO_init() should
+	//                ... be created external to Sensor.  This weakness should
 	//                ... be corrected
 	// create new IO access structure object
 	struct IO * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
@@ -1500,7 +1500,11 @@ void * Sensor_stopAndRemovePower(void * _self)
 		Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
 	}
 
-	// TODO: add protection against previously registered async communication calls
+	// TODO: add protection against previously registered async communication
+	//       ... there may be communication sequences already registered in
+	//       ... the IO driver.  These comm sequences will execute when
+	//       ... possible and will likely assume that the sensor is powered.
+	//       ... Need to unwind these calls without hanging the system.
 
 	return self;
 }
@@ -1686,9 +1690,9 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 
 static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 {
-	Sensor_setPowerUpDelayTicks    (_self, 0); // >0 triggers callback wait
-	Sensor_setAlignConfigDelayTicks(_self, 0); // >0 triggers callback wait
-	Sensor_setMeasurementDelayTicks(_self, 0); // >0 triggers callback wait
+	Sensor_setPowerUpDelayTicks    (_self, SENSOR_DEFAULT_POWER_UP_DELAY_TICKS);
+	Sensor_setAlignConfigDelayTicks(_self, SENSOR_DEFAULT_CONFIG_DELAY_TICKS);
+	Sensor_setMeasurementDelayTicks(_self, SENSOR_DEFAULT_MEASUREMENT_DELAY_TICKS);
 
 	// Do not modify object pointers.  These are managed in ctor and dtor.
 	//Sensor_setRawDataPointer       (_self, NULL);
@@ -1798,7 +1802,7 @@ void Sensor_postEnablePower(void * _self)
 
 static void * implement_Sensor_default_alignAndConfig(struct Sensor * _self)
 {
-	// TODO: add sensor specific code
+	// add any sensor specific code here
 
 	// set callback to fire, OTHERWISE automatically transition
 	int delayTicks = Sensor_getAlignConfigDelayTicks(_self);
@@ -1824,7 +1828,7 @@ void Sensor_postAlignAndConfig(void * _self)
 
 static void * implement_Sensor_default_startMeasurement(struct Sensor * _self)
 {
-	// TODO:  Update with actual code
+	// add any sensor specific code here
 
 	// set callback to fire, OTHERWISE automatically transition
 	int delayTicks = Sensor_getMeasurementDelayTicks(_self);
@@ -1851,7 +1855,7 @@ void Sensor_postStartMeasurement(void * _self)
 
 static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 {
-	// TODO:  Update with actual code
+	// add any sensor specific code here
 
 	// store raw data
 	struct Sensor * self = cast(Sensor, _self);
@@ -1979,7 +1983,8 @@ void * implement_Sensor_default_disablePower(struct Sensor * _self)
 
 void * Sensor_default_sendDisablePowerCommands(void * _self)
 {
-	// TODO: add actual code
+	// add any sensor specific code here
+
 	return _self;
 }
 

@@ -1029,6 +1029,40 @@ TEST(sensor, Sensor_checkAlarms_Returns_UnknownOnMissingLowerThreshold)
 	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  Sensor_getAlarmState(myTest_Sensor));
 }
 
+TEST(sensor, Sensor_checkAlarms_Returns_UnknownOnUnknownNormalState)
+{
+	Sensor_setLowerPrimaryAlarmLevel(myTest_Sensor, 99);
+	Sensor_setUpperSecondaryAlarmLevel(myTest_Sensor, 101);
+	Sensor_setNormalState(myTest_Sensor, ALARM_TYPE_UNKNOWN); //  <<--
+	struct Node * localFinalDataPtr = myTest_Sensor->finalDataPointer;
+
+	localFinalDataPtr->nodeValue = 98;
+	Sensor_setSensorState(myTest_Sensor, SENSOR_CHECK_ALARMS);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  Sensor_getAlarmState(myTest_Sensor));
+
+	localFinalDataPtr->nodeValue = 99;
+	Sensor_setSensorState(myTest_Sensor, SENSOR_CHECK_ALARMS);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  Sensor_getAlarmState(myTest_Sensor));
+
+	localFinalDataPtr = Sensor_getFinalDataPointer(myTest_Sensor);
+	localFinalDataPtr->nodeValue = 100;
+	Sensor_setSensorState(myTest_Sensor, SENSOR_CHECK_ALARMS);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  Sensor_getAlarmState(myTest_Sensor));
+
+	localFinalDataPtr->nodeValue = 101;
+	Sensor_setSensorState(myTest_Sensor, SENSOR_CHECK_ALARMS);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  Sensor_getAlarmState(myTest_Sensor));
+
+	localFinalDataPtr->nodeValue = 102;
+	Sensor_setSensorState(myTest_Sensor, SENSOR_CHECK_ALARMS);
+	Sensor_update(myTest_Sensor);
+	TEST_ASSERT_EQUAL(ALARM_TYPE_UNKNOWN,  Sensor_getAlarmState(myTest_Sensor));
+}
+
 //****  Sensor_reportReady  ****************
 /**/
 TEST(sensor, Sensor_reportReady_returns_NotReadyOnCreate)

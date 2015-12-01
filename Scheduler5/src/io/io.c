@@ -821,6 +821,6 @@ static void IO_io_readSequential(void * _to, void * _from, int _readCount)
 
 static void * implement_IO_io_xxxx(struct IO * _self)
 {
-	// TODO:  Update with actual code in
-	return NULL;  // remove this fail
+	// Update with actual code in
+	return NULL;  // remove this fail when actual code is added
 }
