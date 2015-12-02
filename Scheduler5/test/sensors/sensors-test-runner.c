@@ -209,12 +209,19 @@ TEST_GROUP_RUNNER(sensor)
 	//****  equal/Button_equal  ********************
 	/**/
 	RUN_TEST_CASE(sensor, myTest_Sensor_IsEqualTo_myTest_Sensor);
-	RUN_TEST_CASE(sensor, equal_UnequalSensorStateReturn_Unequal);
-	RUN_TEST_CASE(sensor, equal_UnequalResetDelayTicksReturn_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalSensorStateReturn_Equal);
+	RUN_TEST_CASE(sensor, equal_UnequalMiniStateReturn_Equal);
+	RUN_TEST_CASE(sensor, equal_UnequalAsyncFlagReturn_Equal);
+
+	RUN_TEST_CASE(sensor, equal_UnequalEnablePowerDelayTicksReturn_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalAlignConfigDelayTicksReturn_Unequal);
 	RUN_TEST_CASE(sensor, equal_UnequalMeasurementDelayTicksReturn_Unequal);
 	RUN_TEST_CASE(sensor, equal_UnequalAlarmStateReturn_Unequal);
 	RUN_TEST_CASE(sensor, equal_UnequalNormalStateReturn_Unequal);
-	RUN_TEST_CASE(sensor, equal_UnequalNormalReportReadyCB_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalReportReadyCB_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalAlarmReadyCB_Unequal);
+
+	RUN_TEST_CASE(sensor, equal_UnequalAddress_Unequal);
 
 	RUN_TEST_CASE(sensor, equal_NullReturns_Null);
 	RUN_TEST_CASE(sensor, equal_CopiedSensorReturnsEqual);

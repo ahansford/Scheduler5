@@ -20,10 +20,10 @@
 
 /**************************************/
 /***** Implementation Functions  ******/
-static void * implement_Sensor_default_ctor (void * _self);
-static void * implement_Sensor_default_dtor (      struct Sensor * _self);
-static void * implement_Sensor_default_copy (      struct Sensor * _copyTo,
-                                             const struct Sensor * _copyFrom);
+static void * implement_Sensor_default_ctor(void * _self);
+static void * implement_Sensor_default_dtor(      struct Sensor * _self);
+static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
+                                            const struct Sensor * _copyFrom);
 static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 		                                      const struct Sensor * _comparisonObject);
 static void * implement_Sensor_default_config(struct Sensor * _self,
@@ -79,10 +79,10 @@ void Sensor_init(void)
 						0);  // Terminator
 	}
 	if (! Sensor) {
-		Sensor = new(SensorClass,			// SomethingClass from above
-					"Sensor",				// name like "Something"
-					Object,  			// "superclass(Something)"
-					sizeof(struct Sensor),// size of self
+		Sensor = new(SensorClass,		    // SomethingClass from above
+					"Sensor",		        // name like "Something"
+					Object,  			    // "superclass(Something)"
+					sizeof(struct Sensor),  // size of self
 					// Overloaded superclass functions
 					// Remember to call superclass->method
 					ctor,	Sensor_default_ctor,//Something_ctor
@@ -301,9 +301,9 @@ equal_t Sensor_default_equal(const void * _self, const void * _comparisonObject)
 void * Sensor_config(const void * _self, const void * _master)
 {
 	struct Sensor * self = cast(Sensor, _self);
-	if ( self == NULL )   { return NULL; }          // fail
+	if ( self == NULL )   { return NULL; }  // fail
 	struct Sensor * master = cast(Sensor, _master);
-	if ( master == NULL ) { return NULL; }          // fail
+	if ( master == NULL ) { return NULL; }  // fail
 	return implement_Sensor_default_config(self, _master);  // expected path
 }
 
@@ -389,7 +389,7 @@ void * Sensor_default_readDataFromSensor(void * _self)
 void *  Sensor_loadDefaults(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )               { return NULL; } // fail
 	if ( class->loadDefaults == NULL ) { return NULL; } // fail
 	return class->loadDefaults(_self);
 }
@@ -475,7 +475,7 @@ void * Sensor_default_alignAndConfig(void * _self)
 void *  Sensor_startMeasurement(void * _self)
 {
 	const struct SensorClass * class = classOf( cast(Sensor, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )                   { return NULL; } // fail
 	if ( class->startMeasurement == NULL ) { return NULL; } // fail
 	return class->startMeasurement(_self);
 }
@@ -483,7 +483,7 @@ void *  Sensor_startMeasurement(void * _self)
 void * super_Sensor_startMeasurement(const void * _class, void * _self)
 {
 	// verify that SensorClass is in the superclass chain of _class
-	if ( ! isOfSuper(SensorClass, _self) )     { return NULL; } // fail
+	if ( ! isOfSuper(SensorClass, _self) )      { return NULL; } // fail
 	const struct SensorClass * superclass = super(_class);
 	if ( superclass == NULL )                   { return NULL; } // fail
 	if ( superclass->startMeasurement == NULL ) { return NULL; } // fail
@@ -619,16 +619,16 @@ static void * implement_Sensor_default_ctor(void * _self)
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
-	// complete initialization method is only used for create and destroy
+	// complete initialization of values is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
 
 	// create IO access structure and its data objects
 	// allocate memory for the command buffer and assign the pointer
 	command_t * commandBufferPTR =
-			               (command_t *)malloc(sizeof(command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
+			(command_t *)malloc(sizeof(command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
-	// WARNING TODO:  the internal IO management List needed for IO_init() should
+	// WARNING TODO:  internal IO management List needed for IO_init() should
 	//                ... be created external to Sensor.  This weakness should
 	//                ... be corrected
 	// create new IO access structure object
@@ -637,7 +637,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 	// set the IO address to NULL for safety
 	// Ordinary drivers will select a non-NULL value
-	// can be overwitten externally for testing
+	// can be overwritten externally for testing
 	ioStructPointer->address = SENSOR_DEFAULT_ADDRESS;
 
 	// generate raw data object
@@ -715,6 +715,12 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	//Sensor_setSensorState(_copyTo,
 	//		Sensor_getSensorState(_copyFromMaster));
 
+	//Sensor_setMiniState(_copyTo,
+	//		Sensor_getMiniState(_copyFromMaster));
+
+	//Sensor_setAsyncFlag(_copyTo,
+	//		Sensor_getAsyncFlag(_copyFromMaster));
+
 	Sensor_setPowerUpDelayTicks(_copyTo,
 			Sensor_getEnablePowerDelayTicks(_copyFromMaster));
 
@@ -734,6 +740,12 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	//Sensor_setAlarmLevelsPointer(_copyTo,
 	//		Sensor_getAlarmLevelsPointer(_copyFromMaster));
 
+	Node_setValue(Sensor_getAlarmLevelsPointer(_copyTo),
+			Node_getValue(Sensor_getAlarmLevelsPointer(_copyFromMaster)));
+
+	Node_setValue(getLinkedNode(Sensor_getAlarmLevelsPointer(_copyTo)),
+			Node_getValue(getLinkedNode(Sensor_getAlarmLevelsPointer(_copyFromMaster))));
+
 	Sensor_setAlarmState(_copyTo,
 			Sensor_getAlarmState(_copyFromMaster));
 
@@ -746,9 +758,13 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	Sensor_setOnAlarmTriggered_cb(_copyTo,
 			Sensor_getOnAlarmTriggered_cb(_copyFromMaster));
 
-	// Pointer values
+	// Pointer value
 	//Sensor_setIoStructPointer(_copyTo,
 	//		Sensor_getIoStructPointer(_copyFromMaster));
+
+	// copy IO structure values
+	copy(Sensor_getIoStructPointer(_copyTo),
+			Sensor_getIoStructPointer(_copyFromMaster));
 
 	return _copyTo;
 }
@@ -760,9 +776,19 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	struct Sensor * self            = (void *)_self;
 	struct Sensor * comparisonObject = (void *)_comparisonObject;
 
-	// sensorState is dynamic and should not be included in comparison
+	// sensorState minState and asyncFlag are dynamic and should not be
+	// ... included in comparison
+
 	//if( Sensor_getSensorState(self) !=
 	//		               Sensor_getSensorState(comparisonObject) )
+	//	{return OBJECT_UNEQUAL;}
+
+	//if( Sensor_getMiniState(self) !=
+	//		               Sensor_getMiniState(comparisonObject) )
+	//	{return OBJECT_UNEQUAL;}
+
+	//if( Sensor_getAsyncFlag(self) !=
+	//		               Sensor_getAsyncFlag(comparisonObject) )
 	//	{return OBJECT_UNEQUAL;}
 
 	if( Sensor_getEnablePowerDelayTicks(self) !=
@@ -781,8 +807,6 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	// data values are unique for separate sensors and should not be compared
 	/*
 
-
-
 	if( Sensor_getRawDataPointer(self) !=
 			               Sensor_getRawDataPointer(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
@@ -796,6 +820,14 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 		{return OBJECT_UNEQUAL;}
 	 */
 
+	if( Node_getValue(Sensor_getAlarmLevelsPointer(self)) !=
+			Node_getValue(Sensor_getAlarmLevelsPointer(comparisonObject)) )
+			{return OBJECT_UNEQUAL;}
+
+	if( Node_getValue(Node_getLinkedNode(Sensor_getAlarmLevelsPointer(self))) !=
+			Node_getValue(Node_getLinkedNode(Sensor_getAlarmLevelsPointer(comparisonObject))) )
+			{return OBJECT_UNEQUAL;}
+
 	if( Sensor_getAlarmState(self) !=
 			               Sensor_getAlarmState(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
@@ -808,11 +840,19 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 			               Sensor_getOnReportReady_cb(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
-	/* pointer values
-	if( Sensor_getCommandPointer(self) !=
-			               Sensor_getCommandPointer(comparisonObject) )
+	if( Sensor_getOnAlarmTriggered_cb(self) !=
+			               Sensor_getOnAlarmTriggered_cb(comparisonObject) )
+		{return OBJECT_UNEQUAL;}
+
+	/* pointer value is not directly compared
+	if( Sensor_getIoStructPointer(self) !=
+			               Sensor_getIoStructPointer(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 	*/
+
+	if( equal(Sensor_getIoStructPointer(self),
+		Sensor_getIoStructPointer(comparisonObject)) == OBJECT_UNEQUAL )
+		{return OBJECT_UNEQUAL;}
 
 	// all data members are congruent
 	return OBJECT_EQUAL;
@@ -841,11 +881,15 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 			Sensor_getMiniState(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor asyncFlag:             %i\n",
+			Sensor_getAsyncFlag(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor powerUpDelayTicks:     %i\n",
 			Sensor_getEnablePowerDelayTicks(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
-	if (PUTO_ERROR == fprintf(_fp, "  Sensor resetDelayTicks:       %i\n",
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor alignConfigDelayTicks: %i\n",
 			Sensor_getAlignConfigDelayTicks(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
@@ -863,6 +907,14 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor alarmLevelsPointer:    %p\n",
 			Sensor_getAlarmLevelsPointer(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor LowerPrimaryAlarmLevel:   %i\n",
+			Sensor_getLowerPrimaryAlarmLevel(self) ))
+		{ printReturnCode = PUTO_ERROR;  } // error detected
+
+	if (PUTO_ERROR == fprintf(_fp, "  Sensor UpperSecondaryAlarmLevel: %i\n",
+			Sensor_getUpperSecondaryAlarmLevel(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor alarmState:            %i\n",
@@ -1045,7 +1097,7 @@ int Sensor_setPowerUpDelayTicks(void * _self, int _delayTicks)
 }
 
 /********************************************/
-/****  set and get resetDelayTicks    *****/
+/****  set and get AlignConfig    *****/
 
 int Sensor_getAlignConfigDelayTicks(const void * _self)
 {
@@ -1214,7 +1266,7 @@ void * Sensor_setUpperSecondaryAlarmLevel(void * _self, value_t _value)
 
 
 /********************************************/
-/****  set and get powerUpDelayTicks    *****/
+/****  set and get AlarmState    *****/
 
 alarmType_t Sensor_getAlarmState(const void * _self)
 {
@@ -1232,7 +1284,7 @@ alarmType_t Sensor_setAlarmState(void * _self, alarmType_t _alarmState)
 }
 
 /*********************************************/
-/*****  set and get powerUpDelayTicks    *****/
+/*****  set and get NormalState    *****/
 
 alarmType_t Sensor_getNormalState(const void * _self)
 {
@@ -1292,13 +1344,12 @@ sensor_cb_fnct Sensor_getOnAlarmTriggered_cb(const void * _self)
 
 struct Sensor *  Sensor_emptyAlarmTriggeredCallback(struct Sensor * _self)
 {
-	//printf("  XXX Sensor_emptyAlarmTriggeredCallback\n");
 	return _self;
 }
 
 
 /********************************************/
-/*****  set and get ioStruct pointer    *******/
+/*****  set and get ioStructPointer    *******/
 /**/
 void * Sensor_getIoStructPointer(const void * _self)
 {
@@ -1514,7 +1565,6 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 	switch (Sensor_getAsyncFlag(_self)) {
 
 	case SENSOR_ASYNC_FLAG_UNKNOWN: {
-		//printf("Sensor_checkAsyncFlag:SENSOR_ASYNC_FLAG_UNKNOWN \n");
 		// do nothing
 		break; }
 
@@ -1596,7 +1646,6 @@ sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 
 static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 {
-	printf("implement_Sensor_default_writeDataToSensor\n");
 	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
 	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 	                                    Sensor_getIoStructPointer(_self);
@@ -1627,33 +1676,32 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 
 static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self)
 {
-	printf("implement_Sensor_default_writeDataToSensor\n");
-		// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
-		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-		                                    Sensor_getIoStructPointer(_self);
-		if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
+	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
+	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
+										Sensor_getIoStructPointer(_self);
+	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
-		// get command buffer pointer
-		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
-		if ( commandBufferPTR == NULL ) { return NULL; }  // fail no cmd buffer
+	// get command buffer pointer
+	command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+	if ( commandBufferPTR == NULL ) { return NULL; }  // fail no cmd buffer
 
-		// do not allow default sensor to attempt reads/writes to a NULL address
-		// comm address is usually set externally once just after new(Sensor)
-		void * address = IO_getAddress(localIoStructPtr);
-		if ( address == NULL ) { return NULL; }  // fail
+	// do not allow default sensor to attempt reads/writes to a NULL address
+	// comm address is usually set externally once just after new(Sensor)
+	void * address = IO_getAddress(localIoStructPtr);
+	if ( address == NULL ) { return NULL; }  // fail
 
-		// set for sequential writes to successive locations starting with "address"
-		// default sensor is a simple memory access module and assumes sequential
-		IO_setIOAction(localIoStructPtr, IO_READ_SEQUENTIAL);
+	// set for sequential writes to successive locations starting with "address"
+	// default sensor is a simple memory access module and assumes sequential
+	IO_setIOAction(localIoStructPtr, IO_READ_SEQUENTIAL);
 
-		// add the command sequence to the IO list for processing when possible
-		if ( IO_addIOSequenceToList(localIoStructPtr) == localIoStructPtr) {
-			return _self;  // expected return path
-		}
-		else {
-			return NULL;  // fail in IO
-		}
-		return NULL; // fail
+	// add the command sequence to the IO list for processing when possible
+	if ( IO_addIOSequenceToList(localIoStructPtr) == localIoStructPtr) {
+		return _self;  // expected return path
+	}
+	else {
+		return NULL;  // fail in IO
+	}
+	return NULL; // fail
 }
 
 
@@ -2104,7 +2152,6 @@ static void * implement_Sensor_default_checkAlarms(struct Sensor * _self)
 
 static void * implement_Sensor_callAlarmTriggered_CB(struct Sensor * _self)
 {
-	//printf("  XXX implement_Sensor_callAlarmTriggered_CB\n");
 	_self->Sensor_onAlarmTriggered_cb(_self);
 	return _self;
 }

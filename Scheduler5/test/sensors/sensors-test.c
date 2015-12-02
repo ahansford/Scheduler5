@@ -657,8 +657,6 @@ TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
 /**/
 TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 {
-	printf("\nTEST: Sensor_writesCommandDataToSpecifiedLocation line: %i\n", __LINE__);
-
 	void * IO_actionBuffer[0];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	IO_init(IOTest_ioActionList);
@@ -686,7 +684,6 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 	TEST_ASSERT_EQUAL(0x06,  targetArray[1] );
 
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
-	printf("TEST END\n");
 }
 
 TEST(sensor, Sensor_writesCommandtakesNoActionOnNullAddress)
@@ -704,8 +701,6 @@ TEST(sensor, Sensor_writesCommandtakesNoActionOnNullObject)
 /**/
 TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 {
-	printf("\nTEST: Sensor_readsCommandDataFromSpecifiedLocation line: %i\n", __LINE__);
-
 	void * IO_actionBuffer[1];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	TEST_ASSERT_TRUE(IOTest_ioActionList != NULL );
@@ -733,8 +728,6 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	TEST_ASSERT_EQUAL(0x06,  IO_struct->bufferPointer[1] );
 
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
-	printf("TEST END\n");
-
 }
 
 TEST(sensor, Sensor_readsCommandtakesNoActionOnNullAddress)
@@ -753,7 +746,6 @@ TEST(sensor, Sensor_readsCommandtakesNoActionOnNullObject)
 
 TEST(sensor, Sensor_checkAlarms_detects_Below)
 {
-	//printf("TEST: Sensor_checkAlarms_detects_Below\n");
 	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(myTest_Sensor);
 	localFinalDataPtr->nodeValue = 9;
 	Sensor_setLowerPrimaryAlarmLevel(myTest_Sensor, 100);
@@ -817,7 +809,6 @@ TEST(sensor, Sensor_checkAlarms_detects_Equal)
 
 TEST(sensor, Sensor_checkAlarms_detects_AboveEqual)
 {
-	//printf("\nTEST: Sensor_checkAlarms_detects_AboveEqual\n");
 	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(myTest_Sensor);
 	localFinalDataPtr->nodeValue = 101;
 	Sensor_setLowerPrimaryAlarmLevel(myTest_Sensor, 100);
@@ -1096,29 +1087,54 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	// NOTE: sensorState, and pointers are unique for every sensor
 	struct Sensor * masterSensor = new(Sensor);
 	Sensor_setSensorState          (masterSensor, SENSOR_ENABLE_POWER );
+	Sensor_setMiniState            (masterSensor, 2 );
+	Sensor_setAsyncFlag            (masterSensor, 3 );
 	Sensor_setPowerUpDelayTicks    (masterSensor, 4 );
 	Sensor_setMeasurementDelayTicks(masterSensor, 5 );
 	//Sensor_setRawDataPointer       (masterSensor, (void *)6 );
 	//Sensor_setFinalDataPointer     (masterSensor, (void *)7 );
 	//Sensor_setAlarmLevelsPointer   (masterSensor, (void *)8 );
+	Sensor_setLowerPrimaryAlarmLevel(masterSensor,  9 );
+	Sensor_setUpperSecondaryAlarmLevel(masterSensor, 10 );
 	Sensor_setAlarmState           (masterSensor, ALARM_ABOVE );
 	Sensor_setNormalState          (masterSensor, ALARM_BETWEEN );
 	Sensor_setOnReportReady_cb     (masterSensor, Sensor_test_general_cb );
 	Sensor_setOnAlarmTriggered_cb  (masterSensor, Sensor_test_general_cb2 );
 
+	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
+	IO_setAddress   (masterIoPointer, (void *)11);
+	IO_setIOAction  (masterIoPointer, 12);
+	IO_setReadCount (masterIoPointer, 13);
+	IO_setWriteCount(masterIoPointer, 14);
+	//IO_setBufferPointer(masterIoPointer, NULL);
+	IO_set_actionDone_cb(masterIoPointer, NULL);
+	IO_setObjectPointer(masterIoPointer, NULL);
+
 	copy(myTest_Sensor, masterSensor);
 
 	// NOTE: sensorState, and pointers are unique for every sensor
 	//TEST_ASSERT_EQUAL(SENSOR_ENABLE_POWER, myTest_Sensor->sensorState);
-	TEST_ASSERT_EQUAL(4,                   myTest_Sensor->powerUpDelayTicks);
-	TEST_ASSERT_EQUAL(5,                   myTest_Sensor->measurementDelayTicks);
-	//TEST_ASSERT_EQUAL_PTR((void *)6,           myTest_Sensor->rawDataPointer);
-	//TEST_ASSERT_EQUAL_PTR((void *)7,           myTest_Sensor->finalDataPointer);
-	//TEST_ASSERT_EQUAL_PTR((void *)8,           myTest_Sensor->alarmLevelsPointer);
+	//TEST_ASSERT_EQUAL(2,              myTest_Sensor->miniState);
+	//TEST_ASSERT_EQUAL(3,              myTest_Sensor->asyncFlag);
+	TEST_ASSERT_EQUAL(4,                myTest_Sensor->powerUpDelayTicks);
+	TEST_ASSERT_EQUAL(5,                myTest_Sensor->measurementDelayTicks);
+	//TEST_ASSERT_EQUAL_PTR((void *)6,  myTest_Sensor->rawDataPointer);
+	//TEST_ASSERT_EQUAL_PTR((void *)7,  myTest_Sensor->finalDataPointer);
+	//TEST_ASSERT_EQUAL_PTR((void *)8,  myTest_Sensor->alarmLevelsPointer);
+	TEST_ASSERT_EQUAL_PTR(9,  ((struct Node *)myTest_Sensor->alarmLevelsPointer)->nodeValue);
+	TEST_ASSERT_EQUAL_PTR(10, ((struct Node *)myTest_Sensor->alarmLevelsPointer)->linkedNode->nodeValue);
 	TEST_ASSERT_EQUAL(ALARM_ABOVE,         myTest_Sensor->alarmState);
 	TEST_ASSERT_EQUAL(ALARM_BETWEEN,       myTest_Sensor->normalState);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb,  myTest_Sensor->Sensor_onReportReady_cb);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb2, myTest_Sensor->Sensor_onAlarmTriggered_cb);
+	struct IO * toIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
+	TEST_ASSERT_EQUAL(11, IO_getAddress(toIoPointer));
+	TEST_ASSERT_EQUAL(12, IO_getIOAction(toIoPointer));
+	TEST_ASSERT_EQUAL(13, IO_getReadCount(toIoPointer));
+	TEST_ASSERT_EQUAL(14, IO_getWriteCount(toIoPointer));
+	//TEST_ASSERT_EQUAL_PTR(NULL, IO_getBufferPointer(toIoPointer));
+	TEST_ASSERT_EQUAL_PTR(NULL, IO_get_actionDone_cb(toIoPointer));
+	TEST_ASSERT_EQUAL_PTR(NULL, IO_getObjectPointer(toIoPointer));
 
 	masterSensor = safeDelete(masterSensor);
 }
@@ -1146,15 +1162,39 @@ TEST(sensor, myTest_Sensor_IsEqualTo_myTest_Sensor)
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, myTest_Sensor));
 }
 
-TEST(sensor, equal_UnequalSensorStateReturn_Unequal)
+TEST(sensor, equal_UnequalSensorStateReturn_Equal)
 {
 	struct Sensor * masterSensor = new(Sensor);
-	Sensor_setPowerUpDelayTicks(masterSensor, 1);
+	Sensor_setSensorState(masterSensor, SENSOR_ALIGN_CONFIG);
+	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
+	masterSensor = safeDelete(masterSensor);
+}
+
+TEST(sensor, equal_UnequalMiniStateReturn_Equal)
+{
+	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setMiniState(masterSensor, 1);
+	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
+	masterSensor = safeDelete(masterSensor);
+}
+
+TEST(sensor, equal_UnequalAsyncFlagReturn_Equal)
+{
+	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setAsyncFlag(masterSensor, 1);
+	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
+	masterSensor = safeDelete(masterSensor);
+}
+
+TEST(sensor, equal_UnequalEnablePowerDelayTicksReturn_Unequal)
+{
+	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setAlignConfigDelayTicks(masterSensor, 2);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
 }
 
-TEST(sensor, equal_UnequalResetDelayTicksReturn_Unequal)
+TEST(sensor, equal_UnequalAlignConfigDelayTicksReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
 	Sensor_setAlignConfigDelayTicks(masterSensor, 2);
@@ -1186,10 +1226,27 @@ TEST(sensor, equal_UnequalNormalStateReturn_Unequal)
 	masterSensor = safeDelete(masterSensor);
 }
 
-TEST(sensor, equal_UnequalNormalReportReadyCB_Unequal)
+TEST(sensor, equal_UnequalReportReadyCB_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
 	Sensor_setOnReportReady_cb(masterSensor, Sensor_test_general_cb);
+	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
+	masterSensor = safeDelete(masterSensor);
+}
+
+TEST(sensor, equal_UnequalAlarmReadyCB_Unequal)
+{
+	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setOnAlarmTriggered_cb(masterSensor, Sensor_test_general_cb);
+	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
+	masterSensor = safeDelete(masterSensor);
+}
+
+TEST(sensor, equal_UnequalAddress_Unequal)
+{
+	struct Sensor * masterSensor = new(Sensor);
+	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
+	IO_setAddress(masterIoPointer, (void *)11);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
 }
@@ -1205,11 +1262,6 @@ TEST(sensor, equal_NullReturns_Null)
 TEST(sensor, equal_CopiedSensorReturnsEqual)
 {
 	struct Sensor * masterSensor = new(Sensor);
-	//Sensor_setSensorState(masterSensor, BUTTON_STATE_UNKNOWN);
-	//Sensor_setPressCount(masterSensor, 1);
-	//Sensor_setPressType (masterSensor, BUTTON_PRESS_TYPE_UNKNOWN);
-	//Sensor_setPressTime  (masterSensor, 2);
-	//Sensor_setReleaseTime(masterSensor, 3);
 	copy(myTest_Sensor, masterSensor);
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor));
 	masterSensor = safeDelete(masterSensor);
