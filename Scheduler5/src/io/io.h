@@ -14,7 +14,7 @@
 //#include "..\cross_compiler_defs.h"
 #include "..\..\src\objects\objects.h"
 #include "..\..\src\scheduler\scheduler.h"
-//#include "..\..\src\nodes\nodes.h"     // supports class registration
+//#include "..\..\src\nodes\nodes.h"
 #include "..\..\src\lists\lists.h"
 
 /***********************************************/
@@ -23,6 +23,9 @@
 extern const void * IO;
 extern const void * IOClass;
 
+/*!
+ * Data type for commands and data sent to and from the memory area or sensor.
+ */
 typedef unsigned char io_data_t;
 
 typedef enum io_read_write_t {
@@ -35,7 +38,13 @@ typedef enum io_read_write_t {
 	IO_READ_SEQUENTIAL
 } io_read_write_t;
 
-//typedef struct IO * (* io_cb_fnct)(struct IO * _io);
+/*!
+ * The generic callback typedef that takes a void pointer and returns a void
+ * pointer.  Registered functions of this type can be called on completion of
+ * the IO operation.  The void*-void* form was selected over the IO*-IO* form
+ * so that external modules can registers callbacks as well.  For example
+ * a sensor can register Sensor_incrementMiniState() using void*-void*.
+ */
 typedef void * (* io_cb_fnct)(void * _io);
 
 
@@ -50,27 +59,83 @@ typedef void * (* io_cb_fnct)(void * _io);
 /***********************************************/
 /****** application interface functions  *******/
 
-// MUST be called the class before other methods are called
-// returns self on success, otherwise NULL
+/*!
+ *	MUST be called the class before other methods are called returns self on
+ *	success, otherwise returns NULL.
+ *
+ *	@code
+ *	// Create a List where IO will store IO sequences waiting to be executed
+ *	void * IO_actionBuffer[4];
+ *	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
+ *	IO_init(IOTest_ioActionList);
+ *
+ *	// Create a new IO object
+ * 	struct IO * myIOobject = new(IO, ioActionList);
+ *
+ *	// Create an area in memory where reads and write are allowed
+ *	// Set address to this area
+ *	io_data_t allowedMemoryArea[16];
+ *	IO_setAddress(myIOobject, allowedMemoryArea);
+ *
+ *	// Clear the command buffer
+ *	IO_clearCommandSequences(myIOobject);
+ *
+ *	// Add write commands to the buffer (example only)
+ *	// Write counts are managed by the add operation
+ *	IO_addWriteCommandToSequence(myIOobject, 0x03);
+ *	IO_addWriteCommandToSequence(myIOobject, 0x41);
+ *
+ *	// OPTIONAL:  If read operations are executed, the read count is set here.
+ *	IO_setReadCount(myIOobject, 1);
+ *
+ *	// Set IO action to desired format
+ *	IO_setIOAction(myIOobject, IO_WRITE_SEQUENTIAL);
+ *
+ *	// Set communication complete callback ... fired when communication is done
+ *	IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct) My_CommCompleteDone_CB);
+ *	IO_setObjectPointer(localIoStructPtr, (void *)My_Pointer);
+ *
+ *	// Add the IO sequence to the main IO list IOTest_ioActionList
+ *	IO_addIOSequenceToList(myIOobject)
+ *
+ * 	// Set recurrent scheduler task specifying a suitable period in ticks.
+ * 	scheduler_AddTask(IO_update,
+ *                    _ticksOfDelay,
+ *					  _period);
+ *
+ *	// Once the communication sequence completes, the callback is fired by IO.
+ *	// ... My_CommCompleteDone_CB(My_Pointer);
+ *	// The module calling IO can use this callback to initiate next steps.
+ *
+ *	@endcode
+ *
+ */
 void IO_init(struct List * _ioSequenceList);
 
-// create a new sensor with new(), must specified
-// ... struct IO myIO = new(IO, ioActionList);
-
-// resets write and read counts indicating that the CMD buffer is clear
+/*!
+ * Resets write and read counts indicating that the CMD buffer is clear.
+ * Does not delete data previously loaded into the buffer area.
+ */
 void * IO_clearCommandSequences(void * _self);
 
-// write value to the sequence buffer
-// values will be written to IO address when IO_update() is called
-// returns self on success
+/*!
+ * Writes communication sequences to the IO holding buffer.  Values will be
+ * written to IO address when IO_update()via the scheduler task.  Returns
+ * self on success.  The writeCount is automatically managed by add.
+ */
 void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
 
-// use IO_setReadCount(_self, _readCount) to trigger a read sequence
-// read executes after the preceding write commands
-// the writeCount is set automatically when the write command is added
+/*!
+ * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
+ * execute immediately after any preceding write commands.  The writeCount is
+ * set automatically when write commands are added to the command buffer with
+ * IO_addWriteCommandToSequence().  WARNING:  There are no protections against
+ * counts larger than the command buffer size.  The external code calling the
+ * IO methods should carefully manage size.
+ */
 
-// WARNING:  there are no protections against counts larger than the buffer
-//           ... code calling the io methods should carefully manages sizes
+//
+//           ...
 
 // adds the sequence of commands to the ioSequenceList
 // returns command sequence on success
@@ -116,7 +181,7 @@ io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction);
 int IO_getReadCount(const void * _self);
 int IO_setReadCount(      void * _self, int _readCount);
 
-// number ofbytes to write
+// number of bytes to write
 int IO_getWriteCount(const void * _self);
 int IO_setWriteCount(      void * _self, int _writeCount);
 
@@ -124,6 +189,10 @@ int IO_setWriteCount(      void * _self, int _writeCount);
 // write operation is first, and read data overwrites original write data
 void * IO_getBufferPointer(const void * _self);
 void * IO_setBufferPointer(      void * _self, void * _bufferPointer);
+
+// number of values that can be stored in the command buffer
+int IO_getBufferSize(const void * _self);
+int IO_setBufferSize(      void * _self, int _bufferSize);
 
 // function pointer "void (* functionPointer)(void *_objectPointer)
 // called when operation is complete

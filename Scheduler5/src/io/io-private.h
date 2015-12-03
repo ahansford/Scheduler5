@@ -15,6 +15,7 @@ struct IO {
 	int 			readCount;
 	int 			writeCount;
 	io_data_t *   	bufferPointer;
+	int				bufferSize;
 	//void			(*actionDone_cb) (void * _objectPointer);
 	io_cb_fnct		actionDone_cb;
 	void * 			objectPointer;

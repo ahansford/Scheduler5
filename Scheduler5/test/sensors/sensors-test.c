@@ -1428,7 +1428,7 @@ TEST(sensor, Sensor_measure_triggeresStartWhenNotStarted)
 TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 {
 	// enable the IO list
-	void * IO_actionBuffer[0];
+	void * IO_actionBuffer[4];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	IO_init(IOTest_ioActionList);
 

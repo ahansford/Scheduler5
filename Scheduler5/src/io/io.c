@@ -190,14 +190,14 @@ void * IO_io_dtor(void * _self)
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
 	struct IO * self = cast(IO, _self);
-	if(self == NULL)                            {return NULL; } // fail
+	if(self == NULL)                         {return NULL; } // fail
 
 	// address local members first
 	if ( implement_IO_io_dtor(self) == NULL) {return NULL; } // fail
 
 	// call super method after local members are addressed
 	// NOTE: classOf(self) calls into super will trigger looping
-	if ( super_dtor(IO, _self) == NULL)   {return NULL; } // fail
+	if ( super_dtor(IO, _self) == NULL)      {return NULL; } // fail
 
 	return _self;
 }
@@ -286,7 +286,7 @@ puto_return_t IO_io_puto(const void * _self, FILE * _fp)
 void *  IO_addWriteCommandToSequence(void * _self, io_data_t _value)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
-	if ( class == NULL )           { return NULL; } // fail
+	if ( class == NULL )                   { return NULL; } // fail
 	if ( class->IO_addWriteValue == NULL ) { return NULL; } // fail
 	return class->IO_addWriteValue(_self, _value);
 }
@@ -294,10 +294,10 @@ void *  IO_addWriteCommandToSequence(void * _self, io_data_t _value)
 void * super_IO_io_addWriteValue(const void * _class, void * _self, io_data_t _value)
 {
 	// verify that IOClass is in the superclass chain of _class
-	if ( ! isOfSuper(IOClass, _self) ) { return NULL; } // fail
+	if ( ! isOfSuper(IOClass, _self) )          { return NULL; } // fail
 	const struct IOClass * superclass = super(_class);
-	if ( superclass == NULL )                  { return NULL; } // fail
-	if ( superclass->IO_addWriteValue == NULL )        { return NULL; } // fail
+	if ( superclass == NULL )                   { return NULL; } // fail
+	if ( superclass->IO_addWriteValue == NULL ) { return NULL; } // fail
 	return superclass->IO_addWriteValue(_self, _value);
 }
 
@@ -314,7 +314,7 @@ void * IO_io_addWriteValue(void * _self, io_data_t _value)
 void *  IO_processSequence(void * _self)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
-	if ( class == NULL )            { return NULL; } // fail
+	if ( class == NULL )                      { return NULL; } // fail
 	if ( class->IO_processSequence == NULL ) { return NULL; } // fail
 	return class->IO_processSequence(_self);
 }
@@ -322,9 +322,9 @@ void *  IO_processSequence(void * _self)
 void * super_IO_processSequence(const void * _class, void * _self)
 {
 	// verify that IOClass is in the superclass chain of _class
-	if ( ! isOfSuper(IOClass, _self) )  { return NULL; } // fail
+	if ( ! isOfSuper(IOClass, _self) )           { return NULL; } // fail
 	const struct IOClass * superclass = super(_class);
-	if ( superclass == NULL )            { return NULL; } // fail
+	if ( superclass == NULL )                     { return NULL; } // fail
 	if ( superclass->IO_processSequence == NULL ) { return NULL; } // fail
 	return superclass->IO_processSequence(_self);
 }
@@ -548,6 +548,25 @@ void * IO_setBufferPointer(void * _self, void * _bufferPointer)
 	return _bufferPointer;
 }
 
+/*****************************************/
+/*****  set and get bufferSize  *******/
+
+int IO_getBufferSize(const void * _self)
+{
+	const struct IO * self = cast(IO, _self);
+	if ( self == NULL ) { return 0; }
+	return self->bufferSize;
+}
+
+int IO_setBufferSize(void * _self, int _bufferSize)
+{
+	struct IO * self = cast(IO, _self);
+	if ( self == NULL ) { return 0; }
+	self->bufferSize = _bufferSize;
+	return _bufferSize;
+}
+
+
 /************************************************/
 /*****  set and get IO_actionComplete_cb  *******/
 
@@ -597,6 +616,8 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 	IO_setWriteCount    (_copyTo, IO_getWriteCount(_copyFrom));
 	// data pointers are unique and should not be copied
 	//IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
+	// buffer count May be unique and should not be copied
+	//IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
 	IO_set_actionDone_cb(_copyTo, IO_get_actionDone_cb(_copyFrom));
 	IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
@@ -609,6 +630,10 @@ static void * implement_IO_io_ctor(void * _self)
 	IO_setReadCount     (_self, 0);
 	IO_setWriteCount    (_self, 0);
 	//IO_setBufferPointer (_self, bufferPointer);  // set in main ctor
+	void * localBufferPointer = IO_getBufferPointer(_self);
+	IO_setBufferSize(_self, \
+			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
+	// TODO:  Add tests for the new bufferSize
 	IO_set_actionDone_cb(_self, NULL);
 	IO_setObjectPointer (_self, NULL);
 	return _self;
