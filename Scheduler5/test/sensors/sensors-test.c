@@ -1425,6 +1425,37 @@ TEST(sensor, Sensor_measure_triggeresStartWhenNotStarted)
 	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
 }
 
+TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
+{
+	// enable the IO list
+	void * IO_actionBuffer[0];
+	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
+	IO_init(IOTest_ioActionList);
+
+	// set the address element in the IO object to a known safe buffer address
+	// the default address of NULL will prevent IO operations for the sensor
+	struct IO  * localIoStructPtr = Sensor_getIoStructPointer(myTest_Sensor);
+	io_data_t knownCharBuffer[16];
+	void * originalAddress = IO_getAddress(localIoStructPtr);
+	IO_setAddress(localIoStructPtr, knownCharBuffer);
+
+	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
+	Sensor_measureAndProcess(myTest_Sensor);
+
+	// simulate the scheduler calls to IO and Sensor
+	int i;
+	for ( i = 0; i < 25; i++) {
+	Sensor_update(myTest_Sensor);
+	IO_update();
+	}
+
+	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
+
+	// garbage collection ... failure to assign back to original will leave original buffer undeleted
+	IO_setAddress(localIoStructPtr, originalAddress);
+	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
+}
+
 TEST(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle)
 {
 	myTest_Sensor->sensorState = SENSOR_READY_IDLE;

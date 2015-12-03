@@ -640,6 +640,8 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// can be overwritten externally for testing
 	ioStructPointer->address = SENSOR_DEFAULT_ADDRESS;
 
+
+
 	// generate raw data object
 	struct Node * rawDataPointer = new(Node);
 	if ( rawDataPointer == NULL ) { return NULL; }  // fail
@@ -776,7 +778,7 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	struct Sensor * self            = (void *)_self;
 	struct Sensor * comparisonObject = (void *)_comparisonObject;
 
-	// sensorState minState and asyncFlag are dynamic and should not be
+	// sensorState, minState and asyncFlag are dynamic and should not be
 	// ... included in comparison
 
 	//if( Sensor_getSensorState(self) !=
@@ -803,8 +805,9 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 			               Sensor_getMeasurementDelayTicks(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
-	// data pointers are unique and should not be included in the comparison
-	// data values are unique for separate sensors and should not be compared
+	// Data pointers are unique, and should not be included in the comparison.
+	// Data values are unique for separate sensors and should not be compared.
+	// Alarm pointers are unique and should not be included in the comparison.
 	/*
 
 	if( Sensor_getRawDataPointer(self) !=
@@ -844,7 +847,7 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 			               Sensor_getOnAlarmTriggered_cb(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
-	/* pointer value is not directly compared
+	/* IO pointer is not directly compared
 	if( Sensor_getIoStructPointer(self) !=
 			               Sensor_getIoStructPointer(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
@@ -1325,7 +1328,7 @@ struct Sensor *  Sensor_emptyReportReadyCallback(struct Sensor * _self)
 }
 
 /***********************************************/
-/****  set and get onAlarmTriggered callback  *****/
+/***  set and get onAlarmTriggered callback  ***/
 
 sensor_cb_fnct Sensor_setOnAlarmTriggered_cb(const void * _self, sensor_cb_fnct _cb)
 {
@@ -1348,7 +1351,7 @@ struct Sensor *  Sensor_emptyAlarmTriggeredCallback(struct Sensor * _self)
 }
 
 
-/********************************************/
+/*********************************************/
 /*****  set and get ioStructPointer    *******/
 /**/
 void * Sensor_getIoStructPointer(const void * _self)
@@ -1372,14 +1375,13 @@ void * Sensor_setIoStructPointer(void * _self, void * _ioStructPtr)
 
 void Sensor_update(void * _self)
 {
-	// trap for any asynchronous flags, like start or begin measurement
+	// trap for any asynchronous flags, such as SENSOR_ASYNC_START_REQUEST
 	Sensor_checkAsyncFlag(_self);
-
 
 	switch (Sensor_getSensorState(_self)) {
 
 	case SENSOR_STATE_UNKNOWN: {
-		// do nothing ... wait for sensor to be enabled
+		// do nothing ... wait for Sensor_start()
 		break;
 	}
 
@@ -1396,7 +1398,7 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_ENABLE_POWER: {    // <<<--- Sensor_measureAndProcess()
-		//  WARNING:  must include state machine transition in update method
+		//  WARNING:  must include state machine transition in method
 		//  serial communication probably required
 		Sensor_enablePower(_self);
 		break;
@@ -1409,7 +1411,7 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_ALIGN_CONFIG: {    // <<<--- Sensor_postEnablePower()
-		//  WARNING:  must include state machine transition in update method
+		//  WARNING:  must include state machine transition in method
 		//  serial communication probably required
 		Sensor_alignAndConfig(_self);
 		break;
@@ -1427,7 +1429,7 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_START_MEASUREMENT: {    // <<<--- Sensor_measureAndProcess(), <<<--- Sensor_postAlignAndConfig()
-		//  WARNING:  must include state machine transition in update method
+		//  WARNING:  must include state machine transition in method
 		//  serial communication probably required
 		Sensor_startMeasurement(_self);
 		break;
@@ -1440,14 +1442,14 @@ void Sensor_update(void * _self)
 	}
 
 	case SENSOR_GET_RAW_DATA: {    // <<<--- Sensor_postStartMeasurement()
-		//  WARNING:  must include state machine transition in update method
+		//  WARNING:  must include state machine transition in method
 		//  serial communication probably required
 		Sensor_storeRawData(_self);
 		break;
 	}
 
 	case SENSOR_DISABLE_POWER: {
-		//  WARNING:  must include state machine transition in update method
+		//  WARNING:  must include state machine transition in method
 		//  serial communication probably required
 		Sensor_disablePower(_self);
 		break;
@@ -1471,15 +1473,15 @@ void Sensor_update(void * _self)
 		// regardless of checkAlarms() outcome, transition to next state
 		Sensor_transitionState(_self, SENSOR_REPORT);
 
+		// increment asynchronous flag to allow subsequent measurement request
+		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_DONE);
+
 		// fire the report ready callback only once
 		implement_Sensor_callReportReady_CB(_self);
 		break;
 	}
 
 	case SENSOR_REPORT: {
-		// increment asynchronous flag to allow subsequent measurement request
-		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_DONE);
-
 		// hold in this state until a new measurement is requested
 		break;
 	}
@@ -1497,10 +1499,11 @@ void Sensor_update(void * _self)
 
 void * Sensor_start(void * _self)
 {
-	// set asynchronous start flag for the state machine
+	// sets asynchronous start flag for the main sensor state machine
 	// initializes sensor access structure data values
-
 	// does not power the sensor
+
+	// validate sensor access structure
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return NULL; }  // fail
 
@@ -1516,7 +1519,7 @@ void * Sensor_start(void * _self)
 
 void * Sensor_measureAndProcess(void * _self)
 {
-	// set asynchronous start measurement flag for the state machine
+	// set asynchronous start measurement flag for the sensor state machine
 	// aligns, enables power, collects and processes data
 
 	// validate sensor access structure
@@ -1533,8 +1536,8 @@ void * Sensor_measureAndProcess(void * _self)
 
 void * Sensor_stopAndRemovePower(void * _self)
 {
-	// asynchronous trigger for the state machine
-	// assumes that the measurement is complete
+	// Executes asynchronous state change for the sensor state machine
+	// assumes that prior measurements are complete
 	// will halt sensor operation immediately regardless of status
 
 	// validate sensor access structure
@@ -1546,16 +1549,17 @@ void * Sensor_stopAndRemovePower(void * _self)
 		Sensor_disablePower(_self);
 	}
 
-	// set main state as uppowered  idle if previously running
+	// set main sensor state as un-powered idle if sensor is previously running
 	if ( Sensor_getSensorState(self) >  SENSOR_UNPOWERED_IDLE ) {
 		Sensor_transitionState(_self, SENSOR_UNPOWERED_IDLE);
+		Sensor_setAsyncFlag(self, SENSOR_ASYNC_START_DONE);
 	}
 
-	// TODO: add protection against previously registered async communication
-	//       ... there may be communication sequences already registered in
+	// TODO: Add protection against previously registered async communication.
+	//       ... there may be communication sequences already registered with
 	//       ... the IO driver.  These comm sequences will execute when
 	//       ... possible and will likely assume that the sensor is powered.
-	//       ... Need to unwind these calls without hanging the system.
+	//       ... Need to unwind these comm calls without hanging the system.
 
 	return self;
 }
@@ -1569,13 +1573,13 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 		break; }
 
 	case SENSOR_ASYNC_START_REQUEST: {
+		// increment asynchronous flag to block further start requests
+		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE);
+
 		// start sensor state machine if not already started
 		if ( Sensor_getSensorState(_self) < SENSOR_START_DATA_DEFAULTS ) {
 			Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
 		}
-
-		// increment asynchronous flag to block further start requests
-		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_START_DONE);
 		break;
 	}
 
@@ -1585,27 +1589,30 @@ static void Sensor_checkAsyncFlag(struct Sensor * _self)
 	}
 
 	case SENSOR_ASYNC_MEASURE_REQUEST: {
-		// increment asynchronous flag to block further measurement requests
-		Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_IN_PROCESS);
+		// next actions are based on status of main sensor state machine
+		switch (Sensor_getSensorState(_self)) {
 
-		// action based on status of main sensor state machine
-		sensorState_t currentSensorState = Sensor_getSensorState(_self);
-
-		// start sensor if needed
-		if ( currentSensorState < SENSOR_UNPOWERED_IDLE ) {
+		case SENSOR_STATE_UNKNOWN: { // sensor not started
 			Sensor_transitionState(_self, SENSOR_START_DATA_DEFAULTS);
 			break;
 		}
 
-		// sensor has been started previously ...
-		// measure now if ready, otherwise apply power before proceeding
-		if ( currentSensorState >= SENSOR_READY_IDLE ) {
-			Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
-		}
-		else {
+		case SENSOR_UNPOWERED_IDLE: { // sensor needs power and config
 			Sensor_transitionState(_self, SENSOR_ENABLE_POWER);
+			break;
 		}
 
+		case SENSOR_READY_IDLE:
+		case SENSOR_REPORT: { // sensor able to start measurement now
+			Sensor_transitionState(_self, SENSOR_START_MEASUREMENT);
+			// increment asynchronous flag to block further measurement requests
+			Sensor_setAsyncFlag(_self, SENSOR_ASYNC_MEASURE_IN_PROCESS);
+			break;
+		}
+
+		default: { break; }
+
+		}  // end switch (Sensor_getSensorState(_self))
 		break;
 	}
 
@@ -1665,13 +1672,11 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 	IO_setIOAction(localIoStructPtr, IO_WRITE_SEQUENTIAL);
 
 	// add the command sequence to the IO list for processing when possible
-	if ( IO_addIOSequenceToList(localIoStructPtr) == localIoStructPtr) {
-		return _self;  // expected return path
+	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {
+		return NULL;  // fail
 	}
-	else {
-		return NULL;  // fail in IO
-	}
-	return NULL; // fail
+
+	return _self; // expected return path
 }
 
 static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self)
@@ -1695,13 +1700,11 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 	IO_setIOAction(localIoStructPtr, IO_READ_SEQUENTIAL);
 
 	// add the command sequence to the IO list for processing when possible
-	if ( IO_addIOSequenceToList(localIoStructPtr) == localIoStructPtr) {
-		return _self;  // expected return path
+	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {
+		return NULL;  // fail
 	}
-	else {
-		return NULL;  // fail in IO
-	}
-	return NULL; // fail
+
+	return _self; // expected return path
 }
 
 
@@ -1713,6 +1716,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 	// WARNING:  Should only be executed when the sensor access structure is
 	//           initiated.  Otherwise, middleware-specific items like
 	//           the callbacks function pointers would be inadvertently reset.
+	//           The pointers to aggregated data structures are also deleted.
 	Sensor_setSensorState          (_self, SENSOR_STATE_UNKNOWN);
 	Sensor_setMiniState            (_self, SENSOR_MINI_STATE_UNKNOWN);
 	Sensor_setAsyncFlag            (_self, SENSOR_ASYNC_FLAG_UNKNOWN);
@@ -1755,7 +1759,9 @@ static void * implement_Sensor_default_selectedDefaults(struct Sensor * _self)
 	// Do not modify object pointers.  These are managed by middleware.
 	//Sensor_setOnReportReady_cb   (_self, Sensor_emptyReportReadyCallback);
 	//Sensor_setOnAlarmTriggered_cb(_self, Sensor_emptyAlarmTriggeredCallback);
-	//Sensor_setIoStructPointer      (_self, NULL);
+	//Sensor_setIoStructPointer    (_self, NULL);
+
+	// NOTE: IO structure values are not set to defaults
 	return _self;
 }
 
@@ -1767,6 +1773,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 	//  miniState 2: arm scheduler task with power delay + transition main SM
 
 	miniState_t localMiniState = Sensor_getMiniState(_self);
+
 	switch (localMiniState) {
 
 	case SENSOR_MINI_STATE_START_0: {
@@ -1790,7 +1797,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		// clear the command buffer
 		IO_clearCommandSequences(localIoStructPtr);
 
-		// add register and data values to command buffer
+		// add register and data values to command buffer (example values only)
 		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
 		IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
 
@@ -1799,12 +1806,12 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 										(io_cb_fnct)Sensor_incrementMiniState);
 		IO_setObjectPointer(localIoStructPtr, _self);
 
-		// transmit the IO object to IO manager via Sensor_writeDataToSensor()
-		// NOTE: might place write operation inside a NULL test to return error
-		Sensor_writeDataToSensor(_self);
-
 		// transition to a waiting miniState
 		Sensor_incrementMiniState(_self);
+
+		// transmit the IO object to IO manager via Sensor_writeDataToSensor()
+		if ( Sensor_writeDataToSensor(_self) != _self ) { return NULL; }
+
 		break;
 	}
 
@@ -1903,9 +1910,11 @@ void Sensor_postStartMeasurement(void * _self)
 
 static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 {
-	// add any sensor specific code here
+	//  Example process to read raw data from sensor and store:
+	//  miniState 0: load command buffer and add write sequence to IO manager
+	//  miniState 1: wait for IO manager callback fire to increment miniState
+	//  miniState 2: arm scheduler task with power delay + transition main SM
 
-	// store raw data
 	struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL)             { return NULL; }  // fail
 
@@ -1921,7 +1930,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 	switch (localMiniState) {
 
 	case SENSOR_MINI_STATE_START_0: {
-		// Example:  create write/read sequence to enable power an I2C sensor
+		// Example:  create write/read sequence to read data from I2C sensor
 		//           ... this command example only will take no action if
 		//           ... address is set to NULL
 
@@ -1948,8 +1957,9 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		//IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
 		//IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
 
-		// load the number of bytes to read back into the readCount "1" here
-		// the write counts are automatically handled
+		// load the number of bytes to read back into the readCount
+		// "1" is used here
+		// the write counts are automatically handled by addWriteCommand
 		IO_setReadCount(localIoStructPtr, 1);
 
 		// set communication complete callback as Sensor_incrementMiniState()
@@ -1957,12 +1967,13 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 										(io_cb_fnct)Sensor_incrementMiniState);
 		IO_setObjectPointer(localIoStructPtr, _self);
 
-		// transmit the IO object to IO manager via Sensor_writeDataToSensor()
-		// NOTE: might test for NULL return errors
-		Sensor_readDataFromSensor(_self);
-
 		// transition to a waiting miniState
 		Sensor_incrementMiniState(_self);
+
+		// transmit the IO object to IO manager via Sensor_writeDataToSensor()
+		// NOTE: might test for NULL return errors
+		if ( Sensor_readDataFromSensor(_self) != _self ) { return NULL; }
+
 		break;
 	}
 
@@ -1991,10 +2002,9 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 
 		// copy data from IO buffer to sensor raw data buffer
 		// WARNING:  the sensor data is held in a Node structure while the
-		//           ... IO buffer is an array of char ... be careful
-		//           ... processing multiple sequential read values
+		//           ... IO buffer is an array of unsigned char ... be careful
+		//           ... if processing multiple sequential read values
 		setValue(localRawDataPtr, localBufferPointer[0]);
-
 
 		// transition to next state
 		Sensor_transitionState(_self, SENSOR_DISABLE_POWER);
@@ -2016,13 +2026,12 @@ void * implement_Sensor_default_disablePower(struct Sensor * _self)
 	int mode = AUTOMATICALY_DIABLE_POWER;
 	//int mode = MANUALLY_DISABLE_POWER;
 
+	Sensor_transitionState(_self, SENSOR_PROCESS_RAW_DATA);
+
 	if ( mode == AUTOMATICALY_DIABLE_POWER ) {
-		Sensor_transitionState(_self, SENSOR_PROCESS_RAW_DATA);
 		return Sensor_default_sendDisablePowerCommands(_self);
 	}
-
-	if ( mode == MANUALLY_DISABLE_POWER ) {
-		Sensor_transitionState(_self, SENSOR_PROCESS_RAW_DATA);
+	else {
 		return _self;
 	}
 
@@ -2044,7 +2053,7 @@ static void * implement_Sensor_default_processRawData(struct Sensor * _self)
 	if ( localFinalDataPtr == NULL ) { return NULL; }
 
 	// add correct processing code here
-	// default case simply copies the raw data to the final data area
+	// default case simply copies the raw data Node to the final data Node
 	setValue(localFinalDataPtr, getValue(localRawDataPtr) );
 	return _self;
 }
@@ -2096,7 +2105,7 @@ static void * implement_Sensor_default_checkAlarms(struct Sensor * _self)
 	struct Node * localFinalDataPtr = Sensor_getFinalDataPointer(_self);
 	value_t finalValue = getValue(localFinalDataPtr);
 
-	// test value against alarm thresholds
+	// test final value against alarm thresholds
 	switch (normalAlarmType) {
 
 	case ALARM_BELOW: {
@@ -2152,26 +2161,27 @@ static void * implement_Sensor_default_checkAlarms(struct Sensor * _self)
 
 static void * implement_Sensor_callAlarmTriggered_CB(struct Sensor * _self)
 {
-	_self->Sensor_onAlarmTriggered_cb(_self);
+	(_self->Sensor_onAlarmTriggered_cb)(_self);
 	return _self;
 }
 
 static void * implement_Sensor_callReportReady_CB(struct Sensor * _self)
 {
-	_self->Sensor_onReportReady_cb(_self);
+	(_self->Sensor_onReportReady_cb)(_self);
 	return _self;
 }
 
 sensorReportStatus_t Sensor_reportReady(const void * _self)
 {
 	struct Sensor * self = cast(Sensor, _self);
-	if ( self == NULL ) { return SENSOR_REPORT_NOT_READY; }  // fail
+	if ( self == NULL )
+		{ return SENSOR_REPORT_NOT_READY; }  // fail
 
 	// test for valid/completed process
 	if ( Sensor_getSensorState(self) != SENSOR_REPORT )
-		{ return SENSOR_REPORT_NOT_READY; }
-	else
-		{ return SENSOR_REPORT_IS_READY; }
+		{ return SENSOR_REPORT_NOT_READY; }  // fail
+
+	return SENSOR_REPORT_IS_READY;
 }
 
 
@@ -2180,8 +2190,10 @@ sensorReportStatus_t Sensor_reportReady(const void * _self)
 void Sensor_transitionState(struct Sensor * _self, sensorState_t _state)
 {
 	Sensor_setSensorState(_self, _state);
-	// always reset the miniState when transitioning the main state
+
+	// always reset the miniState when transitioning the main sensor state
 	Sensor_resetMiniState(_self);
+
 	return;
 }
 
@@ -2209,15 +2221,15 @@ void * Sensor_getIoCommandBufPointer( void * _self)
 	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 										Sensor_getIoStructPointer(self);
 	if ( localIoStructPtr == NULL ) {
-		Sensor_incrementMiniState(self);  // fail
-		return NULL;
+		Sensor_incrementMiniState(self);
+		return NULL;  // fail
 	}
 
 	//  get command buffer pointer
 	command_t * commandBufferPTR = IO_getBufferPointer(localIoStructPtr);
 	if ( commandBufferPTR == NULL ) {
-		Sensor_incrementMiniState(self);   // fail
-		return NULL;
+		Sensor_incrementMiniState(self);
+		return NULL;  // fail
 	}
 	return commandBufferPTR;
 }

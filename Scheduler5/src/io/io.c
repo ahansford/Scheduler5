@@ -372,7 +372,9 @@ void * IO_addIOSequenceToList(void * _self)
 	struct IO * self = cast(IO, _self);
 	if( self == NULL ) { return NULL; } // fail
 	void * itemAddedToListPtr = add(ioSequenceList, self);
-	// if ( itemAddedToListPtr == NULL ) { printf("FAIL: IO_addIOSequenceToList\n"); }
+	if ( itemAddedToListPtr == NULL ) {
+		printf("\nFAIL: IO_addIOSequenceToList add operation\n");
+	}
 	return _self;
 }
 

@@ -164,8 +164,18 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 #define SENSOR_DEFAULT_MAX_COMMANDS 4
 typedef unsigned char command_t;
 
-#define SENSOR_DEFAULT_ADDRESS   NULL  // default memory address of 0x00
-#define SENSOR_DEFAULT_IO_TYPE   IO    // the default IO type
+/*!
+ * The default memory address of 0x00 is loaded when the sensor initialized.
+ * A NULL address will PREVENT the sensor IO operations from executing on the
+ * assumption that a NULL pointer access into memory is disallowed.  This may
+ * not be the case for other sensor types like I2C.  The default read and
+ * write methods control this behavior.  The IO target address can be set with
+ * IO_setAddress().
+ */
+#define SENSOR_DEFAULT_ADDRESS   NULL
+
+//! The default IO type where "IO" = memory access.
+#define SENSOR_DEFAULT_IO_TYPE   IO
 /***********************************************/
 /************ protected includes  **************/
 /***** must be after externs and typedefs  *****/
