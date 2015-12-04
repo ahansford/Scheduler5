@@ -87,6 +87,14 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_setBufferPointer_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(io, IO_setBufferPointer_canSetSpecificValue);
 
+	/****  Set/Get bufferSize  ****************/
+	/**/
+	RUN_TEST_CASE(io, IO_getBufferSize_returns_DefineValueOnCreate);
+	RUN_TEST_CASE(io, IO_getBufferSize_returns_specificValue);
+	RUN_TEST_CASE(io, IO_setBufferSize_returnsSpecificValue);
+	RUN_TEST_CASE(io, IO_setBufferSize_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(io, IO_setBufferSize_canSetSpecificValue);
+
 	/****  Set/Get IO_actionComplete_cb  ****************/
 	/**/
 	RUN_TEST_CASE(io, IO_getIO_actionComplete_cb_returns_UnknownOnCreate);
@@ -117,7 +125,9 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, equal_UnequalIOActionReturn_Unequal);
 	RUN_TEST_CASE(io, equal_UnequalReadCountReturn_Unequal);
 	RUN_TEST_CASE(io, equal_UnequalWriteCountReturn_Unequal);
-	RUN_TEST_CASE(io, equal_UnequalBufferPointerReturn_Unequal);
+	RUN_TEST_CASE(io, equal_UnequalBufferPointerReturn_Equal);
+	RUN_TEST_CASE(io, equal_UnequalBufferSizeReturn_Unequal);
+
 	RUN_TEST_CASE(io, equal_UnequalActionDoneCB_Unequal);
 	RUN_TEST_CASE(io, equal_UnequalObjectPointerUnequal);
 
@@ -131,6 +141,7 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_addWriteValue_addsSingleValue);
 	RUN_TEST_CASE(io, IO_addWriteValue_addsMultipleValues);
 	RUN_TEST_CASE(io, IO_addWriteValue_incrementsWriteCountOnMultipleAdd);
+	RUN_TEST_CASE(io, IO_addWriteValue_AddingMoreThanBufferSizeReturnsNULL);
 
 	//****  IO_addIOActionToList  *********************
 	/**/

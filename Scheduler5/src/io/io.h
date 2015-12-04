@@ -134,30 +134,35 @@ void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
  * IO methods should carefully manage size.
  */
 
-//
-//           ...
-
-// adds the sequence of commands to the ioSequenceList
-// returns command sequence on success
+/*!
+ * Adds the sequence of commands to the List of sequences managed by IO.
+ * Returns command sequence on success.
+ */
 void * IO_addIOSequenceToList(void * _self);
 
-// executes the io state machine, called from the scheduler
-// returns processed struct IO object on completion
+/*!
+ * Executes the IO state machine, and called from the scheduler.  Returns
+ * processed struct IO object pointer on completion.
+ */
 void IO_update(void);
 
-// executes the specified ioAction
-// called via IO_update()
+/*!
+ * Executes communications sequence.  Called from within IO_update().
+ */
 void * IO_processSequence(void * _self);
 
-// possible new method to allow multiple sequences to hold the comm bus
-// method returns NULL if no follow-on sequence is needed
-// returns the follow-on sequence if one exists
-// this function would be overloadable
-//void * IO_getFollowOnSequence(void * _self);
+/*!
+ * Possible new method to allow multiple sequences to hold cnotrol of the
+ * communication bus.  Method returns NULL if no follow-on sequence is needed.
+ * Returns the follow-on sequence if one exists.  This function would
+ * be overloadable.
+ * void * IO_getFollowOnSequence(void * _self);
+ */
 
-// hardware driver should call when I/O action is complete
-// if value in struct IO is NULL, the sequence will be
-// marked completed and the state will increment automatically
+/*!
+ * Generic IO callback that fires when I/O action is complete.  The sequence
+ * will be marked completed and the state will increment automatically
+ */
 void IO_sequenceComplete_cb(void);
 
 
@@ -169,37 +174,46 @@ void * IO_xxxx(void * _self);
 /******************************/
 /****** access methods  *******/
 
-// address for read or write operation
+/*!
+ * Address for read or write operation.  Memory access to a NULL address is
+ * ignored.
+ */
 void * IO_getAddress(const void * _self);
 void * IO_setAddress(      void * _self, void * _address);
 
-// type of operation
+//! Type of IO operation
 io_read_write_t IO_getIOAction(const void * _self);
 io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction);
 
-// number of values to read
+//! Number of values to read.  Must be set before add sequence on to IO list.
 int IO_getReadCount(const void * _self);
 int IO_setReadCount(      void * _self, int _readCount);
 
-// number of bytes to write
+//! Number of bytes to write.  Automatically managed when adding a command to buffer.
 int IO_getWriteCount(const void * _self);
 int IO_setWriteCount(      void * _self, int _writeCount);
 
-// struct List pointer to buffer holding data for writes and reads
-// write operation is first, and read data overwrites original write data
+/*!
+ * Struct List pointer to buffer holding data for writes and reads.
+ * Write operations are executed first.  Read data overwrites any previous
+ * write data in the command buffer.
+ */
 void * IO_getBufferPointer(const void * _self);
 void * IO_setBufferPointer(      void * _self, void * _bufferPointer);
 
-// number of values that can be stored in the command buffer
+//! Number of values that can be stored in the command buffer.
 int IO_getBufferSize(const void * _self);
 int IO_setBufferSize(      void * _self, int _bufferSize);
 
-// function pointer "void (* functionPointer)(void *_objectPointer)
-// called when operation is complete
+/*!
+ * Called when operation is complete is function pointer is not NULL.
+ * Passes parameter of objectPointer, accessible through
+ * IO_getObjectPointer(), even if this value is NULL.
+ */
 io_cb_fnct IO_get_actionDone_cb(const void * _self);
 io_cb_fnct IO_set_actionDone_cb(      void * _self, io_cb_fnct _cb);
 
-// object pointer value for callback
+//! Object pointer parameter value for action done callback.
 void * IO_getObjectPointer(const void * _self);
 void * IO_setObjectPointer(      void * _self, void * _objectPointer);
 

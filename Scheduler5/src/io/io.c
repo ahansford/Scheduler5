@@ -5,16 +5,15 @@
  *      Author: Alan
  */
 
-#include <string.h>
+//#include <string.h>
 #include "io.h"
-#include "io-private.h"            // safety include
-
-//#include "..\..\src\nodes\nodes.h"     // safety include
-//#include "..\..\src\node_list\node-list.h"     // safety include
-//#include "..\..\src\times\times.h"       // safety include
-#include "..\..\src\lists\lists.h"       // supports class registration
-#include "..\..\src\objects\objects.h"     // safety include
-//#include "..\..\src\scheduler\scheduler.h" // safety include
+#include "io-private.h"                        // safety include
+//#include "..\..\src\nodes\nodes.h"           // safety include
+//#include "..\..\src\node_list\node-list.h"   // safety include
+//#include "..\..\src\times\times.h"           // safety include
+#include "..\..\src\lists\lists.h"             // safety include
+#include "..\..\src\objects\objects.h"         // safety include
+//#include "..\..\src\scheduler\scheduler.h"   // safety include
 
 
 static void * implement_IO_io_ctor(void * _self);
@@ -28,7 +27,8 @@ static void * implement_IO_io_config(      struct IO * _self,
 static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp);
 
 
-static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value);
+static void * implement_IO_io_addWriteValue(struct IO * _self,
+		                                    io_data_t   _value);
 static void * implement_IO_io_processSequence(struct IO * _self);
 static void * implement_IO_io_xxxx(struct IO * _self);
 
@@ -44,19 +44,19 @@ static void IO_io_readSequential (void * _to, void * _from, int _readCount);
 const void * IOClass = NULL;
 const void * IO      = NULL;
 
-struct List * ioSequenceList = NULL;
-struct IO *   sequence;
+struct List * ioSequenceList = NULL; // pointer to the List of sequences
+struct IO *   sequence;  // pointer to the sequence currently being executed
 
-// MUST be called before other event controller methods are called
+// MUST be called before other IO methods are called
 void IO_init(struct List * _ioSequenceList)
 {
 	// Insert the lines below for any derived subclasses
 	//if (!IO)      {IO_init();}
 	//if (!IOClass) {IO_init();}
 
-	// most sensor nodes should use Node structures to hold data
-	//if (!Node)      {Node_init();}
-	//if (!NodeClass) {Node_init();}
+	// IO uses a List to manage sequences before they are executed
+	if (!List)      {List_init();}
+	if (!ListClass) {List_init();}
 
 	if (! IOClass) {
 		IOClass = new(Class,  		// should be "Class"
@@ -191,6 +191,8 @@ void * IO_io_dtor(void * _self)
 	// ... use "struct myClass * self = cast(myClass, _self);"
 	struct IO * self = cast(IO, _self);
 	if(self == NULL)                         {return NULL; } // fail
+
+	// WARNING:  The command buffer should be deleted/freed externally
 
 	// address local members first
 	if ( implement_IO_io_dtor(self) == NULL) {return NULL; } // fail
@@ -629,11 +631,10 @@ static void * implement_IO_io_ctor(void * _self)
 	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
 	IO_setReadCount     (_self, 0);
 	IO_setWriteCount    (_self, 0);
-	//IO_setBufferPointer (_self, bufferPointer);  // set in main ctor
+	//IO_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
 	void * localBufferPointer = IO_getBufferPointer(_self);
 	IO_setBufferSize(_self, \
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	// TODO:  Add tests for the new bufferSize
 	IO_set_actionDone_cb(_self, NULL);
 	IO_setObjectPointer (_self, NULL);
 	return _self;
@@ -645,7 +646,9 @@ static void * implement_IO_io_dtor(struct IO * _self)
 	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
 	IO_setReadCount     (_self, 0);
 	IO_setWriteCount    (_self, 0);
+	// WANRING:  delete/free the command buffer externally
 	IO_setBufferPointer (_self, NULL);
+	IO_setBufferSize    (_self, 0);
 	IO_set_actionDone_cb(_self, NULL);
 	IO_setObjectPointer (_self, NULL);
 	return _self;
@@ -677,6 +680,9 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 	//if( IO_getBufferPointer(self) != IO_getBufferPointer(comparisonObject) )
 	//	{ return OBJECT_UNEQUAL; }
 
+	if( IO_getBufferSize(self) != IO_getBufferSize(comparisonObject) )
+		{ return OBJECT_UNEQUAL; }
+
 	if( IO_get_actionDone_cb(self) != IO_get_actionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
@@ -695,6 +701,7 @@ static void * implement_IO_io_config(      struct IO * _self,
 
 static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp)
 {
+	// TODO: Add puto code in IO
 	return 0;
 }
 
@@ -713,9 +720,13 @@ static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 	if ( bufferPointer == NULL ) { return NULL; } // fail
 
 	int writeCount = IO_getWriteCount(_self);
+	if ( writeCount == IO_getBufferSize(_self) ) { return NULL; }  // fail full
 
+	// Add value to buffer and increment the writeCount
 	bufferPointer[writeCount] = _value;
-	IO_setWriteCount(_self, ++writeCount);
+	writeCount++;
+	IO_setWriteCount(_self, writeCount);
+
 	return _self;  // remove this fail
 }
 
@@ -725,11 +736,11 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	// complete sequences are likely executed as a block
 	// reentrant support is not likely needed
 
-	io_read_write_t ioAction  = IO_getIOAction(_self);
-	void * address            = IO_getAddress(_self);
-	int writeCount            = IO_getWriteCount(_self);
-	int readCount             = IO_getReadCount(_self);
-	io_data_t * bufferAddress = IO_getBufferPointer(_self);
+	io_read_write_t ioAction      = IO_getIOAction(_self);
+	void *          address       = IO_getAddress(_self);
+	int             writeCount    = IO_getWriteCount(_self);
+	int             readCount     = IO_getReadCount(_self);
+	io_data_t *     bufferAddress = IO_getBufferPointer(_self);
 
 	switch (ioAction) {
 
@@ -773,9 +784,7 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 
 	}// end switch
 
-	// fire the sequence complete cb since transfer activity is immediate
-	// overloaded methods might prefer to have the hardware driver
-	// determine the time when the sequence complete callback is fired
+	// fire the sequence complete callback since transfer activity is complete
 	IO_sequenceComplete_cb();
 	return _self;  // remove this fail
 }
@@ -788,7 +797,6 @@ static void IO_io_writeSingle(void * _to, void * _from, int _writeCount)
 
 	for ( i = 0; i < _writeCount; i++ ) {
 		*to = *from;
-		//to++;
 		from++;
 	}
 	return;

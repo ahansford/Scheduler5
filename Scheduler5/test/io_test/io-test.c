@@ -23,8 +23,9 @@ struct       IO *      myTest_IO;
 
 // test buffer is a combined memory area for both write and read data
 // write data is assumed to be loaded first, and then potentially overwritten by the read operation
-io_data_t testBuffer[4];
-io_data_t otherTestBuffer[4];
+#define IO_COMMAND_BUFFER_SIZE  4
+io_data_t testBuffer[IO_COMMAND_BUFFER_SIZE];
+io_data_t otherTestBuffer[IO_COMMAND_BUFFER_SIZE];
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
 void * io_test_general_cb(void * _self);
@@ -33,6 +34,7 @@ int io_test_cb_count;
 //int sensor_test_cb_count2;
 
 //int i;
+
 
 struct List * IOTest_ioActionList = NULL;
 void *        IOTest_ioActionBuffer[4];
@@ -354,6 +356,35 @@ TEST(io, IO_setBufferPointer_canSetSpecificValue)
 	TEST_ASSERT_EQUAL(testBuffer,  myTest_IO->bufferPointer);
 }
 
+/****  Set/Get bufferSize  ****************/
+
+TEST(io, IO_getBufferSize_returns_DefineValueOnCreate)
+{
+	TEST_ASSERT_EQUAL(IO_COMMAND_BUFFER_SIZE,  IO_getBufferSize(myTest_IO) );
+}
+
+TEST(io, IO_getBufferSize_returns_specificValue)
+{
+	myTest_IO->bufferSize = 1;
+	TEST_ASSERT_EQUAL(1,  IO_getBufferSize(myTest_IO) );
+}
+
+TEST(io, IO_setBufferSize_returnsSpecificValue)
+{
+	TEST_ASSERT_EQUAL(2,  IO_setBufferSize(myTest_IO, 2));
+}
+
+TEST(io, IO_setBufferSize_returnsUnknownOnNullPtr)
+{
+	TEST_ASSERT_EQUAL(0,  IO_setBufferSize(NULL, 3));
+}
+
+TEST(io, IO_setBufferSize_canSetSpecificValue)
+{
+	IO_setBufferSize(myTest_IO, 4);
+	TEST_ASSERT_EQUAL(4,  myTest_IO->bufferSize);
+}
+
 /****  Set/Get IO_actionComplete_cb  ****************/
 
 TEST(io, IO_getIO_actionComplete_cb_returns_UnknownOnCreate)
@@ -505,12 +536,20 @@ TEST(io, equal_UnequalWriteCountReturn_Unequal)
 	masterIO = safeDelete(masterIO);
 }
 
-TEST(io, equal_UnequalBufferPointerReturn_Unequal)
+TEST(io, equal_UnequalBufferPointerReturn_Equal)
 {
 	struct IO * masterIO = new(IO, otherTestBuffer);
 	IO_setBufferPointer(masterIO, otherTestBuffer);
 	// bufferPointers are unique and will not trigger OBJECT_UNEQUAL
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_IO, masterIO) );
+	masterIO = safeDelete(masterIO);
+}
+
+TEST(io, equal_UnequalBufferSizeReturn_Unequal)
+{
+	struct IO * masterIO = new(IO, otherTestBuffer);
+	IO_setBufferSize(masterIO, myTest_IO->bufferSize + 1 );
+	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
 
@@ -590,6 +629,18 @@ TEST(io, IO_addWriteValue_incrementsWriteCountOnMultipleAdd)
 	IO_addWriteCommandToSequence(myTest_IO, 0xAA);
 	IO_addWriteCommandToSequence(myTest_IO, 0x77);
 	TEST_ASSERT_EQUAL(3, myTest_IO->writeCount );
+}
+
+TEST(io, IO_addWriteValue_AddingMoreThanBufferSizeReturnsNULL)
+{
+	// pre-load the command buffer with max number of values
+	int i;
+	for ( i = 0; i < IO_COMMAND_BUFFER_SIZE; i++ ) {
+		IO_addWriteCommandToSequence( myTest_IO, (io_data_t)i );
+	}
+
+	// add one too many values
+	TEST_ASSERT_EQUAL(NULL, IO_addWriteCommandToSequence( myTest_IO, 0x00 ) );
 }
 
 //****  IO_addIOActionToList  *********************
