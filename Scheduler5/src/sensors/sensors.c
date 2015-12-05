@@ -1795,7 +1795,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		// a NULL address will fail to write in IO
 
 		// clear the command buffer
-		IO_clearCommandSequences(localIoStructPtr);
+		IO_clearCommandBuffer(localIoStructPtr);
 
 		// add register and data values to command buffer (example values only)
 		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
@@ -1948,7 +1948,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		// a NULL address will fail to write in IO
 
 		// clear the command buffer
-		IO_clearCommandSequences(localIoStructPtr);
+		IO_clearCommandBuffer(localIoStructPtr);
 
 		// add register/data values to command buffer to trigger read operation
 		// in example code no values are written to buffer

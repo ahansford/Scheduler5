@@ -57,7 +57,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="test/index_manager_test/index-manager-test-runner.c|test/index_manager_test/index-manager-test.c|test/light_driver_spy_test/light-driver-spy-test-runner.c|test/light_driver_spy_test/light-driver-spy-test.c|stacks_test|scheduler_test|test/time_test|time.h|light-scheduler.c|Scheduler-private.h|src/time|light_scheduler_test|light_driver_spy_test|light_scheduler|time_test|light_driver_spy|light_driver_test|light_driver_X10|times|light_driver|index_manager" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="stacks_test|light_scheduler|test/light_driver_spy_test/light-driver-spy-test-runner.c|test/index_manager_test/index-manager-test-runner.c|time_test|light_driver_spy|scheduler_test|test/time_test|time.h|light-scheduler.c|Scheduler-private.h|light_driver_test|light_driver_X10|times|test/light_driver_spy_test/light-driver-spy-test.c|src/time|light_scheduler_test|test/index_manager_test/index-manager-test.c|light_driver_spy_test|light_driver|index_manager" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -114,7 +114,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/light_driver|test/time_test|time.h|light-scheduler.c|src/mocks/light_scheduler|src/light-driver-X10|src/index_manager|light_driver_X10|light_driver_test|test/light_driver_spy_test.c|test/light_driver_test|test/light_scheduler_test|test/light_driver_spy_test|light_driver|src/light_driver_X10|index_manager|stacks_test|scheduler_test|Scheduler-private.h|src/time|src/light_driver_spy|light_scheduler_test|light_driver_spy_test|light_scheduler|test/stacks_test|src/scheduler/Scheduler-private.h|time_test|light_driver_spy|test/scheduler_test|src/light_scheduler|times" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="stacks_test|src/light_driver|scheduler_test|test/time_test|time.h|light-scheduler.c|Scheduler-private.h|src/time|light_scheduler_test|src/light_driver_spy|light_driver_spy_test|src/mocks/light_scheduler|light_scheduler|src/light-driver-X10|test/stacks_test|src/scheduler/Scheduler-private.h|time_test|light_driver_spy|src/index_manager|test/scheduler_test|src/light_scheduler|light_driver_test|light_driver_X10|times|test/light_driver_spy_test.c|test/light_driver_test|test/light_scheduler_test|test/light_driver_spy_test|light_driver|src/light_driver_X10|index_manager" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="test/scheduler_test"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="test/stacks_test"/>
 					</sourceEntries>

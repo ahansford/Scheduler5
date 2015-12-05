@@ -6,16 +6,16 @@
  */
 
 //#include <string.h>
-#include "io.h"
-#include "io-private.h"                        // safety include
-//#include "..\..\src\nodes\nodes.h"           // safety include
-//#include "..\..\src\node_list\node-list.h"   // safety include
-//#include "..\..\src\times\times.h"           // safety include
+#include "access-mem.h"
+
 #include "..\..\src\lists\lists.h"             // safety include
 #include "..\..\src\objects\objects.h"         // safety include
+#include "access-mem-private.h"                // safety include
 //#include "..\..\src\scheduler\scheduler.h"   // safety include
 
-
+static void * implement_Access_MEM_ctor(void * _self);
+static void * implement_Access_MEM_addWriteCommandToSequence(struct Access_MEM * _self, io_data_t _value);
+/*
 static void * implement_IO_io_ctor(void * _self);
 static void * implement_IO_io_dtor(        struct IO * _self);
 static void * implement_IO_io_copy(        struct IO * _copyTo,
@@ -36,63 +36,63 @@ static void IO_io_writeSingle    (void * _to, void * _from, int _writeCount);
 static void IO_io_writeSequential(void * _to, void * _from, int _writeCount);
 static void IO_io_readSingle     (void * _to, void * _from, int _readCount);
 static void IO_io_readSequential (void * _to, void * _from, int _readCount);
-
+*/
 
 /*****************************/
 /**** INITIALIZATIONS  *******/
 
-const void * IOClass = NULL;
-const void * IO      = NULL;
+const void * Access_MEM		 = NULL;
+const void * Access_MEMClass = NULL;
 
-struct List * ioSequenceList = NULL; // pointer to the List of sequences
-struct IO *   sequence;  // pointer to the sequence currently being executed
+//struct List * ioSequenceList = NULL; // pointer to the List of sequence
+//struct IO *   sequence;  // pointer to the sequence currently being executed
 
 // the internally managed IO state machine state used in IO_update()
-io_update_state_t io_update_state;
+//io_update_state_t io_update_state;
 
 
 // MUST be called before other IO methods are called
-void IO_init(struct List * _ioSequenceList)
+void Access_init(void)
 {
 	// Insert the lines below for any derived subclasses
-	//if (!IO)      {IO_init();}
-	//if (!IOClass) {IO_init();}
+	//if (!ACCESS_MEM)      {ACCESS_MEM_init();}
+	//if (!ACCESS_MEMClass) {ACCESS_MEM_init();}
 
 	// IO uses a List to manage sequences before they are executed
 	if (!List)      {List_init();}
 	if (!ListClass) {List_init();}
 
-	if (! IOClass) {
-		IOClass = new(Class,  		// should be "Class"
-						"IOClass",	// should be "SomethingClass"
+	if (! Access_MEMClass) {
+		Access_MEMClass = new(Class,  		// should be "Class"
+						"Access_MEMClass",	// should be "SomethingClass"
 						Class,  		// should be "Class"
-						sizeof(struct IOClass),
-						ctor, IOClass_ctor,	//SomethingClass_ctor
+						sizeof(struct Access_MEMClass), //TODO: fix
+						ctor, Access_MEMClass_ctor,	//SomethingClass_ctor
 						0);  // Terminator
 	}
-	if (! IO) {
-		IO = new(IOClass,			// SomethingClass from above
-					"IO",				// name like "Something"
+	if (! Access_MEM) {
+		Access_MEM = new(Access_MEMClass,			// SomethingClass from above
+					"Access_MEM",				// name like "Something"
 					Object,  			// "superclass(Something)"
-					sizeof(struct IO),// size of self
+					sizeof(struct Access_MEM),// size of self
 					// Overloaded superclass functions
 					// Remember to call superclass->method
-					ctor,	IO_io_ctor,//Something_ctor
-					dtor,   IO_io_dtor,
-					copy,	IO_io_copy,
-					equal,	IO_io_equal,
-					config, IO_io_config,
-					puto,	IO_io_puto,
+					//ctor,	  ACCESS_MEM_ctor,//Something_ctor
+					//dtor,   ACCESS_MEM_dtor,
+					//copy,	  ACCESS_MEM_copy,
+					//equal,  ACCESS_MEM_equal,
+					//config, ACCESS_MEM_config,
+					//puto,	ACCESS_MEM_puto,
 					// New functions added in this class
 					// Do not call superclass->method
-					IO_addWriteCommandToSequence, IO_io_addWriteValue,
-					IO_processSequence,		      IO_io_processSequence,
-					IO_xxxx,		              IO_io_xxxx,
+					Access_addWriteCommandToSequence, Access_MEM_addWriteCommandToSequence,
+					//ACCESS_processSequence,		    ACCESS_MEM_processSequence,
+					//ACCESS_xxxx,		                ACCESS_MEM_xxxx,
 
 					0);	// Terminator
 	}
 
-	ioSequenceList = _ioSequenceList;
+	//ioSequenceList = _ioSequenceList;
 
 	// requires #include "..\..\src\lists\lists.h" to support class registry
 	//implement_Sensor_registerKeyClasses();
@@ -103,35 +103,38 @@ void IO_init(struct List * _ioSequenceList)
 /*****************************/
 /****** Constructors  ********/
 
-void * IO_io_ctor(void * _self, va_list * app)
+void * Access_MEM_ctor(void * _self, va_list * app)
 {
 	// Add superclass class data members
-	struct IO * self = super_ctor(IO, _self, app);
+	struct Access_MEM * self = super_ctor(Access_MEM, _self, app);
 	if ( self == NULL ) { return NULL; } // failed to construct super
 
 	// overwrite data members with new data
 	// Only uncomment if all data members will be specified in new() command
 	// ... this seems like an undue burden on the user.  Leave commented out
 	// ... numerous unit tests will need to be adapted if uncommented
-	self->bufferPointer = va_arg(* app, io_data_t *);
+
+	// TODO: created the single needed buffer once if missing
+	//self->bufferPointer = va_arg(* app, io_data_t *);
+
 	//self->minute = va_arg(* app, minute_t);
 
 	// modify return if data members are individually initialized above
 
-	return implement_IO_io_ctor(self);
+	return implement_Access_MEM_ctor(self);
 }
 
-void * IOClass_ctor(void * _self, va_list *app)
+void * Access_MEMClass_ctor(void * _self, va_list *app)
 {
 	// Add superclass class data and methods
-	struct IOClass * self = super_ctor(IOClass, _self, app);
+	struct Access_MEMClass * self = super_ctor(Access_MEMClass, _self, app);
 
 	// Initialize new functions to default values
 	typedef void (* voidf)();
 
-	* (voidf *) & self->IO_addWriteValue   = NULL;
-	* (voidf *) & self->IO_processSequence = NULL;
-	* (voidf *) & self->IO_xxxx            = NULL;
+	* (voidf *) & self->Access_addWriteCommandToSequence = NULL;
+	* (voidf *) & self->Access_processSequence           = NULL;
+	* (voidf *) & self->Access_xxxx                      = NULL;
 
 	// Update any overloaded method function pointers
 	// using style ... , methodSelector, overloadedFunctionPtr,
@@ -147,7 +150,7 @@ void * IOClass_ctor(void * _self, va_list *app)
 	// if non-NULL selector then grab next method pointer from arg list
 	while ( (selector = va_arg(ap, voidf)) ) {
 		voidf overloadedFunctionPtr  = va_arg(ap, voidf);
-
+/*
 		if (selector == (voidf) dtor)
 			{* (voidf *) & self->_._.class->dtor= overloadedFunctionPtr; }
 
@@ -162,19 +165,19 @@ void * IOClass_ctor(void * _self, va_list *app)
 
 		if (selector == (voidf) puto)
 			{* (voidf *) & self->_._.class->puto = overloadedFunctionPtr;}
-
+*/
 
 		// use form below to overload any new functions
 
-		if (selector == (voidf)IO_addWriteCommandToSequence)
-		    {* (voidf *) & self->IO_addWriteValue = overloadedFunctionPtr;}
+		if (selector == (voidf)Access_addWriteCommandToSequence)
+		    {* (voidf *) & self->Access_addWriteCommandToSequence = overloadedFunctionPtr;}
+/*
+		if ( selector == (voidf)Access_processSequence )
+		    { * (voidf *) & self->Access_processSequence  = overloadedFunctionPtr; }
 
-		if ( selector == (voidf)IO_processSequence )
-		    { * (voidf *) & self->IO_processSequence  = overloadedFunctionPtr; }
-
-		if ( selector == (voidf)IO_xxxx )
-		    { * (voidf *) & self->IO_xxxx = overloadedFunctionPtr; }
-
+		if ( selector == (voidf)Access_xxxx )
+		    { * (voidf *) & self->Access_xxxx = overloadedFunctionPtr; }
+*/
 	#ifdef va_copy
 		va_end(ap);
 	#endif
@@ -187,7 +190,7 @@ void * IOClass_ctor(void * _self, va_list *app)
 
 /*****************************/
 /**** Overloaded Methods  ****/
-
+/*
 void * IO_io_dtor(void * _self)
 {
 	// Validate pointers
@@ -280,43 +283,45 @@ puto_return_t IO_io_puto(const void * _self, FILE * _fp)
 	return implement_IO_io_puto(self, _fp);
 }
 
-
+*/
 /****************************************************************************/
 /********  New functions for  class "IOClass"  ******************************/
 /****************************************************************************/
 
 
 /*************************************************/
-/***********  IO_addWriteSequence    *************/
+/***********  ACCESS_addWriteCommandToSequence    *************/
 
-void *  IO_addWriteCommandToSequence(void * _self, io_data_t _value)
+void *  Access_addWriteCommandToSequence(void * _self, io_data_t _value)
 {
-	const struct IOClass * class = classOf( cast(IO, _self) );
+	const struct Access_MEMClass * class = classOf( cast(Access_MEMClass, _self) );
 	if ( class == NULL )                   { return NULL; } // fail
-	if ( class->IO_addWriteValue == NULL ) { return NULL; } // fail
-	return class->IO_addWriteValue(_self, _value);
+	//if ( class-> == NULL ) { return NULL; } // fail
+	//return class-(_self, _value);
+	return NULL;
 }
 
-void * super_IO_io_addWriteValue(const void * _class, void * _self, io_data_t _value)
+void * super_Access_addWriteCommandToSequence(const void * _class, void * _self, io_data_t _value)
 {
-	// verify that IOClass is in the superclass chain of _class
-	if ( ! isOfSuper(IOClass, _self) )          { return NULL; } // fail
-	const struct IOClass * superclass = super(_class);
+	// verify that ACCESS_MEMClass is in the superclass chain of _class
+	if ( ! isOfSuper(Access_MEMClass, _self) )          { return NULL; } // fail
+	const struct Access_MEMClass * superclass = super(_class);
 	if ( superclass == NULL )                   { return NULL; } // fail
-	if ( superclass->IO_addWriteValue == NULL ) { return NULL; } // fail
-	return superclass->IO_addWriteValue(_self, _value);
+	//if ( superclass->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
+	//return superclass->Access_addWriteCommandToSequence(_self, _value);
+	return NULL;
 }
 
-void * IO_io_addWriteValue(void * _self, io_data_t _value)
+void * Access_MEM_addWriteCommandToSequence(void * _self, io_data_t _value)
 {
-	struct IO * self = cast(IO, _self);
+	struct Access_MEM * self = cast(Access_MEM, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_IO_io_addWriteValue(self, _value);
+	return implement_Access_MEM_addWriteCommandToSequence(self, _value);
 }
 
 /********************************************/
 /*********  IO_processSequence    ***********/
-
+/*
 void *  IO_processSequence(void * _self)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
@@ -341,10 +346,10 @@ void * IO_io_processSequence(void * _self)
 	if( self == NULL ) { return NULL; } // fail
 	return implement_IO_io_processSequence(self);
 }
-
+*/
 /*************************************/
 /***********  IO_xxxx    *************/
-
+/*
 void *  IO_xxxx(void * _self)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
@@ -369,10 +374,10 @@ void * IO_io_xxxx(void * _self)
 	if( self == NULL ) { return NULL; } // fail
 	return implement_IO_io_xxxx(self);
 }
-
+*/
 /*************************************************************/
 /***** store and get struct IO objects from ioActionList *****/
-
+/*
 void * IO_addIOSequenceToList(void * _self)
 {
 	struct IO * self = cast(IO, _self);
@@ -394,10 +399,10 @@ void IO_sequenceComplete_cb(void)
 	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
 	return;
 }
-
+*/
 /*********************/
 /***** IO_update *****/
-
+/*
 void IO_update(void)
 {
 	switch (io_update_state) {
@@ -459,14 +464,14 @@ void IO_update(void)
 	return;
 }
 
-
+*/
 /****************************************************************************/
 /********  data access methods  *********************************************/
 /****************************************************************************/
 
 /***********************************/
 /*****  set and get address    *****/
-
+/*
 void * IO_getAddress(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -481,10 +486,10 @@ void* IO_setAddress(void * _self, void * _address)
 	self->address = _address;
 	return _address;
 }
-
+*/
 /************************************/
 /*****  set and get ioAction    *****/
-
+/*
 io_read_write_t IO_getIOAction(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -499,10 +504,10 @@ io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction)
 	self->ioAction = _ioAction;
 	return _ioAction;
 }
-
+*/
 /*************************************/
 /*****  set and get readCount  *******/
-
+/*
 int IO_getReadCount(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -517,10 +522,10 @@ int IO_setReadCount(void * _self, int _readCount)
 	self->readCount = _readCount;
 	return _readCount;
 }
-
+*/
 /*************************************/
 /*****  set and get writeCount  *******/
-
+/*
 int IO_getWriteCount(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -535,10 +540,10 @@ int IO_setWriteCount(void * _self, int _writeCount)
 	self->writeCount = _writeCount;
 	return _writeCount;
 }
-
+*/
 /*****************************************/
 /*****  set and get bufferPointer  *******/
-
+/*
 void * IO_getBufferPointer(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -553,10 +558,10 @@ void * IO_setBufferPointer(void * _self, void * _bufferPointer)
 	self->bufferPointer = _bufferPointer;
 	return _bufferPointer;
 }
-
+*/
 /*****************************************/
 /*****  set and get bufferSize  *******/
-
+/*
 int IO_getBufferSize(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -572,10 +577,10 @@ int IO_setBufferSize(void * _self, int _bufferSize)
 	return _bufferSize;
 }
 
-
+*/
 /************************************************/
 /*****  set and get IO_actionComplete_cb  *******/
-
+/*
 io_cb_fnct IO_get_actionDone_cb(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -590,10 +595,10 @@ io_cb_fnct IO_set_actionDone_cb(void * _self, io_cb_fnct _cb)
 	self->actionDone_cb = _cb;
 	return _cb;
 }
-
+*/
 /*****************************************/
 /*****  set and get objectPointer  *******/
-
+/*
 void * IO_getObjectPointer(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -608,10 +613,10 @@ void * IO_setObjectPointer(void * _self, void * _objectPointer)
 	self->objectPointer = _objectPointer;
 	return _objectPointer;
 }
-
+*/
 /*****************************************/
 /*******  implementation methods  ********/
-
+/*
 static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyFrom)
 {
 	// copy master data members, except for PTRs and dynamic values
@@ -628,8 +633,8 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 	IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
-
-static void * implement_IO_io_ctor(void * _self)
+*/
+static void * implement_Access_MEM_ctor(void * _self)
 {
 	IO_setAddress       (_self, NULL);
 	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
@@ -643,7 +648,7 @@ static void * implement_IO_io_ctor(void * _self)
 	IO_setObjectPointer (_self, NULL);
 	return _self;
 }
-
+/*
 static void * implement_IO_io_dtor(struct IO * _self)
 {
 	IO_setAddress       (_self, NULL);
@@ -709,7 +714,7 @@ static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp)
 	return 0;
 }
 
-void * IO_clearCommandBuffer(void * _self)
+void * IO_clearCommandSequences(void * _self)
 {
 	io_data_t * bufferPointer = IO_getBufferPointer(_self);
 	if ( bufferPointer == NULL ) { return NULL; } // fail
@@ -717,8 +722,10 @@ void * IO_clearCommandBuffer(void * _self)
 	IO_setReadCount(_self, 0);
 	return _self;
 }
+*/
 
-static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
+static void * implement_Access_MEM_addWriteCommandToSequence(struct Access_MEM * _self, io_data_t _value)
+//static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 {
 	io_data_t * bufferPointer = IO_getBufferPointer(_self);
 	if ( bufferPointer == NULL ) { return NULL; } // fail
@@ -733,7 +740,7 @@ static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 
 	return _self;  // remove this fail
 }
-
+/*
 static void * implement_IO_io_processSequence(struct IO * _self)
 {
 	// local scope of data members does not support non-blocking operation
@@ -854,3 +861,4 @@ static void * implement_IO_io_xxxx(struct IO * _self)
 	// Update with actual code in
 	return NULL;  // remove this fail when actual code is added
 }
+*/

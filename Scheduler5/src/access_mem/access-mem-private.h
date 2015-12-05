@@ -5,10 +5,10 @@
  *      Author: Alan
  */
 
-#ifndef SRC_IO_IO_PRIVATE_H_
-#define SRC_IO_IO_PRIVATE_H_
+#ifndef SRC_ACCESS_MEM_ACCESS_MEM_PRIVATE_H_
+#define SRC_ACCESS_MEM_ACCESS_MEM_PRIVATE_H_
 
-struct IO {
+struct Access_MEM {
 	const struct Object _;	// should the Object or the "superclass"
 	void * 			address;
 	io_read_write_t ioAction;
@@ -18,13 +18,14 @@ struct IO {
 	int				bufferSize;
 	io_cb_fnct		actionDone_cb;
 	void * 			objectPointer;
+	void *			hardwareConfig;
 };
 
-struct IOClass {
+struct Access_MEMClass {
 	const struct Class	_;	// should be superclass: Class or "somethingClass"
-	void *	(*IO_addWriteValue)	    (void * _self, char _value);
-	void *	(*IO_processSequence)	(void * _self);
-	void *	(*IO_xxxx)	    		(void * _self);
+	void *	(*Access_addWriteCommandToSequence)	    (void * _self, char _value);
+	void *	(*Access_processSequence)	(void * _self);
+	void *	(*Access_xxxx)	    		(void * _self);
 
 };
 
@@ -41,8 +42,8 @@ typedef enum io_update_state_t {
 /*****************************/
 /****** Constructors  ********/
 
-void * IOClass_ctor(void * _self, va_list * app);
-void * IO_io_ctor  (void * _self, va_list * app);
+void * Access_MEMClass_ctor(void * _self, va_list * app);
+void * Access_MEM_ctor  (void * _self, va_list * app);
 
 /***********************************/
 /****** Overload Functions  ********/
@@ -57,12 +58,12 @@ puto_return_t IO_io_puto  (const void * _self, FILE *       _fp);
 /**********************************/
 /**********  new methods  *********/
 
-void * super_IO_io_addWriteValue(const void * _class,
-								 void * _self, io_data_t _value);
-void *       IO_io_addWriteValue(void * _self, io_data_t _value);
+void * super_Access_addWriteCommandToSequence(const void * _class,
+								                  void * _self, io_data_t _value);
+void *       Access_MEM_addWriteCommandToSequence(void * _self, io_data_t _value);
 
-void * super_IO_processSequence(const void * _class, void * _self);
-void *    IO_io_processSequence(void * _self);
+void * super_Access_processSequence(const void * _class, void * _self);
+void *    Access_MEM_processSequence(void * _self);
 
 // not implemented
 void * super_IO_xxxx(const void * _class, void * _self);
@@ -72,4 +73,4 @@ void *    IO_io_xxxx(void * _self);
 void * IO_getActionFromList(void);
 
 
-#endif /* SRC_IO_IO_PRIVATE_H_ */
+#endif /* SRC_ACCESS_MEM_ACCESS_MEM_PRIVATE_H_ */

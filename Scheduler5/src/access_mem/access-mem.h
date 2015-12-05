@@ -5,8 +5,8 @@
  *      Author: Alan
  */
 
-#ifndef SRC_IO_IO_H_
-#define SRC_IO_IO_H_
+#ifndef SRC_ACCESS_MEM_ACCESS_MEM_H_
+#define SRC_ACCESS_MEM_ACCESS_MEM_H_
 
 /***********************************************/
 /****** superclass and system includes  ********/
@@ -20,8 +20,8 @@
 /***********************************************/
 /**** forward declarations and typedefs  *******/
 
-extern const void * IO;
-extern const void * IOClass;
+extern const void * Access_MEM;
+extern const void * Access_MEMClass;
 
 /*!
  * Data type for commands and data sent to and from the memory area or sensor.
@@ -53,7 +53,7 @@ typedef void * (* io_cb_fnct)(void * _io);
 /************ protected includes  **************/
 /***** must be after externs and typedefs  *****/
 
-#include "io-private.h"
+#include "access-mem-private.h"
 
 
 /***********************************************/
@@ -110,20 +110,20 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	@endcode
  *
  */
-void IO_init(struct List * _ioSequenceList);
+void Access_init(void);
 
 /*!
  * Resets write and read counts indicating that the CMD buffer is clear.
  * Does not delete data previously loaded into the buffer area.
  */
-void * IO_clearCommandBuffer(void * _self);
+void * Access_clearCommandBuffer(void * _self);
 
 /*!
  * Writes communication sequences to the IO holding buffer.  Values will be
  * written to IO address when IO_update()via the scheduler task.  Returns
  * self on success.  The writeCount is automatically managed by add.
  */
-void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
+void * Access_addWriteCommandToSequence(void * _self, io_data_t _value);
 
 /*!
  * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
@@ -138,21 +138,21 @@ void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
  * Adds the sequence of commands to the List of sequences managed by IO.
  * Returns command sequence on success.
  */
-void * IO_addIOSequenceToList(void * _self);
+void * Access_addIOSequenceToList(void * _self);
 
 /*!
  * Executes the IO state machine, and called from the scheduler.  Returns
  * processed struct IO object pointer on completion.
  */
-void IO_update(void);
+void Access_update(void);
 
 /*!
  * Executes communications sequence.  Called from within IO_update().
  */
-void * IO_processSequence(void * _self);
+void * Access_processSequence(void * _self);
 
 /*!
- * Possible new method to allow multiple sequences to hold control of the
+ * Possible new method to allow multiple sequences to hold cnotrol of the
  * communication bus.  Method returns NULL if no follow-on sequence is needed.
  * Returns the follow-on sequence if one exists.  This function would
  * be overloadable.
@@ -163,12 +163,12 @@ void * IO_processSequence(void * _self);
  * Generic IO callback that fires when I/O action is complete.  The sequence
  * will be marked completed and the state will increment automatically
  */
-void IO_sequenceComplete_cb(void);
+void Access_sequenceComplete_cb(void);
 
 
 
 // WARNING: this method is not implemented
-void * IO_xxxx(void * _self);
+void * Access_xxxx(void);
 
 
 /******************************/
@@ -218,4 +218,4 @@ void * IO_getObjectPointer(const void * _self);
 void * IO_setObjectPointer(      void * _self, void * _objectPointer);
 
 
-#endif /* SRC_IO_IO_H_ */
+#endif /* SRC_ACCESS_MEM_ACCESS_MEM_H_ */
