@@ -14,35 +14,36 @@
 //#include "..\..\src\scheduler\scheduler.h"   // safety include
 
 static void * implement_Access_MEM_ctor(void * _self);
-static void * implement_Access_MEM_addWriteCommandToSequence(struct Access_MEM * _self, io_data_t _value);
-/*
-static void * implement_IO_io_ctor(void * _self);
-static void * implement_IO_io_dtor(        struct IO * _self);
-static void * implement_IO_io_copy(        struct IO * _copyTo,
-                                     const struct IO * _copyFrom);
-static equal_t implement_IO_io_equal(const struct IO * _self,
-		                             const struct IO * _comparisonObject);
-static void * implement_IO_io_config(      struct IO * _self,
-									 const struct IO * _master);
-static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp);
+static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self, access_data_t _value);
+
+static void * implement_Access_MEM_ctor(void * _self);
+static void * implement_Access_MEM_dtor(        struct AccessMEM * _self);
+static void * implement_Access_MEM_copy(        struct AccessMEM * _copyTo,
+                                     const struct AccessMEM * _copyFrom);
+static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
+		                             const struct AccessMEM * _comparisonObject);
+static void * implement_Access_MEM_config(      struct AccessMEM * _self,
+									 const struct AccessMEM * _master);
+static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self, FILE * _fp);
 
 
-static void * implement_IO_io_addWriteValue(struct IO * _self,
-		                                    io_data_t   _value);
-static void * implement_IO_io_processSequence(struct IO * _self);
-static void * implement_IO_io_xxxx(struct IO * _self);
+static void * implement_Access_MEM_addWriteValue(struct AccessMEM * _self,
+		                                    access_data_t   _value);
 
-static void IO_io_writeSingle    (void * _to, void * _from, int _writeCount);
-static void IO_io_writeSequential(void * _to, void * _from, int _writeCount);
-static void IO_io_readSingle     (void * _to, void * _from, int _readCount);
-static void IO_io_readSequential (void * _to, void * _from, int _readCount);
-*/
+//static void * implement_Access_MEM_processSequence(struct AccessMEM * _self);
+//static void * implement_Access_MEM_xxxx(struct AccessMEM * _self);
+
+static void Access_MEM_writeSingle    (void * _to, void * _from, int _writeCount);
+static void Access_MEM_writeSequential(void * _to, void * _from, int _writeCount);
+static void Access_MEM_readSingle     (void * _to, void * _from, int _readCount);
+static void Access_MEM_readSequential (void * _to, void * _from, int _readCount);
+
 
 /*****************************/
 /**** INITIALIZATIONS  *******/
 
-const void * Access_MEM		 = NULL;
-const void * Access_MEMClass = NULL;
+const void * AccessMEM		= NULL;
+const void * AccessMEMClass = NULL;
 
 //struct List * ioSequenceList = NULL; // pointer to the List of sequence
 //struct IO *   sequence;  // pointer to the sequence currently being executed
@@ -62,27 +63,27 @@ void Access_init(void)
 	if (!List)      {List_init();}
 	if (!ListClass) {List_init();}
 
-	if (! Access_MEMClass) {
-		Access_MEMClass = new(Class,  		// should be "Class"
-						"Access_MEMClass",	// should be "SomethingClass"
+	if (! AccessMEMClass) {
+		AccessMEMClass = new(Class,  		// should be "Class"
+						"AccessMEMClass",	// should be "SomethingClass"
 						Class,  		// should be "Class"
-						sizeof(struct Access_MEMClass), //TODO: fix
+						sizeof(struct AccessMEMClass), //TODO: fix
 						ctor, Access_MEMClass_ctor,	//SomethingClass_ctor
 						0);  // Terminator
 	}
-	if (! Access_MEM) {
-		Access_MEM = new(Access_MEMClass,			// SomethingClass from above
-					"Access_MEM",				// name like "Something"
+	if (! AccessMEM) {
+		AccessMEM = new(AccessMEMClass,			// SomethingClass from above
+					"AccessMEM",				// name like "Something"
 					Object,  			// "superclass(Something)"
-					sizeof(struct Access_MEM),// size of self
+					sizeof(struct AccessMEM),// size of self
 					// Overloaded superclass functions
 					// Remember to call superclass->method
-					//ctor,	  ACCESS_MEM_ctor,//Something_ctor
-					//dtor,   ACCESS_MEM_dtor,
-					//copy,	  ACCESS_MEM_copy,
-					//equal,  ACCESS_MEM_equal,
-					//config, ACCESS_MEM_config,
-					//puto,	ACCESS_MEM_puto,
+					ctor,	Access_MEM_ctor,//Something_ctor
+					dtor,   Access_MEM_dtor,
+					copy,	Access_MEM_copy,
+					equal,  Access_MEM_equal,
+					config, Access_MEM_config,
+					puto,	Access_MEM_puto,
 					// New functions added in this class
 					// Do not call superclass->method
 					Access_addWriteCommandToSequence, Access_MEM_addWriteCommandToSequence,
@@ -106,7 +107,7 @@ void Access_init(void)
 void * Access_MEM_ctor(void * _self, va_list * app)
 {
 	// Add superclass class data members
-	struct Access_MEM * self = super_ctor(Access_MEM, _self, app);
+	struct AccessMEM * self = super_ctor(AccessMEM, _self, app);
 	if ( self == NULL ) { return NULL; } // failed to construct super
 
 	// overwrite data members with new data
@@ -127,7 +128,7 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 void * Access_MEMClass_ctor(void * _self, va_list *app)
 {
 	// Add superclass class data and methods
-	struct Access_MEMClass * self = super_ctor(Access_MEMClass, _self, app);
+	struct AccessMEMClass * self = super_ctor(AccessMEMClass, _self, app);
 
 	// Initialize new functions to default values
 	typedef void (* voidf)();
@@ -190,36 +191,36 @@ void * Access_MEMClass_ctor(void * _self, va_list *app)
 
 /*****************************/
 /**** Overloaded Methods  ****/
-/*
-void * IO_io_dtor(void * _self)
+
+void * Access_MEM_dtor(void * _self)
 {
 	// Validate pointers
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if(self == NULL)                         {return NULL; } // fail
 
 	// WARNING:  The command buffer should be deleted/freed externally
 
 	// address local members first
-	if ( implement_IO_io_dtor(self) == NULL) {return NULL; } // fail
+	if ( implement_Access_MEM_dtor(self) == NULL) {return NULL; } // fail
 
 	// call super method after local members are addressed
 	// NOTE: classOf(self) calls into super will trigger looping
-	if ( super_dtor(IO, _self) == NULL)      {return NULL; } // fail
+	if ( super_dtor(AccessMEM, _self) == NULL)      {return NULL; } // fail
 
 	return _self;
 }
 
-void * IO_io_copy(void * _copyTo, const void * _copyFrom)
+void * Access_MEM_copy(void * _copyTo, const void * _copyFrom)
 {
 	// Validate pointers
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
-	struct IO * copyTo = cast(IO, _copyTo);
+	struct AccessMEM * copyTo = cast(AccessMEM, _copyTo);
 	if ( copyTo == NULL )   { return NULL; } //fail
 
-	struct IO * copyFrom = cast(IO, _copyFrom);
+	struct AccessMEM * copyFrom = cast(AccessMEM, _copyFrom);
 	if ( copyFrom == NULL ) { return NULL; } // fail
 
 	// WARNING: calling superclass in composite class is likely NOT correct
@@ -230,23 +231,23 @@ void * IO_io_copy(void * _copyTo, const void * _copyFrom)
 
 	// call super method first
 	// NOTE: classOf(copyToIO) calls into super will trigger looping
-	if (super_copy(IO, copyTo, copyFrom) == NULL )
+	if (super_copy(AccessMEM, copyTo, copyFrom) == NULL )
 		{ return NULL; } // fail
 
 	// address local components
-	return implement_IO_io_copy(copyTo, copyFrom);
+	return implement_Access_MEM_copy(copyTo, copyFrom);
 }
 
-equal_t IO_io_equal(const void * _self, const void * _comparisonObject)
+equal_t Access_MEM_equal(const void * _self, const void * _comparisonObject)
 {
 	// Validate pointers
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
-	struct IO * self = cast(IO, _self);
-	if (self == NULL )              { return OBJECT_UNEQUAL; } // fail
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if (self == NULL )            { return OBJECT_UNEQUAL; } // fail
 
-	struct IO * comparisonObject = cast(IO, _comparisonObject);
-	if (comparisonObject == NULL )  { return OBJECT_UNEQUAL; } // fail
+	struct AccessMEM * comparisonObject = cast(AccessMEM, _comparisonObject);
+	if (comparisonObject == NULL ) { return OBJECT_UNEQUAL; } // fail
 
 	// WARNING: calling superclass in composite class is likely NOT correct
 	//          complex classes should manage calls to superclass as needed
@@ -255,35 +256,35 @@ equal_t IO_io_equal(const void * _self, const void * _comparisonObject)
 	// WARNING:  if IO is a complex class, do not call superclass_equal
 
 	// NOTE: classOf(self) calls into super will trigger looping
-	if( super_equal(IO, self, comparisonObject) == OBJECT_UNEQUAL)
+	if( super_equal(AccessMEM, self, comparisonObject) == OBJECT_UNEQUAL)
 		{ return OBJECT_UNEQUAL; } // fail
 
 	// address local components
-	return implement_IO_io_equal(_self, _comparisonObject);
+	return implement_Access_MEM_equal(_self, _comparisonObject);
 }
 
-void * IO_io_config(const void * _self, const void * _master)
+void * Access_MEM_config(const void * _self, const void * _master)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL )   { return NULL; }          // fail
-	struct IO * master = cast(IO, _master);
+	struct AccessMEM * master = cast(AccessMEM, _master);
 	if ( master == NULL ) { return NULL; }          // fail
-	return implement_IO_io_config(self, _master);  // expected path
+	return implement_Access_MEM_config(self, _master);  // expected path
 }
 
-puto_return_t IO_io_puto(const void * _self, FILE * _fp)
+puto_return_t Access_MEM_puto(const void * _self, FILE * _fp)
 {
 	// Validate pointers
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if (self == NULL ) { return PUTO_ERROR; } // fail
 
 	// the call to super_puto() is managed within implement_Button_puto()
-	return implement_IO_io_puto(self, _fp);
+	return implement_Access_MEM_puto(self, _fp);
 }
 
-*/
+
 /****************************************************************************/
 /********  New functions for  class "IOClass"  ******************************/
 /****************************************************************************/
@@ -292,29 +293,29 @@ puto_return_t IO_io_puto(const void * _self, FILE * _fp)
 /*************************************************/
 /***********  ACCESS_addWriteCommandToSequence    *************/
 
-void *  Access_addWriteCommandToSequence(void * _self, io_data_t _value)
+void *  Access_addWriteCommandToSequence(void * _self, access_data_t _value)
 {
-	const struct Access_MEMClass * class = classOf( cast(Access_MEMClass, _self) );
+	const struct AccessMEMClass * class = classOf( cast(AccessMEM, _self) );
 	if ( class == NULL )                   { return NULL; } // fail
 	//if ( class-> == NULL ) { return NULL; } // fail
 	//return class-(_self, _value);
 	return NULL;
 }
 
-void * super_Access_addWriteCommandToSequence(const void * _class, void * _self, io_data_t _value)
+void * super_Access_addWriteCommandToSequence(const void * _class, void * _self, access_data_t _value)
 {
 	// verify that ACCESS_MEMClass is in the superclass chain of _class
-	if ( ! isOfSuper(Access_MEMClass, _self) )          { return NULL; } // fail
-	const struct Access_MEMClass * superclass = super(_class);
-	if ( superclass == NULL )                   { return NULL; } // fail
+	if ( ! isOfSuper(AccessMEM, _self) ) { return NULL; } // fail
+	const struct AccessMEMClass * superclass = super(_class);
+	if ( superclass == NULL )            { return NULL; } // fail
 	//if ( superclass->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
 	//return superclass->Access_addWriteCommandToSequence(_self, _value);
 	return NULL;
 }
 
-void * Access_MEM_addWriteCommandToSequence(void * _self, io_data_t _value)
+void * Access_MEM_addWriteCommandToSequence(void * _self, access_data_t _value)
 {
-	struct Access_MEM * self = cast(Access_MEM, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if( self == NULL ) { return NULL; } // fail
 	return implement_Access_MEM_addWriteCommandToSequence(self, _value);
 }
@@ -324,7 +325,7 @@ void * Access_MEM_addWriteCommandToSequence(void * _self, io_data_t _value)
 /*
 void *  IO_processSequence(void * _self)
 {
-	const struct IOClass * class = classOf( cast(IO, _self) );
+	const struct AccessMEMClass * class = classOf( cast(AccessMEM, _self) );
 	if ( class == NULL )                      { return NULL; } // fail
 	if ( class->IO_processSequence == NULL ) { return NULL; } // fail
 	return class->IO_processSequence(_self);
@@ -471,149 +472,149 @@ void IO_update(void)
 
 /***********************************/
 /*****  set and get address    *****/
-/*
-void * IO_getAddress(const void * _self)
+
+void * Access_getAddress(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->address;
 }
 
-void* IO_setAddress(void * _self, void * _address)
+void * Access_setAddress(void * _self, void * _address)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	self->address = _address;
 	return _address;
 }
-*/
+
 /************************************/
 /*****  set and get ioAction    *****/
-/*
-io_read_write_t IO_getIOAction(const void * _self)
+
+access_read_write_t Access_getIOAction(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
-	if ( self == NULL ) { return IO_ACTION_UNKNOWN; }
+	const struct AccessMEM * self = cast(AccessMEM, _self);
+	if ( self == NULL ) { return ACCESS_ACTION_UNKNOWN; }
 	return self->ioAction;
 }
 
-io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction)
+access_read_write_t Access_setIOAction(void * _self, access_read_write_t _ioAction)
 {
-	struct IO * self = cast(IO, _self);
-	if ( self == NULL ) { return IO_ACTION_UNKNOWN; }
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if ( self == NULL ) { return ACCESS_ACTION_UNKNOWN; }
 	self->ioAction = _ioAction;
 	return _ioAction;
 }
-*/
+
 /*************************************/
 /*****  set and get readCount  *******/
-/*
-int IO_getReadCount(const void * _self)
+
+int Access_getReadCount(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	return self->readCount;
 }
 
-int IO_setReadCount(void * _self, int _readCount)
+int Access_setReadCount(void * _self, int _readCount)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	self->readCount = _readCount;
 	return _readCount;
 }
-*/
+
 /*************************************/
 /*****  set and get writeCount  *******/
-/*
-int IO_getWriteCount(const void * _self)
+
+int Access_getWriteCount(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	return self->writeCount;
 }
 
-int IO_setWriteCount(void * _self, int _writeCount)
+int Access_setWriteCount(void * _self, int _writeCount)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	self->writeCount = _writeCount;
 	return _writeCount;
 }
-*/
+
 /*****************************************/
 /*****  set and get bufferPointer  *******/
-/*
-void * IO_getBufferPointer(const void * _self)
+/**/
+void * Access_getBufferPointer(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->bufferPointer;
 }
 
-void * IO_setBufferPointer(void * _self, void * _bufferPointer)
+void * Access_setBufferPointer(void * _self, void * _bufferPointer)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	self->bufferPointer = _bufferPointer;
 	return _bufferPointer;
 }
-*/
+
 /*****************************************/
 /*****  set and get bufferSize  *******/
-/*
-int IO_getBufferSize(const void * _self)
+
+int Access_getBufferSize(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	return self->bufferSize;
 }
 
-int IO_setBufferSize(void * _self, int _bufferSize)
+int Access_setBufferSize(void * _self, int _bufferSize)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	self->bufferSize = _bufferSize;
 	return _bufferSize;
 }
 
-*/
+
 /************************************************/
 /*****  set and get IO_actionComplete_cb  *******/
-/*
-io_cb_fnct IO_get_actionDone_cb(const void * _self)
+
+access_cb_fnct Access_get_actionDone_cb(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->actionDone_cb;
 }
 
-io_cb_fnct IO_set_actionDone_cb(void * _self, io_cb_fnct _cb)
+access_cb_fnct Access_set_actionDone_cb(void * _self, access_cb_fnct _cb)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	self->actionDone_cb = _cb;
 	return _cb;
 }
-*/
+
 /*****************************************/
 /*****  set and get objectPointer  *******/
-/*
-void * IO_getObjectPointer(const void * _self)
+
+void * Access_getObjectPointer(const void * _self)
 {
-	const struct IO * self = cast(IO, _self);
+	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->objectPointer;
 }
 
-void * IO_setObjectPointer(void * _self, void * _objectPointer)
+void * Access_setObjectPointer(void * _self, void * _objectPointer)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	self->objectPointer = _objectPointer;
 	return _objectPointer;
 }
-*/
+
 /*****************************************/
 /*******  implementation methods  ********/
 /*
@@ -636,107 +637,107 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 */
 static void * implement_Access_MEM_ctor(void * _self)
 {
-	IO_setAddress       (_self, NULL);
-	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
-	IO_setReadCount     (_self, 0);
-	IO_setWriteCount    (_self, 0);
-	//IO_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
-	void * localBufferPointer = IO_getBufferPointer(_self);
-	IO_setBufferSize(_self, \
+	Access_setAddress       (_self, NULL);
+	Access_setIOAction      (_self, ACCESS_ACTION_UNKNOWN);
+	Access_setReadCount     (_self, 0);
+	Access_setWriteCount    (_self, 0);
+	//Access_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
+	void * localBufferPointer = Access_getBufferPointer(_self);
+	Access_setBufferSize(_self, \
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	IO_set_actionDone_cb(_self, NULL);
-	IO_setObjectPointer (_self, NULL);
-	return _self;
-}
-/*
-static void * implement_IO_io_dtor(struct IO * _self)
-{
-	IO_setAddress       (_self, NULL);
-	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
-	IO_setReadCount     (_self, 0);
-	IO_setWriteCount    (_self, 0);
-	// WANRING:  delete/free the command buffer externally
-	IO_setBufferPointer (_self, NULL);
-	IO_setBufferSize    (_self, 0);
-	IO_set_actionDone_cb(_self, NULL);
-	IO_setObjectPointer (_self, NULL);
+	Access_set_actionDone_cb(_self, NULL);
+	Access_setObjectPointer (_self, NULL);
 	return _self;
 }
 
-static equal_t implement_IO_io_equal(const struct IO * _self,
-		                             const struct IO * _comparisonObject)
+static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
+{
+	Access_setAddress       (_self, NULL);
+	Access_setIOAction      (_self, ACCESS_ACTION_UNKNOWN);
+	Access_setReadCount     (_self, 0);
+	Access_setWriteCount    (_self, 0);
+	// WARNING:  delete/free the command buffer externally
+	Access_setBufferPointer (_self, NULL);
+	Access_setBufferSize    (_self, 0);
+	Access_set_actionDone_cb(_self, NULL);
+	Access_setObjectPointer (_self, NULL);
+	return _self;
+}
+
+static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
+		                             const struct AccessMEM * _comparisonObject)
 {
 	// Check each data member for congruence
-	struct IO * self             = (void *)_self;
-	struct IO * comparisonObject = (void *)_comparisonObject;
+	struct AccessMEM * self             = (void *)_self;
+	struct AccessMEM * comparisonObject = (void *)_comparisonObject;
 
-	if( IO_getAddress(self) != IO_getAddress(comparisonObject) )
+	if( Access_getAddress(self) != Access_getAddress(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_getIOAction(self) != IO_getIOAction(comparisonObject) )
+	if( Access_getIOAction(self) != Access_getIOAction(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_getAddress(self) != IO_getAddress(comparisonObject) )
+	if( Access_getAddress(self) != Access_getAddress(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_getReadCount(self) != IO_getReadCount(comparisonObject) )
+	if( Access_getReadCount(self) != Access_getReadCount(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_getWriteCount(self) != IO_getWriteCount(comparisonObject) )
+	if( Access_getWriteCount(self) != Access_getWriteCount(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
 	// data pointers are unique and should not be included in the comparison
-	//if( IO_getBufferPointer(self) != IO_getBufferPointer(comparisonObject) )
+	//if( Access_MEM_getBufferPointer(self) != Access_MEM_getBufferPointer(comparisonObject) )
 	//	{ return OBJECT_UNEQUAL; }
 
-	if( IO_getBufferSize(self) != IO_getBufferSize(comparisonObject) )
+	if( Access_getBufferSize(self) != Access_getBufferSize(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_get_actionDone_cb(self) != IO_get_actionDone_cb(comparisonObject) )
+	if( Access_get_actionDone_cb(self) != Access_get_actionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_getObjectPointer(self) != IO_getObjectPointer(comparisonObject) )
+	if( Access_getObjectPointer(self) != Access_getObjectPointer(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
 	// all data members are congruent
 	return OBJECT_EQUAL;
 }
 
-static void * implement_IO_io_config(      struct IO * _self,
-									 const struct IO * _master)
+static void * implement_Access_MEM_config(      struct AccessMEM * _self,
+									 const struct AccessMEM * _master)
 {
 	return copy(_self, _master);
 }
 
-static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp)
+static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self, FILE * _fp)
 {
 	// TODO: Add puto code in IO
 	return 0;
 }
 
-void * IO_clearCommandSequences(void * _self)
+void * implement_Access_MEM_clearCommandSequences(void * _self)
 {
-	io_data_t * bufferPointer = IO_getBufferPointer(_self);
+	access_data_t * bufferPointer = Access_getBufferPointer(_self);
 	if ( bufferPointer == NULL ) { return NULL; } // fail
-	IO_setWriteCount(_self, 0);
-	IO_setReadCount(_self, 0);
+	Access_setWriteCount(_self, 0);
+	Access_setReadCount(_self, 0);
 	return _self;
 }
-*/
 
-static void * implement_Access_MEM_addWriteCommandToSequence(struct Access_MEM * _self, io_data_t _value)
+
+static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self, access_data_t _value)
 //static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 {
-	io_data_t * bufferPointer = IO_getBufferPointer(_self);
+	access_data_t * bufferPointer = Access_getBufferPointer(_self);
 	if ( bufferPointer == NULL ) { return NULL; } // fail
 
-	int writeCount = IO_getWriteCount(_self);
-	if ( writeCount == IO_getBufferSize(_self) ) { return NULL; }  // fail full
+	int writeCount = Access_getWriteCount(_self);
+	if ( writeCount == Access_getBufferSize(_self) ) { return NULL; }  // fail full
 
 	// Add value to buffer and increment the writeCount
 	bufferPointer[writeCount] = _value;
 	writeCount++;
-	IO_setWriteCount(_self, writeCount);
+	Access_setWriteCount(_self, writeCount);
 
 	return _self;  // remove this fail
 }
@@ -799,12 +800,12 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	IO_sequenceComplete_cb();
 	return _self;  // remove this fail
 }
-
-static void IO_io_writeSingle(void * _to, void * _from, int _writeCount)
+*/
+static void Access_MEM_writeSingle(void * _to, void * _from, int _writeCount)
 {
 	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
+	access_data_t * to = _to;
+	access_data_t * from = _from;
 
 	for ( i = 0; i < _writeCount; i++ ) {
 		*to = *from;
@@ -813,11 +814,11 @@ static void IO_io_writeSingle(void * _to, void * _from, int _writeCount)
 	return;
 }
 
-static void IO_io_writeSequential(void * _to, void * _from, int _writeCount)
+static void Access_MEM_writeSequential(void * _to, void * _from, int _writeCount)
 {
 	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
+	access_data_t * to = _to;
+	access_data_t * from = _from;
 
 	for ( i = 0; i < _writeCount; i++ ) {
 		*to = *from;
@@ -827,11 +828,11 @@ static void IO_io_writeSequential(void * _to, void * _from, int _writeCount)
 	return;
 }
 
-static void IO_io_readSingle(void * _to, void * _from, int _readCount)
+static void Access_MEM_readSingle(void * _to, void * _from, int _readCount)
 {
 	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
+	access_data_t * to = _to;
+	access_data_t * from = _from;
 
 	for ( i = 0; i < _readCount; i++ ) {
 		*to = *from;
@@ -840,11 +841,11 @@ static void IO_io_readSingle(void * _to, void * _from, int _readCount)
 	return;
 }
 
-static void IO_io_readSequential(void * _to, void * _from, int _readCount)
+static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 {
 	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
+	access_data_t * to = _to;
+	access_data_t * from = _from;
 
 
 	for ( i = 0; i < _readCount; i++ ) {
@@ -855,8 +856,8 @@ static void IO_io_readSequential(void * _to, void * _from, int _readCount)
 	return;
 }
 
-
-static void * implement_IO_io_xxxx(struct IO * _self)
+/*
+static void * implement_Access_MEM_xxxx(struct IO * _self)
 {
 	// Update with actual code in
 	return NULL;  // remove this fail when actual code is added

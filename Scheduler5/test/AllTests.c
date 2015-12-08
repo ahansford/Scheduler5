@@ -16,6 +16,7 @@
 #include "..\src\button\button.h"
 #include "..\src\sensors\sensors.h"
 #include "..\src\io\io.h"
+#include "..\src\access_mem\access-mem.h"
 
 #ifndef MIN_LIST_BUFFER_SIZE
 #define MIN_LIST_BUFFER_SIZE 4
@@ -42,6 +43,7 @@ static void RunAllTests(void)
 	RUN_TEST_GROUP(button);
 	RUN_TEST_GROUP(sensor);
 	RUN_TEST_GROUP(io);
+	RUN_TEST_GROUP(accessMem);
 
 }
 
@@ -61,6 +63,7 @@ int main(int argc, char* argv[])
 	Sensor_init();
 	Node_X10_init();
 	IO_init(NULL);
+	Access_init();
 
 	clearFile("scheduler_puto.txt");
 	clearFile("object_puto.txt");

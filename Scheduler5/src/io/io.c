@@ -268,7 +268,7 @@ void * IO_io_config(const void * _self, const void * _master)
 	return implement_IO_io_config(self, _master);  // expected path
 }
 
-puto_return_t IO_io_puto(const void * _self, FILE * _fp)
+puto_return_t Access_MEM(const void * _self, FILE * _fp)
 {
 	// Validate pointers
 	// NOTE: This is an overload method

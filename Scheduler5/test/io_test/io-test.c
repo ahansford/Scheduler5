@@ -55,7 +55,7 @@ TEST_SETUP(io)
 	//sensor_test_cb_count2 = 0;
 
 	myTest_IO           = new(IO, testBuffer);
-	//if ( myTest_Sensor == NULL ) {printf("failed to allcate memory for new(Sensor)\n"); }
+	//if ( myTest_Sensor == NULL ) {printf("failed to allocate memory for new(Sensor)\n"); }
 	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	//myTest_Sensor_class_PTR = Sensor;
 	//scheduler_Create(testTASKS_sensors);
@@ -950,8 +950,8 @@ TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 
 
 //****  Support Methods  ****************
-
 /**/
+
 void * io_test_general_cb(void * _self)
 {
 	io_test_cb_count++;

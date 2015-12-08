@@ -20,23 +20,23 @@
 /***********************************************/
 /**** forward declarations and typedefs  *******/
 
-extern const void * Access_MEM;
-extern const void * Access_MEMClass;
+extern const void * AccessMEM;
+extern const void * AccessMEMClass;
 
 /*!
  * Data type for commands and data sent to and from the memory area or sensor.
  */
-typedef unsigned char io_data_t;
+typedef unsigned char access_data_t;
 
-typedef enum io_read_write_t {
-	IO_ACTION_UNKNOWN = -1,
-	IO_WRITE_SINGLE,
-	IO_WRITE_SEQUENTIAL,
-	IO_WRITE_READ_SINGLE,
-	IO_WRITE_READ_SEQUENTIAL,
-	IO_READ_SINGLE,
-	IO_READ_SEQUENTIAL
-} io_read_write_t;
+typedef enum access_read_write_t {
+	ACCESS_ACTION_UNKNOWN = -1,
+	ACCESS_WRITE_SINGLE,
+	ACCESS_WRITE_SEQUENTIAL,
+	ACCESS_WRITE_READ_SINGLE,
+	ACCESS_WRITE_READ_SEQUENTIAL,
+	ACCESS_READ_SINGLE,
+	ACCESS_READ_SEQUENTIAL
+} access_read_write_t;
 
 /*!
  * The generic callback typedef that takes a void pointer and returns a void
@@ -45,7 +45,7 @@ typedef enum io_read_write_t {
  * so that external modules can registers callbacks as well.  For example
  * a sensor can register Sensor_incrementMiniState() using void*-void*.
  */
-typedef void * (* io_cb_fnct)(void * _io);
+typedef void * (* access_cb_fnct)(void * _io);
 
 
 
@@ -123,7 +123,7 @@ void * Access_clearCommandBuffer(void * _self);
  * written to IO address when IO_update()via the scheduler task.  Returns
  * self on success.  The writeCount is automatically managed by add.
  */
-void * Access_addWriteCommandToSequence(void * _self, io_data_t _value);
+void * Access_addWriteCommandToSequence(void * _self, access_data_t _value);
 
 /*!
  * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
@@ -178,44 +178,44 @@ void * Access_xxxx(void);
  * Address for read or write operation.  Memory access to a NULL address is
  * ignored.
  */
-void * IO_getAddress(const void * _self);
-void * IO_setAddress(      void * _self, void * _address);
+void * Access_getAddress(const void * _self);
+void * Access_setAddress(      void * _self, void * _address);
 
 //! Type of IO operation
-io_read_write_t IO_getIOAction(const void * _self);
-io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction);
+access_read_write_t Access_getIOAction(const void * _self);
+access_read_write_t Access_setIOAction(void * _self, access_read_write_t _ioAction);
 
 //! Number of values to read.  Must be set before add sequence on to IO list.
-int IO_getReadCount(const void * _self);
-int IO_setReadCount(      void * _self, int _readCount);
+int Access_getReadCount(const void * _self);
+int Access_setReadCount(      void * _self, int _readCount);
 
 //! Number of bytes to write.  Automatically managed when adding a command to buffer.
-int IO_getWriteCount(const void * _self);
-int IO_setWriteCount(      void * _self, int _writeCount);
+int Access_getWriteCount(const void * _self);
+int Access_setWriteCount(      void * _self, int _writeCount);
 
 /*!
  * Struct List pointer to buffer holding data for writes and reads.
  * Write operations are executed first.  Read data overwrites any previous
  * write data in the command buffer.
  */
-void * IO_getBufferPointer(const void * _self);
-void * IO_setBufferPointer(      void * _self, void * _bufferPointer);
+void * Access_getBufferPointer(const void * _self);
+void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
 
 //! Number of values that can be stored in the command buffer.
-int IO_getBufferSize(const void * _self);
-int IO_setBufferSize(      void * _self, int _bufferSize);
+int Access_getBufferSize(const void * _self);
+int Access_setBufferSize(      void * _self, int _bufferSize);
 
 /*!
  * Called when operation is complete is function pointer is not NULL.
  * Passes parameter of objectPointer, accessible through
  * IO_getObjectPointer(), even if this value is NULL.
  */
-io_cb_fnct IO_get_actionDone_cb(const void * _self);
-io_cb_fnct IO_set_actionDone_cb(      void * _self, io_cb_fnct _cb);
+access_cb_fnct Access_get_actionDone_cb(const void * _self);
+access_cb_fnct Access_set_actionDone_cb(      void * _self, access_cb_fnct _cb);
 
 //! Object pointer parameter value for action done callback.
-void * IO_getObjectPointer(const void * _self);
-void * IO_setObjectPointer(      void * _self, void * _objectPointer);
+void * Access_getObjectPointer(const void * _self);
+void * Access_setObjectPointer(      void * _self, void * _objectPointer);
 
 
 #endif /* SRC_ACCESS_MEM_ACCESS_MEM_H_ */
