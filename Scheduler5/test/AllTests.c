@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
 	clearFile("events_puto.txt");
 	clearFile("button_puto.txt");
 	clearFile("sensor_puto.txt");
+	clearFile("access_mem_puto.txt");
 
 	return UnityMain(argc, argv, RunAllTests);
 }

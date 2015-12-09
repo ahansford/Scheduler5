@@ -27,16 +27,16 @@ static void * implement_Access_MEM_config(      struct AccessMEM * _self,
 static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self, FILE * _fp);
 
 
-static void * implement_Access_MEM_addWriteValue(struct AccessMEM * _self,
-		                                    access_data_t   _value);
+//static void * implement_Access_MEM_addWriteValue(struct AccessMEM * _self,
+//		                                    access_data_t   _value);
 
 //static void * implement_Access_MEM_processSequence(struct AccessMEM * _self);
 //static void * implement_Access_MEM_xxxx(struct AccessMEM * _self);
 
-static void Access_MEM_writeSingle    (void * _to, void * _from, int _writeCount);
-static void Access_MEM_writeSequential(void * _to, void * _from, int _writeCount);
-static void Access_MEM_readSingle     (void * _to, void * _from, int _readCount);
-static void Access_MEM_readSequential (void * _to, void * _from, int _readCount);
+//static void Access_MEM_writeSingle    (void * _to, void * _from, int _writeCount);
+//static void Access_MEM_writeSequential(void * _to, void * _from, int _writeCount);
+//static void Access_MEM_readSingle     (void * _to, void * _from, int _readCount);
+//static void Access_MEM_readSequential (void * _to, void * _from, int _readCount);
 
 
 /*****************************/
@@ -116,7 +116,7 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 	// ... numerous unit tests will need to be adapted if uncommented
 
 	// TODO: created the single needed buffer once if missing
-	//self->bufferPointer = va_arg(* app, io_data_t *);
+	self->bufferPointer = va_arg(* app, access_data_t *);
 
 	//self->minute = va_arg(* app, minute_t);
 
@@ -198,7 +198,7 @@ void * Access_MEM_dtor(void * _self)
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if(self == NULL)                         {return NULL; } // fail
+	if(self == NULL)                              {return NULL; } // fail
 
 	// WARNING:  The command buffer should be deleted/freed externally
 
@@ -207,7 +207,7 @@ void * Access_MEM_dtor(void * _self)
 
 	// call super method after local members are addressed
 	// NOTE: classOf(self) calls into super will trigger looping
-	if ( super_dtor(AccessMEM, _self) == NULL)      {return NULL; } // fail
+	if ( super_dtor(AccessMEM, _self) == NULL)    {return NULL; } // fail
 
 	return _self;
 }
@@ -244,7 +244,7 @@ equal_t Access_MEM_equal(const void * _self, const void * _comparisonObject)
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if (self == NULL )            { return OBJECT_UNEQUAL; } // fail
+	if (self == NULL )             { return OBJECT_UNEQUAL; } // fail
 
 	struct AccessMEM * comparisonObject = cast(AccessMEM, _comparisonObject);
 	if (comparisonObject == NULL ) { return OBJECT_UNEQUAL; } // fail
@@ -617,24 +617,24 @@ void * Access_setObjectPointer(void * _self, void * _objectPointer)
 
 /*****************************************/
 /*******  implementation methods  ********/
-/*
-static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyFrom)
+
+static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct AccessMEM * _copyFrom)
 {
 	// copy master data members, except for PTRs and dynamic values
 
-	IO_setAddress       (_copyTo, IO_getAddress(_copyFrom));
-	IO_setIOAction      (_copyTo, IO_getIOAction(_copyFrom));
-	IO_setReadCount     (_copyTo, IO_getReadCount(_copyFrom));
-	IO_setWriteCount    (_copyTo, IO_getWriteCount(_copyFrom));
+	Access_setAddress       (_copyTo, Access_getAddress(_copyFrom));
+	Access_setIOAction      (_copyTo, Access_getIOAction(_copyFrom));
+	Access_setReadCount     (_copyTo, Access_getReadCount(_copyFrom));
+	Access_setWriteCount    (_copyTo, Access_getWriteCount(_copyFrom));
 	// data pointers are unique and should not be copied
-	//IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
+	//Access_setBufferPointer (_copyTo, Access_getBufferPointer(_copyFrom));
 	// buffer count May be unique and should not be copied
-	//IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
-	IO_set_actionDone_cb(_copyTo, IO_get_actionDone_cb(_copyFrom));
-	IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
+	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
+	Access_set_actionDone_cb(_copyTo, Access_get_actionDone_cb(_copyFrom));
+	Access_setObjectPointer (_copyTo, Access_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
-*/
+
 static void * implement_Access_MEM_ctor(void * _self)
 {
 	Access_setAddress       (_self, NULL);
@@ -800,7 +800,7 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	IO_sequenceComplete_cb();
 	return _self;  // remove this fail
 }
-*/
+*//*
 static void Access_MEM_writeSingle(void * _to, void * _from, int _writeCount)
 {
 	int i;
@@ -856,7 +856,7 @@ static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 	return;
 }
 
-/*
+
 static void * implement_Access_MEM_xxxx(struct IO * _self)
 {
 	// Update with actual code in

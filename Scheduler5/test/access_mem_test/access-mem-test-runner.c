@@ -16,22 +16,23 @@ TEST_GROUP_RUNNER(accessMem)
 	/**************  New  *****************/
 
 	RUN_TEST_CASE(accessMem, myTest_accessMem_IsNotNullOnCreate);
-	/*
-	RUN_TEST_CASE(accessMem, IO_IsNotNullOnCreate);
-	RUN_TEST_CASE(accessMem, IOClass_IsNotNullOnCreate);
 
-	RUN_TEST_CASE(accessMem, ctor_is_IO_io_ctor);
-	RUN_TEST_CASE(accessMem, dtor_is_IO_io_dtor);
-	RUN_TEST_CASE(accessMem, copy_is_IO_io_copy);
-	RUN_TEST_CASE(accessMem, equal_is_IO_io_equal);
-	RUN_TEST_CASE(accessMem, config_is_IO_io_config);
-	RUN_TEST_CASE(accessMem, puto_is_IO_io_puto);
+	RUN_TEST_CASE(accessMem, AccessMEM_IsNotNullOnCreate);
+	RUN_TEST_CASE(accessMem, AccessMEMClass_IsNotNullOnCreate);
 
-	RUN_TEST_CASE(accessMem, Class_ctor_is_IO_Class_ctor);
+	RUN_TEST_CASE(accessMem, ctor_is_Access_MEM_ctor);
+	RUN_TEST_CASE(accessMem, dtor_is_Access_MEM_dtor);
+	RUN_TEST_CASE(accessMem, copy_is_Access_MEM_copy);
+	RUN_TEST_CASE(accessMem, equal_is_Access_MEM_equal);
+	RUN_TEST_CASE(accessMem, config_is_Access_MEM_config);
+	RUN_TEST_CASE(accessMem, puto_is_Access_MEM_puto);
 
+	RUN_TEST_CASE(accessMem, Class_ctor_is_Access_MEM_Class_ctor);
+/*
 	RUN_TEST_CASE(accessMem, IO_write_is_IO_io_write);
 	RUN_TEST_CASE(accessMem, IO_writeRead_is_IO_io_writeRead);
 	RUN_TEST_CASE(accessMem, IO_read_is_IO_io_read);
+*/
 
 	RUN_TEST_CASE(accessMem, address_is_Null_OnCreate);
 	RUN_TEST_CASE(accessMem, ioAction_is_UNKNOWN_OnCreate);
@@ -40,78 +41,78 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, bufferPointer_is_testBuffer_OnCreate);
 	RUN_TEST_CASE(accessMem, IO_actionComplete_cb_is_Null_OnCreate);
 	RUN_TEST_CASE(accessMem, objectPointer_is_Null_OnCreate);
-*/
-	/****  delete/Sensor_dtor  ****************/
-	/*
+
+	/****  delete/Access_dtor  ****************/
+	/**/
 	RUN_TEST_CASE(accessMem, delete_returns_SelfOnSuccess);
 	RUN_TEST_CASE(accessMem, delete_safeDelete_returnsNullOnSuccess);
-*/
+
 
 	/****  Set/Get address  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getAddress_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getAddress_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setAddress_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setAddress_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setAddress_canSetSpecificValue);
-*/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getAddress_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getAddress_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setAddress_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setAddress_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setAddress_canSetSpecificValue);
+
 
 	/****  Set/Get ioAction  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getIOAction_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getIOAction_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setIOAction_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setIOAction_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setIOAction_canSetSpecificValue);
-*/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getIOAction_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getIOAction_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setIOAction_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setIOAction_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setIOAction_canSetSpecificValue);
+
 	/****  Set/Get readCount  ****************/
 	/*
-	RUN_TEST_CASE(accessMem, IO_getReadCount_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getReadCount_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setReadCount_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setReadCount_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setReadCount_canSetSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_getReadCount_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getReadCount_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setReadCount_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setReadCount_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setReadCount_canSetSpecificValue);
 */
 	/****  Set/Get writeCount  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getWriteCount_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getWriteCount_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setWriteCount_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setWriteCount_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setWriteCount_canSetSpecificValue);
-*/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getWriteCount_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getWriteCount_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setWriteCount_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setWriteCount_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setWriteCount_canSetSpecificValue);
+
 	/****  Set/Get bufferPointer  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getBufferPointer_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getBufferPointer_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setBufferPointer_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setBufferPointer_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setBufferPointer_canSetSpecificValue);
-*/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getBufferPointer_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getBufferPointer_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setBufferPointer_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setBufferPointer_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setBufferPointer_canSetSpecificValue);
+
 	/****  Set/Get bufferSize  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getBufferSize_returns_DefineValueOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getBufferSize_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setBufferSize_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setBufferSize_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setBufferSize_canSetSpecificValue);
-*/
-	/****  Set/Get IO_actionComplete_cb  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getIO_actionComplete_cb_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getIO_actionComplete_cb_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setIO_actionComplete_cb_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setIO_actionComplete_cb_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setIO_actionComplete_cb_canSetSpecificValue);
-*/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getBufferSize_returns_DefineValueOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getBufferSize_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setBufferSize_canSetSpecificValue);
+
+	/****  Set/Get Access_actionComplete_cb  ****************/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getIO_actionComplete_cb_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getIO_actionComplete_cb_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setIO_actionComplete_cb_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setIO_actionComplete_cb_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setIO_actionComplete_cb_canSetSpecificValue);
+
 	/****  Set/Get objectPointer  ****************/
-	/*
-	RUN_TEST_CASE(accessMem, IO_getObjectPointer_returns_UnknownOnCreate);
-	RUN_TEST_CASE(accessMem, IO_getObjectPointer_returns_specificValue);
-	RUN_TEST_CASE(accessMem, IO_setObjectPointer_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, IO_setObjectPointer_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_setObjectPointer_canSetSpecificValue);
-*/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getObjectPointer_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getObjectPointer_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setObjectPointer_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setObjectPointer_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setObjectPointer_canSetSpecificValue);
+
 	//****  copy/Time_copy  ****************
 	/*
 	RUN_TEST_CASE(accessMem, copy_returnsSelfOnSuccess);

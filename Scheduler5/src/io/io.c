@@ -268,7 +268,7 @@ void * IO_io_config(const void * _self, const void * _master)
 	return implement_IO_io_config(self, _master);  // expected path
 }
 
-puto_return_t Access_MEM(const void * _self, FILE * _fp)
+puto_return_t IO_io_puto(const void * _self, FILE * _fp)
 {
 	// Validate pointers
 	// NOTE: This is an overload method
@@ -576,7 +576,7 @@ int IO_setBufferSize(void * _self, int _bufferSize)
 /************************************************/
 /*****  set and get IO_actionComplete_cb  *******/
 
-io_cb_fnct IO_get_actionDone_cb(const void * _self)
+io_cb_fnct Access(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
@@ -601,7 +601,7 @@ void * IO_getObjectPointer(const void * _self)
 	return self->objectPointer;
 }
 
-void * IO_setObjectPointer(void * _self, void * _objectPointer)
+void * Access(void * _self, void * _objectPointer)
 {
 	struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
