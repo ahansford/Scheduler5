@@ -445,7 +445,7 @@ void IO_update(void)
 		io_update_state = IO_UPDATE_IDLE;
 
 		//sequence processing is complete, fire the sequence callback
-		io_cb_fnct callbackFunctionPointer = IO_get_actionDone_cb(sequence);
+		io_cb_fnct callbackFunctionPointer = IO_getActionDone_cb(sequence);
 		if ( callbackFunctionPointer != NULL ) {
 			sequence->actionDone_cb(sequence->objectPointer);
 		}
@@ -574,16 +574,16 @@ int IO_setBufferSize(void * _self, int _bufferSize)
 
 
 /************************************************/
-/*****  set and get IO_actionComplete_cb  *******/
+/*****  set and get ActionComplete_cb  *******/
 
-io_cb_fnct Access(const void * _self)
+io_cb_fnct IO_getActionDone_cb(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->actionDone_cb;
 }
 
-io_cb_fnct IO_set_actionDone_cb(void * _self, io_cb_fnct _cb)
+io_cb_fnct IO_setActionDone_cb(void * _self, io_cb_fnct _cb)
 {
 	struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
@@ -601,7 +601,7 @@ void * IO_getObjectPointer(const void * _self)
 	return self->objectPointer;
 }
 
-void * Access(void * _self, void * _objectPointer)
+void * IO_setObjectPointer(void * _self, void * _objectPointer)
 {
 	struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
@@ -624,7 +624,7 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 	//IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
 	// buffer count May be unique and should not be copied
 	//IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
-	IO_set_actionDone_cb(_copyTo, IO_get_actionDone_cb(_copyFrom));
+	IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
 	IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
@@ -639,7 +639,7 @@ static void * implement_IO_io_ctor(void * _self)
 	void * localBufferPointer = IO_getBufferPointer(_self);
 	IO_setBufferSize(_self, \
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	IO_set_actionDone_cb(_self, NULL);
+	IO_setActionDone_cb(_self, NULL);
 	IO_setObjectPointer (_self, NULL);
 	return _self;
 }
@@ -653,7 +653,7 @@ static void * implement_IO_io_dtor(struct IO * _self)
 	// WANRING:  delete/free the command buffer externally
 	IO_setBufferPointer (_self, NULL);
 	IO_setBufferSize    (_self, 0);
-	IO_set_actionDone_cb(_self, NULL);
+	IO_setActionDone_cb(_self, NULL);
 	IO_setObjectPointer (_self, NULL);
 	return _self;
 }
@@ -687,7 +687,7 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 	if( IO_getBufferSize(self) != IO_getBufferSize(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( IO_get_actionDone_cb(self) != IO_get_actionDone_cb(comparisonObject) )
+	if( IO_getActionDone_cb(self) != IO_getActionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
 	if( IO_getObjectPointer(self) != IO_getObjectPointer(comparisonObject) )

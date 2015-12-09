@@ -385,32 +385,32 @@ TEST(io, IO_setBufferSize_canSetSpecificValue)
 	TEST_ASSERT_EQUAL(4,  myTest_IO->bufferSize);
 }
 
-/****  Set/Get IO_actionComplete_cb  ****************/
+/****  Set/Get ActionComplete_cb  ****************/
 
 TEST(io, IO_getIO_actionComplete_cb_returns_UnknownOnCreate)
 {
-	TEST_ASSERT_EQUAL(NULL,  IO_get_actionDone_cb(myTest_IO) );
+	TEST_ASSERT_EQUAL(NULL,  IO_getActionDone_cb(myTest_IO) );
 }
 
 TEST(io, IO_getIO_actionComplete_cb_returns_specificValue)
 {
 	myTest_IO->actionDone_cb = (void *)testBuffer;
-	TEST_ASSERT_EQUAL(testBuffer,  IO_get_actionDone_cb(myTest_IO) );
+	TEST_ASSERT_EQUAL(testBuffer,  IO_getActionDone_cb(myTest_IO) );
 }
 
 TEST(io, IO_setIO_actionComplete_cb_returnsSpecificValue)
 {
-	TEST_ASSERT_EQUAL(testBuffer,  IO_set_actionDone_cb(myTest_IO, (io_cb_fnct)testBuffer));
+	TEST_ASSERT_EQUAL(testBuffer,  IO_setActionDone_cb(myTest_IO, (io_cb_fnct)testBuffer));
 }
 
 TEST(io, IO_setIO_actionComplete_cb_returnsUnknownOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(NULL,  IO_set_actionDone_cb(NULL, (io_cb_fnct)testBuffer));
+	TEST_ASSERT_EQUAL(NULL,  IO_setActionDone_cb(NULL, (io_cb_fnct)testBuffer));
 }
 
 TEST(io, IO_setIO_actionComplete_cb_canSetSpecificValue)
 {
-	IO_set_actionDone_cb(myTest_IO, (io_cb_fnct)testBuffer);
+	IO_setActionDone_cb(myTest_IO, (io_cb_fnct)testBuffer);
 	TEST_ASSERT_EQUAL(testBuffer,  myTest_IO->actionDone_cb);
 }
 
@@ -463,7 +463,7 @@ TEST(io, copy_AllItemsCopiedToSelf)
 	IO_setReadCount     (masterIO, 5);
 	IO_setWriteCount    (masterIO, 6);
 	IO_setBufferPointer (masterIO, otherTestBuffer);
-	IO_set_actionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
+	IO_setActionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
 	IO_setObjectPointer (masterIO, otherTestBuffer);
 
 	copy(myTest_IO, masterIO);
@@ -556,7 +556,7 @@ TEST(io, equal_UnequalBufferSizeReturn_Unequal)
 TEST(io, equal_UnequalActionDoneCB_Unequal)
 {
 	struct IO * masterIO = new(IO, otherTestBuffer);
-	IO_set_actionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
+	IO_setActionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
@@ -585,7 +585,7 @@ TEST(io, equal_CopiedSensorReturnsEqual)
 	IO_setReadCount     (masterIO, 5);
 	IO_setWriteCount    (masterIO, 6);
 	//IO_setBufferPointer (masterIO, otherTestBuffer);  // set in new(IO, bufferAddress);
-	IO_set_actionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
+	IO_setActionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
 	IO_setObjectPointer (masterIO, otherTestBuffer);
 
 	copy(myTest_IO, masterIO);
@@ -913,7 +913,7 @@ TEST(io, IO_update_firesCallback)
 	IO_addWriteCommandToSequence(myTest_IO, 0xFF);
 	IO_setAddress   (myTest_IO, otherTestBuffer);
 	IO_setIOAction  (myTest_IO, IO_WRITE_SINGLE);
-	IO_set_actionDone_cb(myTest_IO, (void *)io_test_general_cb);
+	IO_setActionDone_cb(myTest_IO, (void *)io_test_general_cb);
 	IO_setObjectPointer(myTest_IO, (void *)myTest_IO);
 	IO_addIOSequenceToList(myTest_IO);
 	IO_update();

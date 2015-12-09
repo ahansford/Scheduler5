@@ -1107,7 +1107,7 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	IO_setReadCount (masterIoPointer, 13);
 	IO_setWriteCount(masterIoPointer, 14);
 	//IO_setBufferPointer(masterIoPointer, NULL);
-	IO_set_actionDone_cb(masterIoPointer, NULL);
+	IO_setActionDone_cb(masterIoPointer, NULL);
 	IO_setObjectPointer(masterIoPointer, NULL);
 
 	copy(myTest_Sensor, masterSensor);
@@ -1133,7 +1133,7 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	TEST_ASSERT_EQUAL(13, IO_getReadCount(toIoPointer));
 	TEST_ASSERT_EQUAL(14, IO_getWriteCount(toIoPointer));
 	//TEST_ASSERT_EQUAL_PTR(NULL, IO_getBufferPointer(toIoPointer));
-	TEST_ASSERT_EQUAL_PTR(NULL, IO_get_actionDone_cb(toIoPointer));
+	TEST_ASSERT_EQUAL_PTR(NULL, IO_getActionDone_cb(toIoPointer));
 	TEST_ASSERT_EQUAL_PTR(NULL, IO_getObjectPointer(toIoPointer));
 
 	masterSensor = safeDelete(masterSensor);

@@ -1802,7 +1802,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
 
 		// set communication complete callback to Sensor_incrementMiniState()
-		IO_set_actionDone_cb(localIoStructPtr,
+		IO_setActionDone_cb(localIoStructPtr,
 										(io_cb_fnct)Sensor_incrementMiniState);
 		IO_setObjectPointer(localIoStructPtr, _self);
 
@@ -1963,7 +1963,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		IO_setReadCount(localIoStructPtr, 1);
 
 		// set communication complete callback as Sensor_incrementMiniState()
-		IO_set_actionDone_cb(localIoStructPtr,
+		IO_setActionDone_cb(localIoStructPtr,
 										(io_cb_fnct)Sensor_incrementMiniState);
 		IO_setObjectPointer(localIoStructPtr, _self);
 

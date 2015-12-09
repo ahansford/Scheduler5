@@ -559,7 +559,7 @@ TEST(accessMem, equal_UnequalBufferSizeReturn_Unequal)
 TEST(accessMem, equal_UnequalActionDoneCB_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	IO_set_actionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
+	IO_setActionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
@@ -588,7 +588,7 @@ TEST(accessMem, equal_CopiedSensorReturnsEqual)
 	IO_setReadCount     (masterIO, 5);
 	IO_setWriteCount    (masterIO, 6);
 	//IO_setBufferPointer (masterIO, otherTestBuffer);  // set in new(AccessMEM, bufferAddress);
-	IO_set_actionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
+	IO_setActionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
 	IO_setObjectPointer (masterIO, otherTestBuffer);
 
 	copy(myTest_accessMem, masterIO);
@@ -916,7 +916,7 @@ TEST(accessMem, IO_update_firesCallback)
 	IO_addWriteCommandToSequence(myTest_accessMem, 0xFF);
 	IO_setAddress   (myTest_accessMem, otherTestBuffer);
 	IO_setIOAction  (myTest_accessMem, ACCESS_WRITE_SINGLE);
-	IO_set_actionDone_cb(myTest_accessMem, (void *)accessMem_test_general_cb);
+	IO_setActionDone_cb(myTest_accessMem, (void *)accessMem_test_general_cb);
 	IO_setObjectPointer(myTest_accessMem, (void *)myTest_accessMem);
 	IO_addIOSequenceToList(myTest_accessMem);
 	IO_update();
