@@ -14,6 +14,7 @@
 #include "..\..\src\lists\lists.h"             // safety include
 #include "..\..\src\objects\objects.h"         // safety include
 //#include "..\..\src\scheduler\scheduler.h"   // safety include
+#include "..\..\src\access_mem\access-mem.h"
 
 
 static void * implement_IO_io_ctor(void * _self);
@@ -320,8 +321,13 @@ void * IO_io_addWriteValue(void * _self, io_data_t _value)
 void *  IO_processSequence(void * _self)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
-	if ( class == NULL )                      { return NULL; } // fail
-	if ( class->IO_processSequence == NULL ) { return NULL; } // fail
+	if ( class == NULL )                     {
+		printf("\nFAIL8: IO_processSequence ... class is NULL");
+		return NULL; } // fail
+	if ( class->IO_processSequence == NULL ) {
+		printf("\nFAIL9: IO_processSequence ... class->IO_processSequence is NULL");
+		return NULL;
+	} // fail
 	return class->IO_processSequence(_self);
 }
 
@@ -338,7 +344,7 @@ void * super_IO_processSequence(const void * _class, void * _self)
 void * IO_io_processSequence(void * _self)
 {
 	struct IO * self = cast(IO, _self);
-	if( self == NULL ) { return NULL; } // fail
+	if( self == NULL ) { printf("\nFAIL9: IO_io_processSequence ... self is NULL"); return NULL; } // fail
 	return implement_IO_io_processSequence(self);
 }
 
@@ -375,11 +381,11 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self)
 {
-	struct IO * self = cast(IO, _self);
-	if( self == NULL ) { return NULL; } // fail
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if( self == NULL ) { printf("\nFAIL5: IO_addIOSequenceToList NULL self\n"); return NULL; } // fail
 	void * itemAddedToListPtr = add(ioSequenceList, self);
 	if ( itemAddedToListPtr == NULL ) {
-		printf("\nFAIL: IO_addIOSequenceToList add operation\n");
+		printf("\nFAIL6: IO_addIOSequenceToList add operation\n");
 	}
 	return _self;
 }
@@ -400,6 +406,8 @@ void IO_sequenceComplete_cb(void)
 
 void IO_update(void)
 {
+	printf("\nIO_update ... io_update_state: %i", io_update_state);
+
 	switch (io_update_state) {
 
 	case IO_UPDATE_UNKNOWN: {
@@ -411,6 +419,7 @@ void IO_update(void)
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time
 		sequence = IO_getActionFromList();
+		printf("\nIO_update ... sequence: %p", sequence);
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
 			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
@@ -430,7 +439,8 @@ void IO_update(void)
 		// sends i/o sequence instructions to the respective driver
 		// IO_processSequence() must manage any failures itself
 		// the state will automatically transition to COMPLETE
-		IO_processSequence(sequence);
+		printf("\nIO_update ... IO_processSequence ... sequence:%p", sequence);
+		Access_processSequence(sequence);
 		break;
 	}
 
@@ -708,7 +718,7 @@ static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp)
 	// TODO: Add puto code in IO
 	return 0;
 }
-
+/*
 void * IO_clearCommandBuffer(void * _self)
 {
 	io_data_t * bufferPointer = IO_getBufferPointer(_self);
@@ -717,7 +727,7 @@ void * IO_clearCommandBuffer(void * _self)
 	IO_setReadCount(_self, 0);
 	return _self;
 }
-
+*/
 static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 {
 	io_data_t * bufferPointer = IO_getBufferPointer(_self);
@@ -740,12 +750,15 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	// complete sequences are likely executed as a block
 	// reentrant support is not likely needed
 
-	io_read_write_t ioAction      = IO_getIOAction(_self);
-	void *          address       = IO_getAddress(_self);
-	int             writeCount    = IO_getWriteCount(_self);
-	int             readCount     = IO_getReadCount(_self);
-	io_data_t *     bufferAddress = IO_getBufferPointer(_self);
+	io_read_write_t ioAction      = Access_getIOAction(_self);
+	void *          address       = Access_getAddress(_self);
+	int             writeCount    = Access_getWriteCount(_self);
+	int             readCount     = Access_getReadCount(_self);
+	io_data_t *     bufferAddress = Access_getBufferPointer(_self);
 
+	printf("\nimplement_IO_io_processSequence ioAction: %i", ioAction);
+
+	/*
 	switch (ioAction) {
 
 	case IO_ACTION_UNKNOWN: {
@@ -787,6 +800,7 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	default: { break; }
 
 	}// end switch
+	*/
 
 	// fire the sequence complete callback since transfer activity is complete
 	IO_sequenceComplete_cb();

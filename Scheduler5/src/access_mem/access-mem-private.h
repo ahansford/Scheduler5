@@ -14,9 +14,9 @@ struct AccessMEM {
 	access_read_write_t ioAction;
 	int 			readCount;
 	int 			writeCount;
-	access_data_t *   	bufferPointer;
+	access_data_t * bufferPointer;
 	int				bufferSize;
-	access_cb_fnct		actionDone_cb;
+	access_cb_fnct  actionDone_cb;
 	void * 			objectPointer;
 	void *			hardwareConfig;
 };

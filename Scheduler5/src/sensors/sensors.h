@@ -16,6 +16,7 @@
 #include "..\..\src\scheduler\scheduler.h"
 #include "..\..\src\nodes\nodes.h" // supports class registration
 #include "..\..\src\io\io.h"       // supports IO class communication
+#include "..\..\src\access_mem\access-mem.h"
 //#include "..\..\src\node_list\node-list.h"
 //#include "..\..\src\times\times.h"     // supports class registration
 //#include "..\..\src\events\events.h"     // supports class registration
@@ -175,7 +176,7 @@ typedef unsigned char command_t;
 #define SENSOR_DEFAULT_ADDRESS   NULL
 
 //! The default IO type where "IO" = memory access.
-#define SENSOR_DEFAULT_IO_TYPE   IO
+#define SENSOR_DEFAULT_IO_TYPE   AccessMEM
 /***********************************************/
 /************ protected includes  **************/
 /***** must be after externs and typedefs  *****/

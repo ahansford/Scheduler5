@@ -518,7 +518,7 @@ TEST(accessMem, equal_UnequalAddressReturn_Unequal)
 TEST(accessMem, equal_UnequalIOActionReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	IO_setIOAction(masterIO, IO_READ_SINGLE);
+	Access_setIOAction(masterIO, ACCESS_READ_SINGLE);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }

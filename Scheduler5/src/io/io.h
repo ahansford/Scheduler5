@@ -16,7 +16,7 @@
 #include "..\..\src\scheduler\scheduler.h"
 //#include "..\..\src\nodes\nodes.h"
 #include "..\..\src\lists\lists.h"
-
+#include "..\..\src\access_mem\access-mem.h"
 /***********************************************/
 /**** forward declarations and typedefs  *******/
 
@@ -34,7 +34,7 @@ typedef enum io_read_write_t {
 	IO_WRITE_SEQUENTIAL,
 	IO_WRITE_READ_SINGLE,
 	IO_WRITE_READ_SEQUENTIAL,
-	IO_READ_SINGLE,
+	ACCESSACCESSACCESS,
 	IO_READ_SEQUENTIAL
 } io_read_write_t;
 
@@ -112,27 +112,7 @@ typedef void * (* io_cb_fnct)(void * _io);
  */
 void IO_init(struct List * _ioSequenceList);
 
-/*!
- * Resets write and read counts indicating that the CMD buffer is clear.
- * Does not delete data previously loaded into the buffer area.
- */
-void * IO_clearCommandBuffer(void * _self);
 
-/*!
- * Writes communication sequences to the IO holding buffer.  Values will be
- * written to IO address when IO_update()via the scheduler task.  Returns
- * self on success.  The writeCount is automatically managed by add.
- */
-void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
-
-/*!
- * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
- * execute immediately after any preceding write commands.  The writeCount is
- * set automatically when write commands are added to the command buffer with
- * IO_addWriteCommandToSequence().  WARNING:  There are no protections against
- * counts larger than the command buffer size.  The external code calling the
- * IO methods should carefully manage size.
- */
 
 /*!
  * Adds the sequence of commands to the List of sequences managed by IO.
@@ -169,6 +149,28 @@ void IO_sequenceComplete_cb(void);
 
 // WARNING: this method is not implemented
 void * IO_xxxx(void * _self);
+
+/*!
+ * Resets write and read counts indicating that the CMD buffer is clear.
+ * Does not delete data previously loaded into the buffer area.
+ */
+//void * IO_clearCommandBuffer(void * _self);
+
+/*!
+ * Writes communication sequences to the IO holding buffer.  Values will be
+ * written to IO address when IO_update()via the scheduler task.  Returns
+ * self on success.  The writeCount is automatically managed by add.
+ */
+void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
+
+/*!
+ * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
+ * execute immediately after any preceding write commands.  The writeCount is
+ * set automatically when write commands are added to the command buffer with
+ * IO_addWriteCommandToSequence().  WARNING:  There are no protections against
+ * counts larger than the command buffer size.  The external code calling the
+ * IO methods should carefully manage size.
+ */
 
 
 /******************************/

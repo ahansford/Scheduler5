@@ -515,7 +515,7 @@ TEST(io, equal_UnequalAddressReturn_Unequal)
 TEST(io, equal_UnequalIOActionReturn_Unequal)
 {
 	struct IO * masterIO = new(IO, otherTestBuffer);
-	IO_setIOAction(masterIO, IO_READ_SINGLE);
+	//Access_setIOAction(masterIO, ACCESS_READ_SINGLE);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
@@ -764,7 +764,7 @@ TEST(io, IO_processSequence_readSingleValue)
 	otherTestBuffer[0] = 0x01;
 	IO_setReadCount (myTest_IO, 1);
 	IO_setAddress     (myTest_IO, otherTestBuffer);
-	IO_setIOAction    (myTest_IO, IO_READ_SINGLE);
+	Access_setIOAction    (myTest_IO, ACCESS_READ_SINGLE);
 	IO_processSequence(myTest_IO);
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 }
@@ -790,7 +790,7 @@ TEST(io, IO_processSequence_readMultipleValuesfromSingleLocation)
 	otherTestBuffer[2] = 0x03;
 	IO_setReadCount (myTest_IO, 3);
 	IO_setAddress   (myTest_IO, otherTestBuffer);
-	IO_setIOAction  (myTest_IO, IO_READ_SINGLE);
+	Access_setIOAction  (myTest_IO, ACCESS_READ_SINGLE);
 	IO_processSequence       (myTest_IO);
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x01, testBuffer[1] );
@@ -855,7 +855,7 @@ TEST(io, IO_update_readSingleValue)
 	otherTestBuffer[0] = 0x01;
 	IO_setReadCount (myTest_IO, 1);
 	IO_setAddress     (myTest_IO, otherTestBuffer);
-	IO_setIOAction    (myTest_IO, IO_READ_SINGLE);
+	Access_setIOAction(myTest_IO, ACCESS_READ_SINGLE);
 	IO_addIOSequenceToList(myTest_IO);
 	IO_update();
 	IO_update();
@@ -893,7 +893,7 @@ TEST(io, IO_update_readMultipleValuesfromSingleLocation)
 	otherTestBuffer[2] = 0x03;
 	IO_setReadCount (myTest_IO, 3);
 	IO_setAddress   (myTest_IO, otherTestBuffer);
-	IO_setIOAction  (myTest_IO, IO_READ_SINGLE);
+	Access_setIOAction  (myTest_IO, ACCESS_READ_SINGLE);
 	IO_addIOSequenceToList(myTest_IO);
 	IO_update();
 	IO_update();

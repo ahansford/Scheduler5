@@ -16,6 +16,7 @@
 #include "..\..\src\objects\objects.h"     // safety include
 #include "..\..\src\scheduler\scheduler.h" // safety include
 #include "..\..\src\io\io.h"               // safety include
+#include "..\..\src\access_mem\access-mem.h"               // safety include
 //#include "..\..\src\events\events.h" // safety include
 
 /**************************************/
@@ -1656,24 +1657,24 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
 	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 	                                    Sensor_getIoStructPointer(_self);
-	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
+	if ( localIoStructPtr == NULL ) { printf("\nFAIL1"); return NULL; }  // fail no IO struct
 
 	// get command buffer pointer
 	command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
-	if ( commandBufferPTR == NULL ) { return NULL; }  // fail no cmd buffer
+	if ( commandBufferPTR == NULL ) { printf("\nFAIL2"); return NULL; }  // fail no cmd buffer
 
 	// do not allow default sensor to attempt reads/writes to a NULL address
 	// comm address is usually set externally once just after new(Sensor)
-	void * address = IO_getAddress(localIoStructPtr);
-	if ( address == NULL ) { return NULL; }  // fail
+	void * address = Access_getAddress(localIoStructPtr);
+	if ( address == NULL ) { printf("\nFAIL3"); return NULL; }  // fail
 
 	// set for sequential writes to successive locations starting with "address"
 	// default sensor is a simple memory access module and assumes sequential
-	IO_setIOAction(localIoStructPtr, IO_WRITE_SEQUENTIAL);
+	Access_setIOAction(localIoStructPtr, IO_WRITE_SEQUENTIAL);
 
 	// add the command sequence to the IO list for processing when possible
 	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {
-		return NULL;  // fail
+		printf("\nFAIL4"); return NULL;  // fail
 	}
 
 	return _self; // expected return path
@@ -1795,7 +1796,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		// a NULL address will fail to write in IO
 
 		// clear the command buffer
-		IO_clearCommandBuffer(localIoStructPtr);
+		Access_clearCommandBuffer(localIoStructPtr);
 
 		// add register and data values to command buffer (example values only)
 		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
@@ -1948,7 +1949,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		// a NULL address will fail to write in IO
 
 		// clear the command buffer
-		IO_clearCommandBuffer(localIoStructPtr);
+		Access_clearCommandBuffer(localIoStructPtr);
 
 		// add register/data values to command buffer to trigger read operation
 		// in example code no values are written to buffer
@@ -2222,14 +2223,17 @@ void * Sensor_getIoCommandBufPointer( void * _self)
 										Sensor_getIoStructPointer(self);
 	if ( localIoStructPtr == NULL ) {
 		Sensor_incrementMiniState(self);
+		printf("\nFAIL for NULL Sensor_getIoCommandBufPointer");
 		return NULL;  // fail
 	}
 
 	//  get command buffer pointer
-	command_t * commandBufferPTR = IO_getBufferPointer(localIoStructPtr);
+	command_t * commandBufferPTR = Access_getBufferPointer(localIoStructPtr);
 	if ( commandBufferPTR == NULL ) {
 		Sensor_incrementMiniState(self);
+		printf("\nFAIL for NULL Access_getBufferPointer");
 		return NULL;  // fail
 	}
+	printf("\nSensor_getIoCommandBufPointer returning: %p", commandBufferPTR);
 	return commandBufferPTR;
 }
