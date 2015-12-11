@@ -210,8 +210,8 @@ int Access_setBufferSize(      void * _self, int _bufferSize);
  * Passes parameter of objectPointer, accessible through
  * IO_getObjectPointer(), even if this value is NULL.
  */
-access_cb_fnct Access_get_actionDone_cb(const void * _self);
-access_cb_fnct Access_set_actionDone_cb(      void * _self, access_cb_fnct _cb);
+access_cb_fnct Access_getActionDone_cb(const void * _self);
+access_cb_fnct Access_setActionDone_cb(      void * _self, access_cb_fnct _cb);
 
 //! Object pointer parameter value for action done callback.
 void * Access_getObjectPointer(const void * _self);

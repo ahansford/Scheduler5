@@ -28,16 +28,16 @@ static void * implement_IO_io_config(      struct IO * _self,
 static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp);
 
 
-static void * implement_IO_io_addWriteValue(struct IO * _self,
-		                                    io_data_t   _value);
-static void * implement_IO_io_processSequence(struct IO * _self);
+//static void * implement_IO_io_addWriteValue(struct IO * _self,
+	//	                                    io_data_t   _value);
+//static void * implement_IO_io_processSequence(struct IO * _self);
 static void * implement_IO_io_xxxx(struct IO * _self);
-
+/*
 static void IO_io_writeSingle    (void * _to, void * _from, int _writeCount);
 static void IO_io_writeSequential(void * _to, void * _from, int _writeCount);
 static void IO_io_readSingle     (void * _to, void * _from, int _readCount);
 static void IO_io_readSequential (void * _to, void * _from, int _readCount);
-
+*/
 
 /*****************************/
 /**** INITIALIZATIONS  *******/
@@ -86,9 +86,9 @@ void IO_init(struct List * _ioSequenceList)
 					puto,	IO_io_puto,
 					// New functions added in this class
 					// Do not call superclass->method
-					IO_addWriteCommandToSequence, IO_io_addWriteValue,
-					IO_processSequence,		      IO_io_processSequence,
-					IO_xxxx,		              IO_io_xxxx,
+					//IO_addWriteCommandToSequence, IO_io_addWriteValue,
+					//IO_processSequence,		      IO_io_processSequence,
+					//IO_xxxx,		              IO_io_xxxx,
 
 					0);	// Terminator
 	}
@@ -130,9 +130,9 @@ void * IOClass_ctor(void * _self, va_list *app)
 	// Initialize new functions to default values
 	typedef void (* voidf)();
 
-	* (voidf *) & self->IO_addWriteValue   = NULL;
-	* (voidf *) & self->IO_processSequence = NULL;
-	* (voidf *) & self->IO_xxxx            = NULL;
+	//* (voidf *) & self->IO_addWriteValue   = NULL;
+	//* (voidf *) & self->IO_processSequence = NULL;
+	//* (voidf *) & self->IO_xxxx            = NULL;
 
 	// Update any overloaded method function pointers
 	// using style ... , methodSelector, overloadedFunctionPtr,
@@ -166,13 +166,13 @@ void * IOClass_ctor(void * _self, va_list *app)
 
 
 		// use form below to overload any new functions
-
+/*
 		if (selector == (voidf)IO_addWriteCommandToSequence)
 		    {* (voidf *) & self->IO_addWriteValue = overloadedFunctionPtr;}
 
 		if ( selector == (voidf)IO_processSequence )
 		    { * (voidf *) & self->IO_processSequence  = overloadedFunctionPtr; }
-
+*/
 		if ( selector == (voidf)IO_xxxx )
 		    { * (voidf *) & self->IO_xxxx = overloadedFunctionPtr; }
 
@@ -289,7 +289,7 @@ puto_return_t IO_io_puto(const void * _self, FILE * _fp)
 
 /*************************************************/
 /***********  IO_addWriteSequence    *************/
-
+/*
 void *  IO_addWriteCommandToSequence(void * _self, io_data_t _value)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
@@ -314,10 +314,10 @@ void * IO_io_addWriteValue(void * _self, io_data_t _value)
 	if( self == NULL ) { return NULL; } // fail
 	return implement_IO_io_addWriteValue(self, _value);
 }
-
+*/
 /********************************************/
 /*********  IO_processSequence    ***********/
-
+/*
 void *  IO_processSequence(void * _self)
 {
 	const struct IOClass * class = classOf( cast(IO, _self) );
@@ -347,7 +347,7 @@ void * IO_io_processSequence(void * _self)
 	if( self == NULL ) { printf("\nFAIL9: IO_io_processSequence ... self is NULL"); return NULL; } // fail
 	return implement_IO_io_processSequence(self);
 }
-
+*/
 /*************************************/
 /***********  IO_xxxx    *************/
 
@@ -439,7 +439,7 @@ void IO_update(void)
 		// sends i/o sequence instructions to the respective driver
 		// IO_processSequence() must manage any failures itself
 		// the state will automatically transition to COMPLETE
-		printf("\nIO_update ... IO_processSequence ... sequence:%p", sequence);
+		printf("\nIO_update ... Access_processSequence ... sequence:%p", sequence);
 		Access_processSequence(sequence);
 		break;
 	}
@@ -455,7 +455,7 @@ void IO_update(void)
 		io_update_state = IO_UPDATE_IDLE;
 
 		//sequence processing is complete, fire the sequence callback
-		io_cb_fnct callbackFunctionPointer = IO_getActionDone_cb(sequence);
+		access_cb_fnct callbackFunctionPointer = Access_getActionDone_cb(sequence);
 		if ( callbackFunctionPointer != NULL ) {
 			sequence->actionDone_cb(sequence->objectPointer);
 		}
@@ -476,7 +476,7 @@ void IO_update(void)
 
 /***********************************/
 /*****  set and get address    *****/
-
+/*
 void * IO_getAddress(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -491,10 +491,10 @@ void* IO_setAddress(void * _self, void * _address)
 	self->address = _address;
 	return _address;
 }
-
+*/
 /************************************/
 /*****  set and get ioAction    *****/
-
+/*
 io_read_write_t IO_getIOAction(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -509,10 +509,10 @@ io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction)
 	self->ioAction = _ioAction;
 	return _ioAction;
 }
-
+*/
 /*************************************/
 /*****  set and get readCount  *******/
-
+/*
 int IO_getReadCount(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -527,10 +527,10 @@ int IO_setReadCount(void * _self, int _readCount)
 	self->readCount = _readCount;
 	return _readCount;
 }
-
+*/
 /*************************************/
 /*****  set and get writeCount  *******/
-
+/*
 int IO_getWriteCount(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -545,10 +545,10 @@ int IO_setWriteCount(void * _self, int _writeCount)
 	self->writeCount = _writeCount;
 	return _writeCount;
 }
-
+*/
 /*****************************************/
 /*****  set and get bufferPointer  *******/
-
+/*
 void * IO_getBufferPointer(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -563,10 +563,10 @@ void * IO_setBufferPointer(void * _self, void * _bufferPointer)
 	self->bufferPointer = _bufferPointer;
 	return _bufferPointer;
 }
-
+*/
 /*****************************************/
 /*****  set and get bufferSize  *******/
-
+/*
 int IO_getBufferSize(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -581,11 +581,11 @@ int IO_setBufferSize(void * _self, int _bufferSize)
 	self->bufferSize = _bufferSize;
 	return _bufferSize;
 }
-
+*/
 
 /************************************************/
 /*****  set and get ActionComplete_cb  *******/
-
+/*
 io_cb_fnct IO_getActionDone_cb(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -600,10 +600,10 @@ io_cb_fnct IO_setActionDone_cb(void * _self, io_cb_fnct _cb)
 	self->actionDone_cb = _cb;
 	return _cb;
 }
-
+*/
 /*****************************************/
 /*****  set and get objectPointer  *******/
-
+/*
 void * IO_getObjectPointer(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -618,7 +618,7 @@ void * IO_setObjectPointer(void * _self, void * _objectPointer)
 	self->objectPointer = _objectPointer;
 	return _objectPointer;
 }
-
+*/
 /*****************************************/
 /*******  implementation methods  ********/
 
@@ -626,45 +626,44 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 {
 	// copy master data members, except for PTRs and dynamic values
 
-	IO_setAddress       (_copyTo, IO_getAddress(_copyFrom));
-	IO_setIOAction      (_copyTo, IO_getIOAction(_copyFrom));
-	IO_setReadCount     (_copyTo, IO_getReadCount(_copyFrom));
-	IO_setWriteCount    (_copyTo, IO_getWriteCount(_copyFrom));
-	// data pointers are unique and should not be copied
-	//IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
-	// buffer count May be unique and should not be copied
-	//IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
-	IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
-	IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
+	//IO_setAddress       (_copyTo, IO_getAddress(_copyFrom));
+	//IO_setIOAction      (_copyTo, IO_getIOAction(_copyFrom));
+	//IO_setReadCount     (_copyTo, IO_getReadCount(_copyFrom));
+	//IO_setWriteCount    (_copyTo, IO_getWriteCount(_copyFrom));
+	//// data pointers are unique and should not be copied
+	////IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
+	//// buffer count May be unique and should not be copied
+	////IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
+	//IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
+	//IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
 
 static void * implement_IO_io_ctor(void * _self)
 {
-	IO_setAddress       (_self, NULL);
-	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
-	IO_setReadCount     (_self, 0);
-	IO_setWriteCount    (_self, 0);
-	//IO_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
-	void * localBufferPointer = IO_getBufferPointer(_self);
-	IO_setBufferSize(_self, \
-			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	IO_setActionDone_cb(_self, NULL);
-	IO_setObjectPointer (_self, NULL);
+	//IO_setAddress       (_self, NULL);
+	//IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
+	//IO_setReadCount     (_self, 0);
+	//IO_setWriteCount    (_self, 0);
+	////IO_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
+	// void * localBufferPointer = IO_getBufferPointer(_self);
+	// IO_setBufferSize(_self, sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
+	//IO_setActionDone_cb(_self, NULL);
+	//IO_setObjectPointer (_self, NULL);
 	return _self;
 }
 
 static void * implement_IO_io_dtor(struct IO * _self)
 {
-	IO_setAddress       (_self, NULL);
-	IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
-	IO_setReadCount     (_self, 0);
-	IO_setWriteCount    (_self, 0);
-	// WANRING:  delete/free the command buffer externally
-	IO_setBufferPointer (_self, NULL);
-	IO_setBufferSize    (_self, 0);
-	IO_setActionDone_cb(_self, NULL);
-	IO_setObjectPointer (_self, NULL);
+	//IO_setAddress       (_self, NULL);
+	//IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
+	//IO_setReadCount     (_self, 0);
+	//IO_setWriteCount    (_self, 0);
+	//// WANRING:  delete/free the command buffer externally
+	//IO_setBufferPointer (_self, NULL);
+	//IO_setBufferSize    (_self, 0);
+	//IO_setActionDone_cb(_self, NULL);
+	//IO_setObjectPointer (_self, NULL);
 	return _self;
 }
 
@@ -672,9 +671,9 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 		                             const struct IO * _comparisonObject)
 {
 	// Check each data member for congruence
-	struct IO * self             = (void *)_self;
-	struct IO * comparisonObject = (void *)_comparisonObject;
-
+	//struct IO * self             = (void *)_self;
+	//struct IO * comparisonObject = (void *)_comparisonObject;
+/*
 	if( IO_getAddress(self) != IO_getAddress(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
@@ -689,11 +688,11 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 
 	if( IO_getWriteCount(self) != IO_getWriteCount(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
-
+*/
 	// data pointers are unique and should not be included in the comparison
 	//if( IO_getBufferPointer(self) != IO_getBufferPointer(comparisonObject) )
 	//	{ return OBJECT_UNEQUAL; }
-
+/*
 	if( IO_getBufferSize(self) != IO_getBufferSize(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
@@ -702,7 +701,7 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 
 	if( IO_getObjectPointer(self) != IO_getObjectPointer(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
-
+*/
 	// all data members are congruent
 	return OBJECT_EQUAL;
 }
@@ -728,6 +727,7 @@ void * IO_clearCommandBuffer(void * _self)
 	return _self;
 }
 */
+/*
 static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 {
 	io_data_t * bufferPointer = IO_getBufferPointer(_self);
@@ -751,14 +751,14 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	// reentrant support is not likely needed
 
 	io_read_write_t ioAction      = Access_getIOAction(_self);
-	void *          address       = Access_getAddress(_self);
-	int             writeCount    = Access_getWriteCount(_self);
-	int             readCount     = Access_getReadCount(_self);
-	io_data_t *     bufferAddress = Access_getBufferPointer(_self);
+	//void *          address       = Access_getAddress(_self);
+	//int             writeCount    = Access_getWriteCount(_self);
+	//int             readCount     = Access_getReadCount(_self);
+	//io_data_t *     bufferAddress = Access_getBufferPointer(_self);
 
 	printf("\nimplement_IO_io_processSequence ioAction: %i", ioAction);
 
-	/*
+
 	switch (ioAction) {
 
 	case IO_ACTION_UNKNOWN: {
@@ -800,13 +800,14 @@ static void * implement_IO_io_processSequence(struct IO * _self)
 	default: { break; }
 
 	}// end switch
-	*/
+
 
 	// fire the sequence complete callback since transfer activity is complete
 	IO_sequenceComplete_cb();
 	return _self;  // remove this fail
 }
-
+*/
+/*
 static void IO_io_writeSingle(void * _to, void * _from, int _writeCount)
 {
 	int i;
@@ -861,10 +862,11 @@ static void IO_io_readSequential(void * _to, void * _from, int _readCount)
 	}
 	return;
 }
-
+*/
 
 static void * implement_IO_io_xxxx(struct IO * _self)
 {
 	// Update with actual code in
 	return NULL;  // remove this fail when actual code is added
 }
+

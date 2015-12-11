@@ -28,6 +28,7 @@ extern const void * IOClass;
  */
 typedef unsigned char io_data_t;
 
+/**/
 typedef enum io_read_write_t {
 	IO_ACTION_UNKNOWN = -1,
 	IO_WRITE_SINGLE,
@@ -181,7 +182,7 @@ void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
  * ignored.
  */
 void * IO_getAddress(const void * _self);
-void * IO_setAddress(      void * _self, void * _address);
+void * Access(      void * _self, void * _address);
 
 //! Type of IO operation
 io_read_write_t IO_getIOAction(const void * _self);

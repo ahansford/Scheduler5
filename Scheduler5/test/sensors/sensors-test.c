@@ -1105,13 +1105,13 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	Sensor_setOnAlarmTriggered_cb  (masterSensor, Sensor_test_general_cb2 );
 
 	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
-	IO_setAddress   (masterIoPointer, (void *)11);
-	IO_setIOAction  (masterIoPointer, 12);
-	IO_setReadCount (masterIoPointer, 13);
-	IO_setWriteCount(masterIoPointer, 14);
-	//IO_setBufferPointer(masterIoPointer, NULL);
-	IO_setActionDone_cb(masterIoPointer, NULL);
-	IO_setObjectPointer(masterIoPointer, NULL);
+	Access_setAddress   (masterIoPointer, (void *)11);
+	Access_setIOAction  (masterIoPointer, 12);
+	Access_setReadCount (masterIoPointer, 13);
+	Access_setWriteCount(masterIoPointer, 14);
+	//Access_setBufferPointer(masterIoPointer, NULL);
+	Access_setActionDone_cb(masterIoPointer, NULL);
+	Access_setObjectPointer(masterIoPointer, NULL);
 
 	copy(myTest_Sensor, masterSensor);
 
@@ -1131,13 +1131,13 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb,  myTest_Sensor->Sensor_onReportReady_cb);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb2, myTest_Sensor->Sensor_onAlarmTriggered_cb);
 	struct IO * toIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
-	TEST_ASSERT_EQUAL(11, IO_getAddress(toIoPointer));
-	TEST_ASSERT_EQUAL(12, IO_getIOAction(toIoPointer));
-	TEST_ASSERT_EQUAL(13, IO_getReadCount(toIoPointer));
-	TEST_ASSERT_EQUAL(14, IO_getWriteCount(toIoPointer));
+	TEST_ASSERT_EQUAL(11, Access_getAddress(toIoPointer));
+	TEST_ASSERT_EQUAL(12, Access_getIOAction(toIoPointer));
+	TEST_ASSERT_EQUAL(13, Access_getReadCount(toIoPointer));
+	TEST_ASSERT_EQUAL(14, Access_getWriteCount(toIoPointer));
 	//TEST_ASSERT_EQUAL_PTR(NULL, IO_getBufferPointer(toIoPointer));
-	TEST_ASSERT_EQUAL_PTR(NULL, IO_getActionDone_cb(toIoPointer));
-	TEST_ASSERT_EQUAL_PTR(NULL, IO_getObjectPointer(toIoPointer));
+	TEST_ASSERT_EQUAL_PTR(NULL, Access_getActionDone_cb(toIoPointer));
+	TEST_ASSERT_EQUAL_PTR(NULL, Access_getObjectPointer(toIoPointer));
 
 	masterSensor = safeDelete(masterSensor);
 }
@@ -1249,7 +1249,7 @@ TEST(sensor, equal_UnequalAddress_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
 	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
-	IO_setAddress(masterIoPointer, (void *)11);
+	Access_setAddress(masterIoPointer, (void *)11);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
 }
@@ -1439,8 +1439,8 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	// the default address of NULL will prevent IO operations for the sensor
 	struct IO  * localIoStructPtr = Sensor_getIoStructPointer(myTest_Sensor);
 	io_data_t knownCharBuffer[16];
-	void * originalAddress = IO_getAddress(localIoStructPtr);
-	IO_setAddress(localIoStructPtr, knownCharBuffer);
+	void * originalAddress = Access_getAddress(localIoStructPtr);
+	Access_setAddress(localIoStructPtr, knownCharBuffer);
 
 	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
 	Sensor_measureAndProcess(myTest_Sensor);
@@ -1455,7 +1455,7 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 
 	// garbage collection ... failure to assign back to original will leave original buffer undeleted
-	IO_setAddress(localIoStructPtr, originalAddress);
+	Access_setAddress(localIoStructPtr, originalAddress);
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
@@ -1584,9 +1584,9 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 
 	// set the address element in the IO object to a known buffer address
 	io_data_t knownCharBuffer[16];
-	struct IO * localIoPtr = Sensor_getIoStructPointer(myTest_Sensor);
-	void * originalAddress = IO_getAddress(localIoPtr);
-	IO_setAddress(localIoPtr, knownCharBuffer);
+	struct AccessMEM * localIoPtr = Sensor_getIoStructPointer(myTest_Sensor);
+	void * originalAddress = Access_getAddress(localIoPtr);
+	Access_setAddress(localIoPtr, knownCharBuffer);
 	//localIoPtr->address = knownCharBuffer;
 
 	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 1); // >0 triggers callback wait
@@ -1621,7 +1621,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].period);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
 
-	IO_setAddress(localIoPtr, originalAddress);
+	Access_setAddress(localIoPtr, originalAddress);
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 

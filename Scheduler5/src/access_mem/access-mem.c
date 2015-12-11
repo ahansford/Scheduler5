@@ -28,7 +28,7 @@ static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self, F
 
 
 //static void * implement_Access_MEM_addWriteValue(struct AccessMEM * _self,
-//		                                    access_data_t   _value);
+//		                                         access_data_t   _value);
 
 static void * implement_Access_MEM_processSequence(struct AccessMEM * _self);
 //static void * implement_Access_MEM_xxxx(struct AccessMEM * _self);
@@ -135,7 +135,7 @@ void * Access_MEMClass_ctor(void * _self, va_list *app)
 
 	* (voidf *) & self->Access_addWriteCommandToSequence = NULL;
 	* (voidf *) & self->Access_processSequence           = NULL;
-	* (voidf *) & self->Access_xxxx                      = NULL;
+	//* (voidf *) & self->Access_xxxx                      = NULL;
 
 	// Update any overloaded method function pointers
 	// using style ... , methodSelector, overloadedFunctionPtr,
@@ -544,7 +544,7 @@ int Access_setWriteCount(void * _self, int _writeCount)
 
 /*****************************************/
 /*****  set and get bufferPointer  *******/
-/**/
+
 void * Access_getBufferPointer(const void * _self)
 {
 	const struct AccessMEM * self = cast(AccessMEM, _self);
@@ -580,16 +580,16 @@ int Access_setBufferSize(void * _self, int _bufferSize)
 
 
 /************************************************/
-/*****  set and get IO_actionComplete_cb  *******/
+/*****  set and get actionComplete_cb  *******/
 
-access_cb_fnct Access_get_actionDone_cb(const void * _self)
+access_cb_fnct Access_getActionDone_cb(const void * _self)
 {
 	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->actionDone_cb;
 }
 
-access_cb_fnct Access_set_actionDone_cb(void * _self, access_cb_fnct _cb)
+access_cb_fnct Access_setActionDone_cb(void * _self, access_cb_fnct _cb)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
@@ -630,7 +630,7 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	//Access_setBufferPointer (_copyTo, Access_getBufferPointer(_copyFrom));
 	// buffer count May be unique and should not be copied
 	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
-	Access_set_actionDone_cb(_copyTo, Access_get_actionDone_cb(_copyFrom));
+	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
 	Access_setObjectPointer (_copyTo, Access_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
@@ -645,7 +645,7 @@ static void * implement_Access_MEM_ctor(void * _self)
 	void * localBufferPointer = Access_getBufferPointer(_self);
 	Access_setBufferSize(_self, \
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	Access_set_actionDone_cb(_self, NULL);
+	Access_setActionDone_cb(_self, NULL);
 	Access_setObjectPointer (_self, NULL);
 	return _self;
 }
@@ -659,7 +659,7 @@ static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 	// WARNING:  delete/free the command buffer externally
 	Access_setBufferPointer (_self, NULL);
 	Access_setBufferSize    (_self, 0);
-	Access_set_actionDone_cb(_self, NULL);
+	Access_setActionDone_cb(_self, NULL);
 	Access_setObjectPointer (_self, NULL);
 	return _self;
 }
@@ -693,7 +693,7 @@ static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
 	if( Access_getBufferSize(self) != Access_getBufferSize(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( Access_get_actionDone_cb(self) != Access_get_actionDone_cb(comparisonObject) )
+	if( Access_getActionDone_cb(self) != Access_getActionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
 	if( Access_getObjectPointer(self) != Access_getObjectPointer(comparisonObject) )
@@ -857,10 +857,10 @@ static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 	return;
 }
 
-
+/*
 static void * implement_Access_MEM_xxxx(struct AccessMEM * _self)
 {
 	// Update with actual code in
 	return NULL;  // remove this fail when actual code is added
 }
-
+*/

@@ -1693,12 +1693,12 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 
 	// do not allow default sensor to attempt reads/writes to a NULL address
 	// comm address is usually set externally once just after new(Sensor)
-	void * address = IO_getAddress(localIoStructPtr);
+	void * address = Access_getAddress(localIoStructPtr);
 	if ( address == NULL ) { return NULL; }  // fail
 
 	// set for sequential writes to successive locations starting with "address"
 	// default sensor is a simple memory access module and assumes sequential
-	IO_setIOAction(localIoStructPtr, IO_READ_SEQUENTIAL);
+	Access_setIOAction(localIoStructPtr, ACCESS_READ_SEQUENTIAL);
 
 	// add the command sequence to the IO list for processing when possible
 	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {
@@ -1799,13 +1799,13 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		Access_clearCommandBuffer(localIoStructPtr);
 
 		// add register and data values to command buffer (example values only)
-		IO_addWriteCommandToSequence(localIoStructPtr, 0x03);
-		IO_addWriteCommandToSequence(localIoStructPtr, 0x41);
+		Access_addWriteCommandToSequence(localIoStructPtr, 0x03);
+		Access_addWriteCommandToSequence(localIoStructPtr, 0x41);
 
 		// set communication complete callback to Sensor_incrementMiniState()
-		IO_setActionDone_cb(localIoStructPtr,
-										(io_cb_fnct)Sensor_incrementMiniState);
-		IO_setObjectPointer(localIoStructPtr, _self);
+		Access_setActionDone_cb(localIoStructPtr,
+								   (access_cb_fnct)Sensor_incrementMiniState);
+		Access_setObjectPointer(localIoStructPtr, _self);
 
 		// transition to a waiting miniState
 		Sensor_incrementMiniState(_self);
@@ -1961,12 +1961,12 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		// load the number of bytes to read back into the readCount
 		// "1" is used here
 		// the write counts are automatically handled by addWriteCommand
-		IO_setReadCount(localIoStructPtr, 1);
+		Access_setReadCount(localIoStructPtr, 1);
 
 		// set communication complete callback as Sensor_incrementMiniState()
-		IO_setActionDone_cb(localIoStructPtr,
-										(io_cb_fnct)Sensor_incrementMiniState);
-		IO_setObjectPointer(localIoStructPtr, _self);
+		Access_setActionDone_cb(localIoStructPtr,
+									(access_cb_fnct)Sensor_incrementMiniState);
+		Access_setObjectPointer(localIoStructPtr, _self);
 
 		// transition to a waiting miniState
 		Sensor_incrementMiniState(_self);
@@ -1994,7 +1994,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 											Sensor_getIoStructPointer(_self);
 		if ( localIoStructPtr == NULL )  { return NULL; }  // fail
-		io_data_t * localBufferPointer = IO_getBufferPointer(localIoStructPtr);
+		access_data_t * localBufferPointer = Access_getBufferPointer(localIoStructPtr);
 		if ( localBufferPointer == NULL ) { return NULL; }  // fail
 
 		// get the raw buffer pointer in the sensor structure
