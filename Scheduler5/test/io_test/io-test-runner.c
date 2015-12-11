@@ -157,7 +157,7 @@ TEST_GROUP_RUNNER(io)
 	/**/
 	RUN_TEST_CASE(io, IO_getActionFromList_returnsNullOnNullPtr);
 	RUN_TEST_CASE(io, IO_getActionFromList_Returns_NullOnemptyList);
-	RUN_TEST_CASE(io, IO_getActionFromList_Returns_ioObjectFromList);
+	RUN_TEST_CASE(io, IO_getActionFromList_Returns_objectFromList);
 	RUN_TEST_CASE(io, IO_getActionFromList_Returns_MultipleioObjectsFromList);
 
 	//****  IO_processSequence  ****************
