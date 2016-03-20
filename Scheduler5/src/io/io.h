@@ -35,7 +35,7 @@ typedef enum io_read_write_t {
 	IO_WRITE_SEQUENTIAL,
 	IO_WRITE_READ_SINGLE,
 	IO_WRITE_READ_SEQUENTIAL,
-	ACCESSACCESSACCESS,
+	IO_READ_SINGLE,
 	IO_READ_SEQUENTIAL
 } io_read_write_t;
 
@@ -43,7 +43,7 @@ typedef enum io_read_write_t {
  * The generic callback typedef that takes a void pointer and returns a void
  * pointer.  Registered functions of this type can be called on completion of
  * the IO operation.  The void*-void* form was selected over the IO*-IO* form
- * so that external modules can registers callbacks as well.  For example
+ * so that external modules can register callbacks as well.  For example
  * a sensor can register Sensor_incrementMiniState() using void*-void*.
  */
 typedef void * (* io_cb_fnct)(void * _io);
@@ -122,13 +122,14 @@ void IO_init(struct List * _ioSequenceList);
 void * IO_addIOSequenceToList(void * _self);
 
 /*!
- * Executes the IO state machine, and called from the scheduler.  Returns
+ * Executes the IO state machine, and is called from the scheduler.  Returns
  * processed struct IO object pointer on completion.
  */
 void IO_update(void);
 
 /*!
  * Executes communications sequence.  Called from within IO_update().
+ * TODO: why is this function in the public header?
  */
 void * IO_processSequence(void * _self);
 
@@ -141,8 +142,8 @@ void * IO_processSequence(void * _self);
  */
 
 /*!
- * Generic IO callback that fires when I/O action is complete.  The sequence
- * will be marked completed and the state will increment automatically
+ * Generic IO callback that fires when I/O action is complete.  The IO state variable will
+ * increment automatically to a completed setting.
  */
 void IO_sequenceComplete_cb(void);
 
@@ -165,7 +166,8 @@ void * IO_xxxx(void * _self);
 void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
 
 /*!
- * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
+ * Use IO_setReadCount(_self, _readCount) to set the number of bytes to read
+ * after any write commands are executed.  The reads will
  * execute immediately after any preceding write commands.  The writeCount is
  * set automatically when write commands are added to the command buffer with
  * IO_addWriteCommandToSequence().  WARNING:  There are no protections against
@@ -182,17 +184,18 @@ void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
  * ignored.
  */
 void * IO_getAddress(const void * _self);
-void * Access(      void * _self, void * _address);
+void * IO_setAddress(      void * _self, void * _address);
 
 //! Type of IO operation
 io_read_write_t IO_getIOAction(const void * _self);
 io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction);
 
-//! Number of values to read.  Must be set before add sequence on to IO list.
+//! Number of values to read.  Must set before adding sequence on to IO list.
 int IO_getReadCount(const void * _self);
 int IO_setReadCount(      void * _self, int _readCount);
 
 //! Number of bytes to write.  Automatically managed when adding a command to buffer.
+//  TODO: why is this public?
 int IO_getWriteCount(const void * _self);
 int IO_setWriteCount(      void * _self, int _writeCount);
 
@@ -209,14 +212,17 @@ int IO_getBufferSize(const void * _self);
 int IO_setBufferSize(      void * _self, int _bufferSize);
 
 /*!
- * Called when operation is complete is function pointer is not NULL.
+ * Called when operation is complete if function pointer is not NULL.
  * Passes parameter of objectPointer, accessible through
  * IO_getObjectPointer(), even if this value is NULL.
  */
 io_cb_fnct IO_getActionDone_cb(const void * _self);
 io_cb_fnct IO_setActionDone_cb(      void * _self, io_cb_fnct _cb);
 
-//! Object pointer parameter value for action done callback.
+/*!
+ * Object pointer parameter value for action done callback.  Points back to
+ * the original object owning the IO structure.
+*/
 void * IO_getObjectPointer(const void * _self);
 void * IO_setObjectPointer(      void * _self, void * _objectPointer);
 

@@ -150,7 +150,8 @@ TEST_GROUP_RUNNER(io)
 	/**/
 	RUN_TEST_CASE(io, IO_addIOSequenceToList_returnsNullOnNullPtr);
 	RUN_TEST_CASE(io, IO_addIOSequenceToList_Returns_selfOnSuccess);
-	RUN_TEST_CASE(io, IO_addIOSequenceToList_addsSingleIOObject);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_takeRemovesItemFromList);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd);
 	RUN_TEST_CASE(io, IO_addIOSequenceToList_addsMultipleIOObjects);
 
 	//****  IO_getActionFromList  *********************
@@ -158,6 +159,7 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_getActionFromList_returnsNullOnNullPtr);
 	RUN_TEST_CASE(io, IO_getActionFromList_Returns_NullOnemptyList);
 	RUN_TEST_CASE(io, IO_getActionFromList_Returns_objectFromList);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_listContainsZeroItemsAfterGet);
 	RUN_TEST_CASE(io, IO_getActionFromList_Returns_MultipleioObjectsFromList);
 
 	//****  IO_processSequence  ****************

@@ -701,36 +701,39 @@ TEST(sensor, Sensor_writesCommandtakesNoActionOnNullObject)
 /****  Sensor_readCommandsFromSensor  ****************/
 /**/
 TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
-{printf("\nTEST: Sensor_readsCommandDataFromSpecifiedLocation Line: %i\n", __LINE__);
+{
+	printf("\nTEST: Sensor_readsCommandDataFromSpecifiedLocation LINE: %i\n", __LINE__);
 	void * IO_actionBuffer[1];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	TEST_ASSERT_TRUE(IOTest_ioActionList != NULL );
 	IO_init(IOTest_ioActionList);
 
-	io_data_t targetArray[4];
+	access_data_t targetArray[4];
 	targetArray[0] = 5;
 	targetArray[1] = 6;
 	TEST_ASSERT_EQUAL(5,  targetArray[0] );
 	TEST_ASSERT_EQUAL(6,  targetArray[1] );
 
-	struct IO * IO_struct = Sensor_getIoStructPointer(myTest_Sensor);
-	IO_struct->address = targetArray;
-	IO_struct->bufferPointer[0]= 0x00;
-	IO_struct->bufferPointer[1]= 0x00;
-	IO_struct->readCount = 2;
+	struct SENSOR_DEFAULT_IO_TYPE * Access_struct = Sensor_getIoStructPointer(myTest_Sensor);
+	Access_struct->address = targetArray;
+	Access_struct->bufferPointer[0]= 0x00;
+	Access_struct->bufferPointer[1]= 0x00;
+	Access_struct->readCount = 2;
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_readDataFromSensor(myTest_Sensor));
+	printf("\n start IO_update calls");
+	//IO_commandExecuteComplete_cb();
+	IO_sequenceComplete_cb();
 	IO_update();
 	IO_update();
 	IO_update();
 	IO_update();
 	IO_update();
 
-	TEST_ASSERT_EQUAL(0x05,  IO_struct->bufferPointer[0] );
-	TEST_ASSERT_EQUAL(0x06,  IO_struct->bufferPointer[1] );
+	TEST_ASSERT_EQUAL(0x05,  Access_struct->bufferPointer[0] );
+	TEST_ASSERT_EQUAL(0x06,  Access_struct->bufferPointer[1] );
 
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 	printf("\nEND: Sensor_readsCommandDataFromSpecifiedLocation Line: %i\n", __LINE__);
-
 }
 
 TEST(sensor, Sensor_readsCommandtakesNoActionOnNullAddress)

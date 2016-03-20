@@ -46,10 +46,10 @@ const void * IOClass = NULL;
 const void * IO      = NULL;
 
 struct List * ioSequenceList = NULL; // pointer to the List of sequences
-struct IO *   sequence;  // pointer to the sequence currently being executed
+struct IO *   sequence = NULL;  // pointer to the sequence currently being executed
 
 // the internally managed IO state machine state used in IO_update()
-io_update_state_t io_update_state;
+io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
 
 
 // MUST be called before other IO methods are called
@@ -172,10 +172,10 @@ void * IOClass_ctor(void * _self, va_list *app)
 
 		if ( selector == (voidf)IO_processSequence )
 		    { * (voidf *) & self->IO_processSequence  = overloadedFunctionPtr; }
-*/
+
 		if ( selector == (voidf)IO_xxxx )
 		    { * (voidf *) & self->IO_xxxx = overloadedFunctionPtr; }
-
+*/
 	#ifdef va_copy
 		va_end(ap);
 	#endif
@@ -381,8 +381,10 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self)
 {
+	// TODO:  Add additional pointer (void * _self, void * _access)
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if( self == NULL ) { printf("\nFAIL5: IO_addIOSequenceToList NULL self\n"); return NULL; } // fail
+	//printf("\nSUCCESS5.5: IO_addIOSequenceToList NULL self\n");
 	void * itemAddedToListPtr = add(ioSequenceList, self);
 	if ( itemAddedToListPtr == NULL ) {
 		printf("\nFAIL6: IO_addIOSequenceToList add operation\n");
@@ -406,12 +408,16 @@ void IO_sequenceComplete_cb(void)
 
 void IO_update(void)
 {
+	// TODO:  add nre parameter (void * _self)
 	printf("\nIO_update ... io_update_state: %i", io_update_state);
 
+	// TODO: io_state_t io_update_state = IO_getIoState(_self);
+	// TODO: struct AccessMEM * sequence = cast( AccessMEM, IO_getSequencePtr(_self));
+	// if (aequence == NULL ) {return NULL: }  // fail
 	switch (io_update_state) {
 
 	case IO_UPDATE_UNKNOWN: {
-		io_update_state = IO_UPDATE_IDLE;
+		//io_update_state = IO_UPDATE_IDLE;
 		break;
 	}
 
@@ -422,7 +428,9 @@ void IO_update(void)
 		printf("\nIO_update ... sequence: %p", sequence);
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
+			printf("\nIO_update ... sequence found: %p", sequence);
 			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
+			// TODO: IO_setSequencePtr(_self, sequence);
 		}
 		// no sequence to transmit ... do nothing
 		break;
@@ -447,6 +455,7 @@ void IO_update(void)
 	case IO_UPDATE_WAITING_COMMAND: {
 		// do nothing
 		// wait for IO_commandExecuteComplete_cb() callback to transition state
+		//TODO:  ERROR HERE there is no call out of this state
 		break;
 	}
 
@@ -457,6 +466,7 @@ void IO_update(void)
 		//sequence processing is complete, fire the sequence callback
 		access_cb_fnct callbackFunctionPointer = Access_getActionDone_cb(sequence);
 		if ( callbackFunctionPointer != NULL ) {
+			printf("\nFiring Access callback in IO_update");
 			sequence->actionDone_cb(sequence->objectPointer);
 		}
 
@@ -466,6 +476,7 @@ void IO_update(void)
 	default: { break; }
 	}  //  end switch
 
+	// TODO: IO_setIoState(_self, io_update_state);
 	return;
 }
 

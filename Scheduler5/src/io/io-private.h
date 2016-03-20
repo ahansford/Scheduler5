@@ -17,7 +17,7 @@ struct IO {
 	io_data_t *   	bufferPointer;
 	int				bufferSize;
 	io_cb_fnct		actionDone_cb;
-	void * 			objectPointer;
+	void * 			objectPointer;  // back ptr to the original item
 };
 
 struct IOClass {
@@ -29,7 +29,7 @@ struct IOClass {
 };
 
 typedef enum io_update_state_t {
-	IO_UPDATE_UNKNOWN,
+	IO_UPDATE_UNKNOWN = -1,
 	IO_UPDATE_IDLE,
 	IO_UPDATE_EXECUTE_COMMAND,
 	IO_UPDATE_WAITING_COMMAND,

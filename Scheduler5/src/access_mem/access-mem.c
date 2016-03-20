@@ -763,6 +763,7 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 
 	case ACCESS_WRITE_SINGLE: {
 		Access_MEM_writeSingle(address, bufferAddress, writeCount);
+		//Access_sequenceComplete_cb();
 		break;
 	}
 
@@ -797,9 +798,10 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 
 	}// end switch
 
+	//TODO::  is a callback needed when transfer is complete
 	// fire the sequence complete callback since transfer activity is complete
 	//Access_sequenceComplete_cb();
-	return _self;  // remove this fail
+	return _self;
 }
 
 static void Access_MEM_writeSingle(void * _to, void * _from, int _writeCount)
@@ -856,6 +858,12 @@ static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 	}
 	return;
 }
+
+void Access_sequenceComplete_cb(void)
+{
+	return;
+}
+
 
 /*
 static void * implement_Access_MEM_xxxx(struct AccessMEM * _self)

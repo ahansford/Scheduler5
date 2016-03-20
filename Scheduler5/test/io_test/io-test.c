@@ -663,10 +663,16 @@ TEST(io, IO_addIOSequenceToList_Returns_selfOnSuccess)
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_addIOSequenceToList(myTest_AccessMEM) );
 }
 
-TEST(io, IO_addIOSequenceToList_addsSingleIOObject)
+TEST(io, IO_addIOSequenceToList_takeRemovesItemFromList)
 {
 	IO_addIOSequenceToList(myTest_AccessMEM);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, take(IOTest_ioActionList) );
+}
+
+TEST(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd)
+{
+	IO_addIOSequenceToList(myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(1, getItemCount(IOTest_ioActionList) );
 }
 
 TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
@@ -702,6 +708,13 @@ TEST(io, IO_getActionFromList_Returns_objectFromList)
 {
 	IO_addIOSequenceToList(myTest_AccessMEM);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_getActionFromList() );
+}
+
+TEST(io, IO_addIOSequenceToList_listContainsZeroItemsAfterGet)
+{
+	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_getActionFromList();
+	TEST_ASSERT_EQUAL(0, getItemCount(IOTest_ioActionList) );
 }
 
 TEST(io, IO_getActionFromList_Returns_MultipleioObjectsFromList)
@@ -810,12 +823,16 @@ TEST(io, IO_processSequence_readMultipleValuesfromSingleLocation)
 
 TEST(io, IO_update_writeSingleToSingleAddress)
 {
+	printf("\nTEST: IO_update_writeSingleToSingleAddress, LINE: %i", __LINE__);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
 	Access_setAddress   (myTest_AccessMEM, otherTestBuffer);
 	Access_setIOAction  (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_sequenceComplete_cb();
 	IO_update();
 	IO_update();
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(0xFF, otherTestBuffer[0] );
