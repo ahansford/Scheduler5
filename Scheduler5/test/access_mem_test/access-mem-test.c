@@ -34,6 +34,8 @@ void * accessMem_test_general_cb(void * _self);
 int access_test_cb_count;
 //int sensor_test_cb_count2;
 
+void * access_test_cb_ptr = NULL;
+
 //int i;
 
 
@@ -951,6 +953,22 @@ TEST(accessMem, IO_update_canBeCalledMultipleTimesWithEmplyList)
 
 }
 
+TEST(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback)
+{
+	TEST_ASSERT_EQUAL(0, access_test_cb_count );
+	Access_setActionDone_cb(myTest_accessMem, (void *)accessMem_test_general_cb);
+	Access_sequenceComplete_cb(myTest_accessMem);
+	TEST_ASSERT_EQUAL(1, access_test_cb_count );
+}
+
+TEST(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr)
+{
+	TEST_ASSERT_EQUAL(0, access_test_cb_count );
+	Access_setActionDone_cb(myTest_accessMem, (void *)accessMem_test_general_cb);
+	Access_setObjectPointer(myTest_accessMem, (void *)myTest_accessMem);
+	Access_sequenceComplete_cb(myTest_accessMem);
+	TEST_ASSERT_EQUAL(myTest_accessMem, access_test_cb_ptr );
+}
 
 //****  Support Methods  ****************
 
@@ -958,6 +976,7 @@ TEST(accessMem, IO_update_canBeCalledMultipleTimesWithEmplyList)
 void * accessMem_test_general_cb(void * _self)
 {
 	access_test_cb_count++;
+	access_test_cb_ptr = _self;
 	//printf("  XXX access_test_general_cb\n");
 	return _self;
 }

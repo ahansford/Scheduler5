@@ -23,9 +23,9 @@ struct AccessMEM {
 
 struct AccessMEMClass {
 	const struct Class	_;	// should be superclass: Class or "somethingClass"
-	void *	(*Access_addWriteCommandToSequence)	    (void * _self, char _value);
-	void *	(*Access_processSequence)	(void * _self);
-	//void *	(*Access_xxxx)	    		(void * _self);
+	void *	(*Access_addWriteCommandToSequence)	(void * _self, char _value);
+	void *	(*Access_processSequence)	        (void * _self);
+	//void *	(*Access_xxxx)	    		    (void * _self);
 
 };
 

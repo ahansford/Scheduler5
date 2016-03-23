@@ -296,10 +296,9 @@ puto_return_t Access_MEM_puto(const void * _self, FILE * _fp)
 void *  Access_addWriteCommandToSequence(void * _self, access_data_t _value)
 {
 	const struct AccessMEMClass * class = classOf( cast(AccessMEM, _self) );
-	if ( class == NULL )                   { return NULL; } // fail
-	//if ( class-> == NULL ) { return NULL; } // fail
-	//return class-(_self, _value);
-	return NULL;
+	if ( class == NULL )                                   { return NULL; } // fail
+	if ( class->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
+	return class->Access_addWriteCommandToSequence(_self, _value);
 }
 
 void * super_Access_addWriteCommandToSequence(const void * _class, void * _self, access_data_t _value)
@@ -727,20 +726,19 @@ void * Access_clearCommandBuffer(void * _self)
 
 
 static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self, access_data_t _value)
-//static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
 {
 	access_data_t * bufferPointer = Access_getBufferPointer(_self);
 	if ( bufferPointer == NULL ) { return NULL; } // fail
 
 	int writeCount = Access_getWriteCount(_self);
-	if ( writeCount == Access_getBufferSize(_self) ) { return NULL; }  // fail full
+	if ( writeCount == Access_getBufferSize(_self) ) { return NULL; } // fail full
 
 	// Add value to buffer and increment the writeCount
 	bufferPointer[writeCount] = _value;
 	writeCount++;
 	Access_setWriteCount(_self, writeCount);
 
-	return _self;  // remove this fail
+	return _self;
 }
 
 static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
@@ -749,48 +747,49 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 	// complete sequences are likely executed as a block
 	// reentrant support is not likely needed
 
-	access_read_write_t ioAction  = Access_getIOAction(_self);
-	void *          address       = Access_getAddress(_self);
-	int             writeCount    = Access_getWriteCount(_self);
-	int             readCount     = Access_getReadCount(_self);
-	access_data_t * bufferAddress = Access_getBufferPointer(_self);
+	access_read_write_t ioAction      = Access_getIOAction(_self);
+	void *              address       = Access_getAddress(_self);
+	int                 writeCount    = Access_getWriteCount(_self);
+	int                 readCount     = Access_getReadCount(_self);
+	access_data_t *     bufferAddress = Access_getBufferPointer(_self);
 
 	switch (ioAction) {
 
-	case ACCESS_ACTION_UNKNOWN: {
-		break;
-	}
-
 	case ACCESS_WRITE_SINGLE: {
 		Access_MEM_writeSingle(address, bufferAddress, writeCount);
-		//Access_sequenceComplete_cb();
+		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_WRITE_SEQUENTIAL: {
 		Access_MEM_writeSequential(address, bufferAddress, writeCount);
+		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_READ_SINGLE: {
 		Access_MEM_readSingle(bufferAddress, address, readCount);
+		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_READ_SEQUENTIAL: {
 		Access_MEM_readSequential(bufferAddress, address, readCount);
+		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_WRITE_READ_SINGLE: {
 		Access_MEM_writeSingle(address, bufferAddress, writeCount);
 		Access_MEM_readSingle(bufferAddress, address, readCount);
+		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_WRITE_READ_SEQUENTIAL: {
 		Access_MEM_writeSequential(address, bufferAddress, writeCount);
 		Access_MEM_readSequential(bufferAddress, address, readCount);
+		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
@@ -798,9 +797,8 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 
 	}// end switch
 
-	//TODO::  is a callback needed when transfer is complete
-	// fire the sequence complete callback since transfer activity is complete
-	//Access_sequenceComplete_cb();
+	// WARNING: do not fire Access_sequenceComplete_cb() here
+	// the individual sequence cases should each fire when needed
 	return _self;
 }
 
@@ -822,7 +820,6 @@ static void Access_MEM_writeSequential(void * _to, void * _from, int _writeCount
 	int i;
 	access_data_t * to = _to;
 	access_data_t * from = _from;
-
 	for ( i = 0; i < _writeCount; i++ ) {
 		*to = *from;
 		to++;
@@ -859,11 +856,25 @@ static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 	return;
 }
 
-void Access_sequenceComplete_cb(void)
-{
-	return;
-}
 
+void * Access_sequenceComplete_cb(struct AccessMEM * _self)
+{
+	//Goal:  call the action complete callback in the IO module
+
+	// verify the Access object pointer
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if(self == NULL) {return NULL; } // fail
+
+	// verify the action complete pointer was set
+	void * (* IO_CB_FNT)(void *) = self->actionDone_cb;
+	void * IO_object = self->objectPointer;
+	if(IO_CB_FNT == NULL) {return NULL; } // fail
+
+	// fire the action complete callback
+	IO_CB_FNT(IO_object);
+
+	return self;
+}
 
 /*
 static void * implement_Access_MEM_xxxx(struct AccessMEM * _self)

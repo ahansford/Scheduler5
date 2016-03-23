@@ -145,7 +145,7 @@ void * IO_processSequence(void * _self);
  * Generic IO callback that fires when I/O action is complete.  The IO state variable will
  * increment automatically to a completed setting.
  */
-void IO_sequenceComplete_cb(void);
+void * IO_sequenceComplete_cb(void * _self);
 
 
 

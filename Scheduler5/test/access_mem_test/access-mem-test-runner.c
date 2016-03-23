@@ -184,5 +184,7 @@ TEST_GROUP_RUNNER(accessMem)
 	//RUN_TEST_CASE(io, IO_update_firesCallback);
 	//RUN_TEST_CASE(io, IO_update_canBeCalledMultipleTimesWithEmplyList);
 	 */
+	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback);
+	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr);
 
 }

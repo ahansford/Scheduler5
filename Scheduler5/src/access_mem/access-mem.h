@@ -163,7 +163,7 @@ void * Access_processSequence(void * _self);
  * Generic IO callback that fires when I/O action is complete.  The sequence
  * will be marked completed and the state will increment automatically
  */
-void Access_sequenceComplete_cb(void);
+void * Access_sequenceComplete_cb(struct AccessMEM * _self);
 
 
 

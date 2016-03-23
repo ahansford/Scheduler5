@@ -46,7 +46,7 @@ const void * IOClass = NULL;
 const void * IO      = NULL;
 
 struct List * ioSequenceList = NULL; // pointer to the List of sequences
-struct IO *   sequence = NULL;  // pointer to the sequence currently being executed
+struct IO *   sequence = NULL;       // pointer to the sequence currently being executed
 
 // the internally managed IO state machine state used in IO_update()
 io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
@@ -94,6 +94,13 @@ void IO_init(struct List * _ioSequenceList)
 	}
 
 	ioSequenceList = _ioSequenceList;
+
+	// WARNING:  the IO state machine needs a time out check in
+	// the IO_UPDATE_WAITING_COMMAND state in case the lower IO access
+	// module does not execute as planned.  This should also include an
+	// unwinding process to report the failure and attempted retrys.
+
+	io_update_state = IO_UPDATE_IDLE;
 
 	// requires #include "..\..\src\lists\lists.h" to support class registry
 	//implement_Sensor_registerKeyClasses();
@@ -383,13 +390,14 @@ void * IO_addIOSequenceToList(void * _self)
 {
 	// TODO:  Add additional pointer (void * _self, void * _access)
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if( self == NULL ) { printf("\nFAIL5: IO_addIOSequenceToList NULL self\n"); return NULL; } // fail
-	//printf("\nSUCCESS5.5: IO_addIOSequenceToList NULL self\n");
+	if( self == NULL ) { return NULL; } // fail
+
 	void * itemAddedToListPtr = add(ioSequenceList, self);
-	if ( itemAddedToListPtr == NULL ) {
-		printf("\nFAIL6: IO_addIOSequenceToList add operation\n");
-	}
-	return _self;
+
+	// test for failure to add
+	if ( itemAddedToListPtr == NULL ) { return NULL; } // fail
+
+	return self; // success
 }
 
 void * IO_getActionFromList(void)
@@ -397,10 +405,10 @@ void * IO_getActionFromList(void)
 	return take(ioSequenceList);
 }
 
-void IO_sequenceComplete_cb(void)
+void * IO_sequenceComplete_cb(void * _self)
 {
 	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
-	return;
+	return NULL;
 }
 
 /*********************/
@@ -408,31 +416,26 @@ void IO_sequenceComplete_cb(void)
 
 void IO_update(void)
 {
-	// TODO:  add nre parameter (void * _self)
-	printf("\nIO_update ... io_update_state: %i", io_update_state);
+	// TODO:  Add new parameter (void * _self)
 
 	// TODO: io_state_t io_update_state = IO_getIoState(_self);
 	// TODO: struct AccessMEM * sequence = cast( AccessMEM, IO_getSequencePtr(_self));
-	// if (aequence == NULL ) {return NULL: }  // fail
-	switch (io_update_state) {
+	// if (sequence == NULL ) {return NULL: }  // fail
 
-	case IO_UPDATE_UNKNOWN: {
-		//io_update_state = IO_UPDATE_IDLE;
-		break;
-	}
+	switch (io_update_state) {
 
 	case IO_UPDATE_IDLE: {
 		// check for a sequence to execute
-		// only one sequence is manipulated at a time
+		// only one sequence is manipulated at a time per I/O access method
 		sequence = IO_getActionFromList();
-		printf("\nIO_update ... sequence: %p", sequence);
+
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
-			printf("\nIO_update ... sequence found: %p", sequence);
 			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
 			// TODO: IO_setSequencePtr(_self, sequence);
 		}
-		// no sequence to transmit ... do nothing
+
+		// otherwise, no sequence to transmit ... do nothing
 		break;
 	}
 
@@ -447,7 +450,6 @@ void IO_update(void)
 		// sends i/o sequence instructions to the respective driver
 		// IO_processSequence() must manage any failures itself
 		// the state will automatically transition to COMPLETE
-		printf("\nIO_update ... Access_processSequence ... sequence:%p", sequence);
 		Access_processSequence(sequence);
 		break;
 	}
@@ -455,7 +457,7 @@ void IO_update(void)
 	case IO_UPDATE_WAITING_COMMAND: {
 		// do nothing
 		// wait for IO_commandExecuteComplete_cb() callback to transition state
-		//TODO:  ERROR HERE there is no call out of this state
+		// WARNING:  Need watch dog timer to catch failed comm execution
 		break;
 	}
 
@@ -463,17 +465,22 @@ void IO_update(void)
 		// transition to IDLE on next call, regardless of callback status
 		io_update_state = IO_UPDATE_IDLE;
 
-		//sequence processing is complete, fire the sequence callback
-		access_cb_fnct callbackFunctionPointer = Access_getActionDone_cb(sequence);
-		if ( callbackFunctionPointer != NULL ) {
-			printf("\nFiring Access callback in IO_update");
-			sequence->actionDone_cb(sequence->objectPointer);
+		// sequence processing is complete, fire sequence completed callback
+		// WARNING: the callback should only set a variable or flag,
+		// otherwise the processing call chain will not be able to unwind.
+		io_cb_fnct localActionDone_cb = IO_getActionDone_cb(sequence);
+		void *     localObjectPtr     = IO_getObjectPointer(sequence);
+		if ( localActionDone_cb != NULL ) {
+			localActionDone_cb(localObjectPtr);
 		}
 
 		break;
 	}
 
-	default: { break; }
+	default: {
+		io_update_state = IO_UPDATE_IDLE;
+		break; }
+
 	}  //  end switch
 
 	// TODO: IO_setIoState(_self, io_update_state);
@@ -596,7 +603,7 @@ int IO_setBufferSize(void * _self, int _bufferSize)
 
 /************************************************/
 /*****  set and get ActionComplete_cb  *******/
-/*
+
 io_cb_fnct IO_getActionDone_cb(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -611,10 +618,10 @@ io_cb_fnct IO_setActionDone_cb(void * _self, io_cb_fnct _cb)
 	self->actionDone_cb = _cb;
 	return _cb;
 }
-*/
+
 /*****************************************/
 /*****  set and get objectPointer  *******/
-/*
+
 void * IO_getObjectPointer(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
@@ -629,7 +636,7 @@ void * IO_setObjectPointer(void * _self, void * _objectPointer)
 	self->objectPointer = _objectPointer;
 	return _objectPointer;
 }
-*/
+
 /*****************************************/
 /*******  implementation methods  ********/
 
@@ -880,4 +887,6 @@ static void * implement_IO_io_xxxx(struct IO * _self)
 	// Update with actual code in
 	return NULL;  // remove this fail when actual code is added
 }
+
+
 

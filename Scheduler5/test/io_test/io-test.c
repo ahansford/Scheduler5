@@ -823,71 +823,73 @@ TEST(io, IO_processSequence_readMultipleValuesfromSingleLocation)
 
 TEST(io, IO_update_writeSingleToSingleAddress)
 {
-	printf("\nTEST: IO_update_writeSingleToSingleAddress, LINE: %i", __LINE__);
+	Access_setIOAction     (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
-	Access_setAddress   (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction  (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
-	IO_addIOSequenceToList(myTest_AccessMEM);
-	IO_sequenceComplete_cb();
+	Access_setAddress      (myTest_AccessMEM, otherTestBuffer);
+	Access_setActionDone_cb(myTest_AccessMEM, IO_sequenceComplete_cb);
+	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
+	IO_addIOSequenceToList (myTest_AccessMEM);
+
 	IO_update();
 	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update();
+	IO_update();
+	IO_update();
+	IO_update();
 	TEST_ASSERT_EQUAL(0xFF, otherTestBuffer[0] );
 }
 
 TEST(io, IO_update_writeMultipleValuesToSingleAddress)
 {
-	Access_setAddress(myTest_AccessMEM, otherTestBuffer);
+	Access_setAddress (myTest_AccessMEM, otherTestBuffer);
 	Access_setIOAction(myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x02);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x03);
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList          (myTest_AccessMEM);
 	IO_update();
 	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update();
+	IO_update();
+	IO_update();
+	IO_update();
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[0] );
 }
 
 TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 {
+	Access_setIOAction    (myTest_AccessMEM, ACCESS_WRITE_SEQUENTIAL);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x02);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x03);
-	Access_setAddress     (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction    (myTest_AccessMEM, ACCESS_WRITE_SEQUENTIAL);
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	Access_setAddress      (myTest_AccessMEM, otherTestBuffer);
+	Access_setActionDone_cb(myTest_AccessMEM, IO_sequenceComplete_cb);
+	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
+	IO_addIOSequenceToList (myTest_AccessMEM);
 	IO_update();
 	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update();
+	IO_update();
+	IO_update();
+	IO_update();
 	TEST_ASSERT_EQUAL(0x01, otherTestBuffer[0] );
 	TEST_ASSERT_EQUAL(0x02, otherTestBuffer[1] );
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[2] );
-
 }
 
 TEST(io, IO_update_readSingleValue)
 {
 	otherTestBuffer[0] = 0x01;
-	Access_setReadCount (myTest_AccessMEM, 1);
+	Access_setReadCount   (myTest_AccessMEM, 1);
 	Access_setAddress     (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction(myTest_AccessMEM, ACCESS_READ_SINGLE);
+	Access_setIOAction    (myTest_AccessMEM, ACCESS_READ_SINGLE);
 	IO_addIOSequenceToList(myTest_AccessMEM);
 	IO_update();
 	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update();
+	IO_update();
+	IO_update();
+	IO_update();
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 }
 
@@ -931,8 +933,6 @@ TEST(io, IO_update_readMultipleValuesfromSingleLocation)
 	TEST_ASSERT_EQUAL(0x01, testBuffer[2] );
 }
 
-
-
 TEST(io, IO_update_firesCallback)
 {
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
@@ -970,7 +970,6 @@ TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 	TEST_ASSERT_EQUAL(0x00, otherTestBuffer[0] );
 	TEST_ASSERT_EQUAL(0x00, otherTestBuffer[1] );
 	TEST_ASSERT_EQUAL(0x00, otherTestBuffer[2] );
-
 }
 
 
