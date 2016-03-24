@@ -7,11 +7,12 @@
 
 //#include <string.h>
 #include "access-mem.h"
+#include "access-mem-private.h"
 
-#include "..\..\src\lists\lists.h"             // safety include
-#include "..\..\src\objects\objects.h"         // safety include
-#include "access-mem-private.h"                // safety include
-//#include "..\..\src\scheduler\scheduler.h"   // safety include
+#include "..\..\src\objects\objects.h"       // safety include
+#include "..\..\src\scheduler\scheduler.h"   // safety include
+#include "..\..\src\lists\lists.h"           // safety include
+//#include "..\..\src\nodes\nodes.h"         // safety include
 
 static void * implement_Access_MEM_ctor(void * _self);
 static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self, access_data_t _value);
@@ -45,58 +46,60 @@ static void Access_MEM_readSequential (void * _to, void * _from, int _readCount)
 const void * AccessMEM		= NULL;
 const void * AccessMEMClass = NULL;
 
-//struct List * ioSequenceList = NULL; // pointer to the List of sequence
-//struct IO *   sequence;  // pointer to the sequence currently being executed
+//TODO: remove the list concept from access since is lives in IO ??
+//struct List *      accessObjectList = NULL; // pointer to the List of sequence
+//struct AccessMEM * accessObject;  // pointer to the access object currently being executed
+// the internally managed IO state machine state used in Access_XXX_update()
+//access_xxx_update_state_t access_xxx_update_state;
 
-// the internally managed IO state machine state used in IO_update()
-//io_update_state_t io_update_state;
 
-
-// MUST be called before other IO methods are called
+// MUST be called before other access methods are called
 void Access_init(void)
 {
 	// Insert the lines below for any derived subclasses
 	//if (!ACCESS_MEM)      {ACCESS_MEM_init();}
 	//if (!ACCESS_MEMClass) {ACCESS_MEM_init();}
 
-	// IO uses a List to manage sequences before they are executed
+	// todo:validate that lists are actually used here
+	// AccessMEM uses a List to manage sequences before they are executed
 	if (!List)      {List_init();}
 	if (!ListClass) {List_init();}
 
-	if (! AccessMEMClass) {
-		AccessMEMClass = new(Class,  		// should be "Class"
-						"AccessMEMClass",	// should be "SomethingClass"
-						Class,  		// should be "Class"
-						sizeof(struct AccessMEMClass), //TODO: fix
-						ctor, Access_MEMClass_ctor,	//SomethingClass_ctor
-						0);  // Terminator
+	if (!AccessMEMClass) {
+		 AccessMEMClass = new(Class,  		// should be "Class"
+						  "AccessMEMClass",	// should be "SomethingClass"
+						  Class,  		    // should be "Class"
+						  sizeof(struct AccessMEMClass), // size of self
+						  ctor, Access_MEMClass_ctor,	 // SomethingClass_ctor
+						  0);  // Terminator
 	}
-	if (! AccessMEM) {
-		AccessMEM = new(AccessMEMClass,			// SomethingClass from above
-					"AccessMEM",				// name like "Something"
-					Object,  			// "superclass(Something)"
-					sizeof(struct AccessMEM),// size of self
-					// Overloaded superclass functions
-					// Remember to call superclass->method
-					ctor,	Access_MEM_ctor,//Something_ctor
-					dtor,   Access_MEM_dtor,
-					copy,	Access_MEM_copy,
-					equal,  Access_MEM_equal,
-					config, Access_MEM_config,
-					puto,	Access_MEM_puto,
-					// New functions added in this class
-					// Do not call superclass->method
-					Access_addWriteCommandToSequence, Access_MEM_addWriteCommandToSequence,
-					Access_processSequence,		      Access_MEM_processSequence,
-					//ACCESS_xxxx,		                ACCESS_MEM_xxxx,
+	if (!AccessMEM) {
+		 AccessMEM = new(AccessMEMClass,	   // SomethingClass from above
+					 "AccessMEM",			   // name like "Something"
+					 Object,  			       // "superclass(Something)"
+					 sizeof(struct AccessMEM), // size of self
+					 // Overloaded superclass functions
+					 // Remember to call superclass->method
+					 ctor,	 Access_MEM_ctor,  //Something_ctor
+					 dtor,   Access_MEM_dtor,
+					 copy,	 Access_MEM_copy,
+					 equal,  Access_MEM_equal,
+					 config, Access_MEM_config,
+					 puto,	 Access_MEM_puto,
+					 // New functions added in this class
+					 // Do not call superclass->method
+					 Access_addWriteCommandToSequence, Access_MEM_addWriteCommandToSequence,
+					 Access_processSequence,		   Access_MEM_processSequence,
+					 //ACCESS_xxxx,		               ACCESS_MEM_xxxx,
 
-					0);	// Terminator
+					 0);	// Terminator
 	}
 
+	// todo: needed??
 	//ioSequenceList = _ioSequenceList;
 
 	// requires #include "..\..\src\lists\lists.h" to support class registry
-	//implement_Sensor_registerKeyClasses();
+	//implement_Access_MEM_registerKeyClasses();
 
 	return;
 }
@@ -115,7 +118,7 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 	// ... this seems like an undue burden on the user.  Leave commented out
 	// ... numerous unit tests will need to be adapted if uncommented
 
-	// TODO: created the single needed buffer once if missing
+	// TODO: created the single needed buffer once if pointer is NULL
 	self->bufferPointer = va_arg(* app, access_data_t *);
 
 	//self->minute = va_arg(* app, minute_t);
@@ -198,7 +201,7 @@ void * Access_MEM_dtor(void * _self)
 	// NOTE: This is an overload method
 	// ... use "struct myClass * self = cast(myClass, _self);"
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if(self == NULL)                              {return NULL; } // fail
+	if (self == NULL)                             {return NULL; } // fail
 
 	// WARNING:  The command buffer should be deleted/freed externally
 
@@ -253,7 +256,7 @@ equal_t Access_MEM_equal(const void * _self, const void * _comparisonObject)
 	//          complex classes should manage calls to superclass as needed
 	//          within the implementation code
 
-	// WARNING:  if IO is a complex class, do not call superclass_equal
+	// WARNING:  if AccessMEM is a complex class, do not call superclass_equal
 
 	// NOTE: classOf(self) calls into super will trigger looping
 	if( super_equal(AccessMEM, self, comparisonObject) == OBJECT_UNEQUAL)
@@ -266,9 +269,9 @@ equal_t Access_MEM_equal(const void * _self, const void * _comparisonObject)
 void * Access_MEM_config(const void * _self, const void * _master)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if ( self == NULL )   { return NULL; }          // fail
+	if ( self == NULL )   { return NULL; } // fail
 	struct AccessMEM * master = cast(AccessMEM, _master);
-	if ( master == NULL ) { return NULL; }          // fail
+	if ( master == NULL ) { return NULL; } // fail
 	return implement_Access_MEM_config(self, _master);  // expected path
 }
 
@@ -286,12 +289,12 @@ puto_return_t Access_MEM_puto(const void * _self, FILE * _fp)
 
 
 /****************************************************************************/
-/********  New functions for  class "IOClass"  ******************************/
+/********  New functions for  class "AccessMEMClass"  ******************************/
 /****************************************************************************/
 
 
 /*************************************************/
-/***********  ACCESS_addWriteCommandToSequence    *************/
+/*****  ACCESS_addWriteCommandToSequence    ******/
 
 void *  Access_addWriteCommandToSequence(void * _self, access_data_t _value)
 {
@@ -307,9 +310,8 @@ void * super_Access_addWriteCommandToSequence(const void * _class, void * _self,
 	if ( ! isOfSuper(AccessMEM, _self) ) { return NULL; } // fail
 	const struct AccessMEMClass * superclass = super(_class);
 	if ( superclass == NULL )            { return NULL; } // fail
-	//if ( superclass->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
-	//return superclass->Access_addWriteCommandToSequence(_self, _value);
-	return NULL;
+	if ( superclass->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
+	return superclass->Access_addWriteCommandToSequence(_self, _value);
 }
 
 void * Access_MEM_addWriteCommandToSequence(void * _self, access_data_t _value)
@@ -332,7 +334,7 @@ void *  Access_processSequence(void * _self)
 
 void * super_Access_processSequence(const void * _class, void * _self)
 {
-	// verify that IOClass is in the superclass chain of _class
+	// verify that AccessMEMClass is in the superclass chain of _class
 	if ( ! isOfSuper(AccessMEMClass, _self) )         { return NULL; } // fail
 	const struct AccessMEMClass * superclass = super(_class);
 	if ( superclass == NULL )                         { return NULL; } // fail
@@ -524,7 +526,7 @@ int Access_setReadCount(void * _self, int _readCount)
 }
 
 /*************************************/
-/*****  set and get writeCount  *******/
+/*****  set and get writeCount  ******/
 
 int Access_getWriteCount(const void * _self)
 {
@@ -560,7 +562,7 @@ void * Access_setBufferPointer(void * _self, void * _bufferPointer)
 }
 
 /*****************************************/
-/*****  set and get bufferSize  *******/
+/*******  set and get bufferSize  ********/
 
 int Access_getBufferSize(const void * _self)
 {
@@ -571,15 +573,25 @@ int Access_getBufferSize(const void * _self)
 
 int Access_setBufferSize(void * _self, int _bufferSize)
 {
+	// NOTE: no information is available for the item size; set externally
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
 	self->bufferSize = _bufferSize;
 	return _bufferSize;
 }
 
+int Access_autoUpdateBufferSize(void * _self)
+{
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if ( self == NULL ) { return 0; }
+	void * localBufferPointer = Access_getBufferPointer(_self);
+	int bufferSize =( sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
+	Access_setBufferSize(_self, bufferSize);
+	return bufferSize;
+}
 
 /************************************************/
-/*****  set and get actionComplete_cb  *******/
+/*******  set and get actionComplete_cb  ********/
 
 access_cb_fnct Access_getActionDone_cb(const void * _self)
 {
@@ -615,6 +627,24 @@ void * Access_setObjectPointer(void * _self, void * _objectPointer)
 }
 
 /*****************************************/
+/*****  set and get hardwareConfig  *******/
+
+void * Access_getHardwareConfigPointer(const void * _self)
+{
+	const struct AccessMEM * self = cast(AccessMEM, _self);
+	if ( self == NULL ) { return NULL; }
+	return self->hardwareConfig;
+}
+
+void * Access_setHardwareConfigPointer(void * _self, void * _hardwareConfig)
+{
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if ( self == NULL ) { return NULL; }
+	self->hardwareConfig = _hardwareConfig;
+	return _hardwareConfig;
+}
+
+/*****************************************/
 /*******  implementation methods  ********/
 
 static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct AccessMEM * _copyFrom)
@@ -630,8 +660,11 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	// buffer count May be unique and should not be copied
 	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
 	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
-	Access_setObjectPointer (_copyTo, Access_getObjectPointer(_copyFrom));
+	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
+	Access_setHardwareConfigPointer(_copyTo, Access_getHardwareConfigPointer(_copyFrom));
 	return _copyTo;
+
+	//TODO: add test coverage for hardware pointer
 }
 
 static void * implement_Access_MEM_ctor(void * _self)
@@ -645,21 +678,22 @@ static void * implement_Access_MEM_ctor(void * _self)
 	Access_setBufferSize(_self, \
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
 	Access_setActionDone_cb(_self, NULL);
-	Access_setObjectPointer (_self, NULL);
+	Access_setObjectPointer(_self, NULL);
+	Access_setHardwareConfigPointer(_self, NULL);
 	return _self;
 }
 
 static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 {
-	Access_setAddress       (_self, NULL);
-	Access_setIOAction      (_self, ACCESS_ACTION_UNKNOWN);
-	Access_setReadCount     (_self, 0);
-	Access_setWriteCount    (_self, 0);
-	// WARNING:  delete/free the command buffer externally
-	Access_setBufferPointer (_self, NULL);
-	Access_setBufferSize    (_self, 0);
+	Access_setAddress      (_self, NULL);
+	Access_setIOAction     (_self, ACCESS_ACTION_UNKNOWN);
+	Access_setReadCount    (_self, 0);
+	Access_setWriteCount   (_self, 0);
+	// WARNING: TODO:  delete/free the command buffer externally
+	Access_setBufferPointer(_self, NULL);
+	Access_setBufferSize   (_self, 0);
 	Access_setActionDone_cb(_self, NULL);
-	Access_setObjectPointer (_self, NULL);
+	Access_setObjectPointer(_self, NULL);
 	return _self;
 }
 
