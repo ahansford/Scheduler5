@@ -14,8 +14,8 @@
 //#include "..\cross_compiler_defs.h"
 #include "..\..\src\objects\objects.h"
 #include "..\..\src\scheduler\scheduler.h"
-//#include "..\..\src\nodes\nodes.h"
 #include "..\..\src\lists\lists.h"
+//#include "..\..\src\nodes\nodes.h"
 
 /***********************************************/
 /**** forward declarations and typedefs  *******/
@@ -60,8 +60,8 @@ typedef void * (* access_cb_fnct)(void * _io);
 /****** application interface functions  *******/
 
 /*!
- *	MUST be called the class before other methods are called returns self on
- *	success, otherwise returns NULL.
+ *	IO_init(struct List * ioActionList) MUST be called the class before other methods are called...
+ *	returns self on success, otherwise returns NULL.
  *
  *	@code
  *	// Create a List where IO will store IO sequences waiting to be executed
@@ -152,10 +152,10 @@ void Access_update(void);
 void * Access_processSequence(void * _self);
 
 /*!
- * Possible new method to allow multiple sequences to hold cnotrol of the
+ * Possible new method to allow multiple sequences to hold control of the
  * communication bus.  Method returns NULL if no follow-on sequence is needed.
  * Returns the follow-on sequence if one exists.  This function would
- * be overloadable.
+ * be overloadabled.
  * void * IO_getFollowOnSequence(void * _self);
  */
 
@@ -202,8 +202,9 @@ void * Access_getBufferPointer(const void * _self);
 void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
 
 //! Number of values that can be stored in the command buffer.
-int Access_getBufferSize(const void * _self);
-int Access_setBufferSize(      void * _self, int _bufferSize);
+int Access_getBufferSize(    const void * _self);
+int Access_setBufferSize(          void * _self, int _bufferSize);
+int Access_autoUpdateBufferSize(   void * _self);
 
 /*!
  * Called when operation is complete is function pointer is not NULL.
@@ -217,5 +218,8 @@ access_cb_fnct Access_setActionDone_cb(      void * _self, access_cb_fnct _cb);
 void * Access_getObjectPointer(const void * _self);
 void * Access_setObjectPointer(      void * _self, void * _objectPointer);
 
+//! Object pointer parameter value for hardware configuration settings.
+void * Access_getHardwareConfigPtr(const void * _self);
+void * Access_setHardwareConfigPtr(      void * _self, void * _hardwareConfig);
 
 #endif /* SRC_ACCESS_MEM_ACCESS_MEM_H_ */

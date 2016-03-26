@@ -10,15 +10,15 @@
 
 struct AccessMEM {
 	const struct Object _;	// should the Object or the "superclass"
-	void * 			address;
-	access_read_write_t ioAction;
-	int 			readCount;
-	int 			writeCount;
-	access_data_t * bufferPointer;
-	int				bufferSize;
-	access_cb_fnct  actionDone_cb;
-	void * 			objectPointer;
-	void *			hardwareConfig;
+	void * 				address;        // target address of reads/writes
+	access_read_write_t	ioAction;       // type of IO needed
+	int 				readCount;      // number of bytes to read
+	int					writeCount;     // number of writes
+	access_data_t *		bufferPointer;  // buffer ptr holding write commands
+	int					bufferSize;     // size of command buffer
+	access_cb_fnct  	actionDone_cb;  // function ptr to comm complete cb
+	void * 				objectPointer;  // object for the call back
+	void *				hardwareConfig; // not implemented yet
 };
 
 struct AccessMEMClass {
@@ -43,7 +43,7 @@ typedef enum access_update_state_t {
 /****** Constructors  ********/
 
 void * Access_MEMClass_ctor(void * _self, va_list * app);
-void * Access_MEM_ctor  (void * _self, va_list * app);
+void * Access_MEM_ctor     (void * _self, va_list * app);
 
 /***********************************/
 /****** Overload Functions  ********/
@@ -59,15 +59,15 @@ puto_return_t Access_MEM_puto  (const void * _self, FILE *       _fp);
 /**********  new methods  *********/
 
 void * super_Access_addWriteCommandToSequence(const void * _class,
-								                  void * _self, access_data_t _value);
-void *       Access_MEM_addWriteCommandToSequence(void * _self, access_data_t _value);
+								              void * _self, access_data_t _value);
+void *   Access_MEM_addWriteCommandToSequence(void * _self, access_data_t _value);
 
 void * super_Access_processSequence(const void * _class, void * _self);
-void *    Access_MEM_processSequence(void * _self);
+void *   Access_MEM_processSequence(                     void * _self);
 
 // not implemented
 void * super_IO_xxxx(const void * _class, void * _self);
-void *    IO_io_xxxx(void * _self);
+void *    IO_io_xxxx(                     void * _self);
 
 //  gets struct IO item from internal list specified by IO_init(struct List *)
 void * IO_getActionFromList(void);

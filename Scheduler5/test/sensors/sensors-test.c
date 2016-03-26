@@ -722,7 +722,7 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_readDataFromSensor(myTest_Sensor));
 	printf("\n start IO_update calls");
 	//IO_commandExecuteComplete_cb();
-	IO_sequenceComplete_cb(myTest_AccessMEM);
+	//IO_sequenceComplete_cb(myTest_AccessMEM);
 	IO_update();
 	IO_update();
 	IO_update();

@@ -118,7 +118,9 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 	// ... this seems like an undue burden on the user.  Leave commented out
 	// ... numerous unit tests will need to be adapted if uncommented
 
-	// TODO: created the single needed buffer once if pointer is NULL
+	// TODO: created the command buffer once if pointer is NULL
+	// if buffer is created in this constructor, then its deletion
+	// must be kept separate from externally generated list buffers
 	self->bufferPointer = va_arg(* app, access_data_t *);
 
 	//self->minute = va_arg(* app, minute_t);
@@ -154,7 +156,7 @@ void * Access_MEMClass_ctor(void * _self, va_list *app)
 	// if non-NULL selector then grab next method pointer from arg list
 	while ( (selector = va_arg(ap, voidf)) ) {
 		voidf overloadedFunctionPtr  = va_arg(ap, voidf);
-/*
+		/**/
 		if (selector == (voidf) dtor)
 			{* (voidf *) & self->_._.class->dtor= overloadedFunctionPtr; }
 
@@ -169,7 +171,6 @@ void * Access_MEMClass_ctor(void * _self, va_list *app)
 
 		if (selector == (voidf) puto)
 			{* (voidf *) & self->_._.class->puto = overloadedFunctionPtr;}
-*/
 
 		// use form below to overload any new functions
 
@@ -230,7 +231,7 @@ void * Access_MEM_copy(void * _copyTo, const void * _copyFrom)
 	//          complex classes should manage calls to superclass as needed
 	//          within their implementation code
 
-	// WARNING:  If IO is a complex class, do not call superclass_copy
+	// WARNING:  If AcessMEM is a complex class, do not call superclass_copy
 
 	// call super method first
 	// NOTE: classOf(copyToIO) calls into super will trigger looping
@@ -377,96 +378,8 @@ void * IO_io_xxxx(void * _self)
 	return implement_IO_io_xxxx(self);
 }
 */
-/*************************************************************/
-/***** store and get struct IO objects from ioActionList *****/
-/*
-void * IO_addIOSequenceToList(void * _self)
-{
-	struct IO * self = cast(IO, _self);
-	if( self == NULL ) { return NULL; } // fail
-	void * itemAddedToListPtr = add(ioSequenceList, self);
-	if ( itemAddedToListPtr == NULL ) {
-		printf("\nFAIL: IO_addIOSequenceToList add operation\n");
-	}
-	return _self;
-}
 
-void * IO_getActionFromList(void)
-{
-	return take(ioSequenceList);
-}
 
-void IO_sequenceComplete_cb(void)
-{
-	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
-	return;
-}
-*/
-/*********************/
-/***** IO_update *****/
-/*
-void IO_update(void)
-{
-	switch (io_update_state) {
-
-	case IO_UPDATE_UNKNOWN: {
-		io_update_state = IO_UPDATE_IDLE;
-		break;
-	}
-
-	case IO_UPDATE_IDLE: {
-		// check for a sequence to execute
-		// only one sequence is manipulated at a time
-		sequence = IO_getActionFromList();
-		if (sequence != NULL ) {
-			//sequence found, therefore transition to next state
-			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
-		}
-		// no sequence to transmit ... do nothing
-		break;
-	}
-
-	case IO_UPDATE_EXECUTE_COMMAND: {
-		// set next transition to WAITING ... assumes the wait is needed
-		// the IO_processSequence() method can override with COMPLETE if needed
-		// immediate action drivers should override
-		// override is accomplished by firing IO_sequenceComplete_cb()
-		// delayed action drivers should fire callback after that delay
-		io_update_state = IO_UPDATE_WAITING_COMMAND;
-
-		// sends i/o sequence instructions to the respective driver
-		// IO_processSequence() must manage any failures itself
-		// the state will automatically transition to COMPLETE
-		IO_processSequence(sequence);
-		break;
-	}
-
-	case IO_UPDATE_WAITING_COMMAND: {
-		// do nothing
-		// wait for IO_commandExecuteComplete_cb() callback to transition state
-		break;
-	}
-
-	case IO_UPDATE_SEQUENCE_COMPLETE: {
-		// transition to IDLE on next call, regardless of callback status
-		io_update_state = IO_UPDATE_IDLE;
-
-		//sequence processing is complete, fire the sequence callback
-		io_cb_fnct callbackFunctionPointer = IO_get_actionDone_cb(sequence);
-		if ( callbackFunctionPointer != NULL ) {
-			sequence->actionDone_cb(sequence->objectPointer);
-		}
-
-		break;
-	}
-
-	default: { break; }
-	}  //  end switch
-
-	return;
-}
-
-*/
 /****************************************************************************/
 /********  data access methods  *********************************************/
 /****************************************************************************/
@@ -629,14 +542,14 @@ void * Access_setObjectPointer(void * _self, void * _objectPointer)
 /*****************************************/
 /*****  set and get hardwareConfig  *******/
 
-void * Access_getHardwareConfigPointer(const void * _self)
+void * Access_getHardwareConfigPtr(const void * _self)
 {
 	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->hardwareConfig;
 }
 
-void * Access_setHardwareConfigPointer(void * _self, void * _hardwareConfig)
+void * Access_setHardwareConfigPtr(void * _self, void * _hardwareConfig)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
@@ -661,7 +574,7 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
 	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
 	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
-	Access_setHardwareConfigPointer(_copyTo, Access_getHardwareConfigPointer(_copyFrom));
+	Access_setHardwareConfigPtr(_copyTo, Access_getHardwareConfigPtr(_copyFrom));
 	return _copyTo;
 
 	//TODO: add test coverage for hardware pointer
@@ -679,7 +592,7 @@ static void * implement_Access_MEM_ctor(void * _self)
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
 	Access_setActionDone_cb(_self, NULL);
 	Access_setObjectPointer(_self, NULL);
-	Access_setHardwareConfigPointer(_self, NULL);
+	Access_setHardwareConfigPtr(_self, NULL);
 	return _self;
 }
 
@@ -710,9 +623,6 @@ static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
 	if( Access_getIOAction(self) != Access_getIOAction(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( Access_getAddress(self) != Access_getAddress(comparisonObject) )
-		{ return OBJECT_UNEQUAL; }
-
 	if( Access_getReadCount(self) != Access_getReadCount(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
@@ -732,12 +642,15 @@ static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
 	if( Access_getObjectPointer(self) != Access_getObjectPointer(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
+	if( Access_getHardwareConfigPtr(self) != Access_getHardwareConfigPtr(comparisonObject) )
+		{ return OBJECT_UNEQUAL; }
+
 	// all data members are congruent
 	return OBJECT_EQUAL;
 }
 
 static void * implement_Access_MEM_config(      struct AccessMEM * _self,
-									 const struct AccessMEM * _master)
+									      const struct AccessMEM * _master)
 {
 	return copy(_self, _master);
 }
