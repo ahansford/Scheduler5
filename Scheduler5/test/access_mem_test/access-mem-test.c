@@ -51,14 +51,17 @@ TEST_GROUP(aaccessMem);
 TEST_SETUP(accessMem)
 {
 	RuntimeErrorStub_Reset();
-	accessMemTest_ioActionList = new(List, ASSECCTest_ioActionBuffer);
-	IO_init(accessMemTest_ioActionList);
 
-	access_test_cb_count  = 0;
-	//sensor_test_cb_count2 = 0;
+	//accessMemTest_ioActionList = new(List, ASSECCTest_ioActionBuffer);
+	//IO_init(accessMemTest_ioActionList);
 
+	Access_init();
+
+	// create a new AccessMEM object using the externally created testBuffer
 	myTest_accessMem = new(AccessMEM, testBuffer);
-	//if ( myTest_Sensor == NULL ) {printf("failed to allcate memory for new(Sensor)\n"); }
+
+	if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
+
 	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	//myTest_Sensor_class_PTR = Sensor;
 	//scheduler_Create(testTASKS_sensors);
@@ -70,6 +73,9 @@ TEST_SETUP(accessMem)
 	testBuffer[0] = 0x00;
 	testBuffer[1] = 0x00;
 	testBuffer[2] = 0x00;
+
+	access_test_cb_count  = 0;
+	//sensor_test_cb_count2 = 0;
 }
 
 TEST_TEAR_DOWN(accessMem)
