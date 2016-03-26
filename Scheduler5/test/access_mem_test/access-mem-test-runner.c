@@ -28,11 +28,11 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, puto_is_Access_MEM_puto);
 
 	RUN_TEST_CASE(accessMem, Class_ctor_is_Access_MEM_Class_ctor);
-/*
-	RUN_TEST_CASE(accessMem, IO_write_is_IO_io_write);
-	RUN_TEST_CASE(accessMem, IO_writeRead_is_IO_io_writeRead);
-	RUN_TEST_CASE(accessMem, IO_read_is_IO_io_read);
-*/
+/**/
+	RUN_TEST_CASE(accessMem, Access_addWriteCommandToSequence_is_Access_MEM_addWriteCommandToSequence);
+	RUN_TEST_CASE(accessMem, Access_processSequence_is_Access_MEM_processSequence);
+	//RUN_TEST_CASE(accessMem, IO_read_is_IO_io_read);
+
 
 	RUN_TEST_CASE(accessMem, address_is_Null_OnCreate);
 	RUN_TEST_CASE(accessMem, ioAction_is_UNKNOWN_OnCreate);

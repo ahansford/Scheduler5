@@ -32,14 +32,14 @@ access_data_t otherTestBuffer[ACCESS_COMMAND_BUFFER_SIZE];
 void * accessMem_test_general_cb(void * _self);
 //struct Sensor * Sensor_test_general_cb2(struct Sensor * _self);
 int access_test_cb_count;
-//int sensor_test_cb_count2;
+//int access_test_cb_count2;
 
 void * access_test_cb_ptr = NULL;
 
 //int i;
 
 
-struct List * accessMemTest_ioActionList = NULL;
+//struct List * accessMemTest_ioActionList = NULL;
 void *        ASSECCTest_ioActionBuffer[4];
 
 
@@ -62,6 +62,7 @@ TEST_SETUP(accessMem)
 
 	if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
 
+	// TODO: remove
 	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	//myTest_Sensor_class_PTR = Sensor;
 	//scheduler_Create(testTASKS_sensors);
@@ -81,16 +82,6 @@ TEST_SETUP(accessMem)
 TEST_TEAR_DOWN(accessMem)
 {
 	myTest_accessMem = safeDelete(myTest_accessMem);
-	accessMemTest_ioActionList = safeDelete(accessMemTest_ioActionList);
-
-	//for ( i = 0; i < SCHEDULER_MAX_TASKS; i++)
-	//	{ scheduler_DeleteTask(i); }
-
-	//myTest_Sensor = new(Sensor);
-	//if ( myTest_Sensor != memoryLeakPointer )
-	//	{ printf("\nPossible memory leak in Sensors\n"); }
-	//myTest_accessMem = safeDelete(myTest_accessMem);
-
 	RuntimeErrorStub_Reset();
 }
 
@@ -152,19 +143,19 @@ TEST(accessMem, Class_ctor_is_Access_MEM_Class_ctor)
 }
 
 
+
+TEST(accessMem, Access_addWriteCommandToSequence_is_Access_MEM_addWriteCommandToSequence)
+{
+	const struct AccessMEMClass * localIOClass = classOf(myTest_accessMem);
+	TEST_ASSERT_EQUAL_PTR(Access_MEM_addWriteCommandToSequence,  localIOClass->Access_addWriteCommandToSequence);
+}
+
+TEST(accessMem, Access_processSequence_is_Access_MEM_processSequence)
+{
+	const struct AccessMEMClass * localIOClass = classOf(myTest_accessMem);
+	TEST_ASSERT_EQUAL_PTR(Access_MEM_processSequence,  localIOClass->Access_processSequence);
+}
 /*
-TEST(accessMem, IO_write_is_IO_io_write)
-{
-	const struct IOClass * localIOClass = classOf(myTest_accessMem);
-	TEST_ASSERT_EQUAL_PTR(IO_io_addWriteValue,  localIOClass->IO_addWriteValue);
-}
-
-TEST(accessMem, IO_writeRead_is_IO_io_writeRead)
-{
-	const struct IOClass * localIOClass = classOf(myTest_accessMem);
-	TEST_ASSERT_EQUAL_PTR(IO_io_processSequence,  localIOClass->IO_processSequence);
-}
-
 TEST(accessMem, IO_read_is_IO_io_read)
 {
 	const struct IOClass * localIOClass = classOf(myTest_accessMem);
@@ -656,6 +647,8 @@ TEST(accessMem, IO_addWriteValue_AddingMoreThanBufferSizeReturnsNULL)
 
 //****  IO_addIOActionToList  *********************
 
+// TODO: does this entire section come out ?
+
 TEST(accessMem, IO_addIOActionToList_returnsNullOnNullPtr)
 {
 	TEST_ASSERT_EQUAL(NULL, IO_addIOSequenceToList(NULL) );
@@ -665,13 +658,14 @@ TEST(accessMem, IO_addIOActionToList_Returns_selfOnSuccess)
 {
 	TEST_ASSERT_EQUAL(myTest_accessMem, IO_addIOSequenceToList(myTest_accessMem) );
 }
-
+/*
 TEST(accessMem, IO_addIOActionToList_addsSingleIOObject)
 {
 	IO_addIOSequenceToList(myTest_accessMem);
 	TEST_ASSERT_EQUAL(myTest_accessMem, take(accessMemTest_ioActionList) );
 }
-
+*/
+/*
 TEST(accessMem, IO_addIOActionToList_addsMultipleIOObjects)
 {
 	struct AccessMEM * myTest_accessMem_1 = new(AccessMEM, testBuffer);
@@ -688,7 +682,7 @@ TEST(accessMem, IO_addIOActionToList_addsMultipleIOObjects)
 	myTest_accessMem_2 = safeDelete(myTest_accessMem_2);
 	myTest_accessMem_3 = safeDelete(myTest_accessMem_3);
 }
-
+*/
 //****  IO_getActionFromList  *********************
 
 TEST(accessMem, IO_getActionFromList_returnsNullOnNullPtr)
@@ -706,7 +700,7 @@ TEST(accessMem, IO_getActionFromList_Returns_ioObjectFromList)
 	IO_addIOSequenceToList(myTest_accessMem);
 	TEST_ASSERT_EQUAL(myTest_accessMem, IO_getActionFromList() );
 }
-
+/*
 TEST(accessMem, IO_getActionFromList_Returns_MultipleioObjectsFromList)
 {
 	struct AccessMEM * myTest_accessMem_1 = new(AccessMEM, testBuffer);
@@ -723,7 +717,7 @@ TEST(accessMem, IO_getActionFromList_Returns_MultipleioObjectsFromList)
 	myTest_accessMem_2 = safeDelete(myTest_accessMem_2);
 	myTest_accessMem_3 = safeDelete(myTest_accessMem_3);
 }
-
+*/
 //****  IO_processSequence  ****************
 
 TEST(accessMem, IO_processSequence_Returns_selfOnSuccess)

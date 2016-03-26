@@ -61,9 +61,10 @@ void Access_init(void)
 	//if (!ACCESS_MEMClass) {ACCESS_MEM_init();}
 
 	// todo:validate that lists are actually used here
-	// AccessMEM uses a List to manage sequences before they are executed
-	if (!List)      {List_init();}
-	if (!ListClass) {List_init();}
+	// IO uses a List to manage sequences before they are executed
+	// AccessMEM uses a simple buffer
+	//if (!List)      {List_init();}
+	//if (!ListClass) {List_init();}
 
 	if (!AccessMEMClass) {
 		 AccessMEMClass = new(Class,  		// should be "Class"
