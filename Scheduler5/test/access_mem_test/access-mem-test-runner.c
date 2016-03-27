@@ -28,7 +28,7 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, puto_is_Access_MEM_puto);
 
 	RUN_TEST_CASE(accessMem, Class_ctor_is_Access_MEM_Class_ctor);
-/**/
+
 	RUN_TEST_CASE(accessMem, Access_addWriteCommandToSequence_is_Access_MEM_addWriteCommandToSequence);
 	RUN_TEST_CASE(accessMem, Access_processSequence_is_Access_MEM_processSequence);
 	//RUN_TEST_CASE(accessMem, IO_read_is_IO_io_read);
@@ -39,8 +39,9 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, readCount_is_Zero_OnCreate);
 	RUN_TEST_CASE(accessMem, writeCount_is_Zero_OnCreate);
 	RUN_TEST_CASE(accessMem, bufferPointer_is_testBuffer_OnCreate);
-	RUN_TEST_CASE(accessMem, IO_actionComplete_cb_is_Null_OnCreate);
+	RUN_TEST_CASE(accessMem, actionComplete_cb_is_Null_OnCreate);
 	RUN_TEST_CASE(accessMem, objectPointer_is_Null_OnCreate);
+	RUN_TEST_CASE(accessMem, hardwareConfig_is_Null_OnCreate);
 
 	/****  delete/Access_dtor  ****************/
 	/**/
@@ -66,13 +67,13 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, Access_setIOAction_canSetSpecificValue);
 
 	/****  Set/Get readCount  ****************/
-	/*
+	/**/
 	RUN_TEST_CASE(accessMem, Access_getReadCount_returns_UnknownOnCreate);
 	RUN_TEST_CASE(accessMem, Access_getReadCount_returns_specificValue);
 	RUN_TEST_CASE(accessMem, Access_setReadCount_returnsSpecificValue);
 	RUN_TEST_CASE(accessMem, Access_setReadCount_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(accessMem, Access_setReadCount_canSetSpecificValue);
-*/
+
 	/****  Set/Get writeCount  ****************/
 	/**/
 	RUN_TEST_CASE(accessMem, Access_getWriteCount_returns_UnknownOnCreate);
@@ -97,6 +98,9 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(accessMem, Access_setBufferSize_canSetSpecificValue);
 
+	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize);
+
 	/****  Set/Get Access_actionComplete_cb  ****************/
 	/**/
 	RUN_TEST_CASE(accessMem, Access_getIO_actionComplete_cb_returns_UnknownOnCreate);
@@ -113,15 +117,23 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, Access_setObjectPointer_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(accessMem, Access_setObjectPointer_canSetSpecificValue);
 
-	//****  copy/Time_copy  ****************
-	/*
+	/****  Set/Get hardwareConfig  ****************/
+	/**/
+	RUN_TEST_CASE(accessMem, Access_getHardwareConfig_returns_UnknownOnCreate);
+	RUN_TEST_CASE(accessMem, Access_getHardwareConfig_returns_specificValue);
+	RUN_TEST_CASE(accessMem, Access_setHardwareConfig_returnsSpecificValue);
+	RUN_TEST_CASE(accessMem, Access_setHardwareConfig_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setHardwareConfig_canSetSpecificValue);
+
+	//****  copy AccessMEM  ****************
+	/**/
 	RUN_TEST_CASE(accessMem, copy_returnsSelfOnSuccess);
 	RUN_TEST_CASE(accessMem, copy_AllItemsCopiedToSelf);
 	RUN_TEST_CASE(accessMem, copy_returnsNullOnNullSelf);
 	RUN_TEST_CASE(accessMem, copy_returnsNullOnNullMaster);
-*/
-	//****  equal IO_io_equal  ********************
-	/*
+
+	//****  equal AccessMEM  ********************
+	/**/
 	RUN_TEST_CASE(accessMem, myTest_accessMem_IsEqualTo_myTest_accessMem);
 	RUN_TEST_CASE(accessMem, equal_UnequalAddressReturn_Unequal);
 	RUN_TEST_CASE(accessMem, equal_UnequalIOActionReturn_Unequal);
@@ -129,13 +141,13 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, equal_UnequalWriteCountReturn_Unequal);
 	RUN_TEST_CASE(accessMem, equal_UnequalBufferPointerReturn_Equal);
 	RUN_TEST_CASE(accessMem, equal_UnequalBufferSizeReturn_Unequal);
-
 	RUN_TEST_CASE(accessMem, equal_UnequalActionDoneCB_Unequal);
 	RUN_TEST_CASE(accessMem, equal_UnequalObjectPointerUnequal);
+	RUN_TEST_CASE(accessMem, equal_UnequalHardwareConfigUnequal);
 
-	RUN_TEST_CASE(accessMem, equal_NullReturns_Null);
+	RUN_TEST_CASE(accessMem, equal_NullReturns_OBJECT_UNEQUAL);
 	RUN_TEST_CASE(accessMem, equal_CopiedSensorReturnsEqual);
-*/
+
 	//****  IO_addWriteValue  ********************
 	/*
 	RUN_TEST_CASE(accessMem, IO_addWriteValue_Returns_selfOnSuccess);

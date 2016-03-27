@@ -219,7 +219,7 @@ void * Access_getObjectPointer(const void * _self);
 void * Access_setObjectPointer(      void * _self, void * _objectPointer);
 
 //! Object pointer parameter value for hardware configuration settings.
-void * Access_getHardwareConfigPtr(const void * _self);
-void * Access_setHardwareConfigPtr(      void * _self, void * _hardwareConfig);
+void * Access_getHardwareConfig(const void * _self);
+void * Access_setHardwareConfig(      void * _self, void * _hardwareConfig);
 
 #endif /* SRC_ACCESS_MEM_ACCESS_MEM_H_ */

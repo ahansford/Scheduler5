@@ -142,7 +142,7 @@ TEST(accessMem, Class_ctor_is_Access_MEM_Class_ctor)
 	TEST_ASSERT_EQUAL_PTR(Access_MEMClass_ctor,  localAccessMEMClass->_.ctor);
 }
 
-
+// ++++++++ Overloadable Functions ++++++++++++ //
 
 TEST(accessMem, Access_addWriteCommandToSequence_is_Access_MEM_addWriteCommandToSequence)
 {
@@ -156,10 +156,10 @@ TEST(accessMem, Access_processSequence_is_Access_MEM_processSequence)
 	TEST_ASSERT_EQUAL_PTR(Access_MEM_processSequence,  localIOClass->Access_processSequence);
 }
 /*
-TEST(accessMem, IO_read_is_IO_io_read)
+TEST(accessMem, ACCESS_MEM_xxxx_is_ACCESS_MEM_xxxx)
 {
 	const struct IOClass * localIOClass = classOf(myTest_accessMem);
-	TEST_ASSERT_EQUAL_PTR(IO_io_xxxx,  localIOClass->IO_xxxx);
+	TEST_ASSERT_EQUAL_PTR(ACCESS_MEM_xxxx,  localIOClass->ACCESS_MEM_xxxx);
 }
 */
 
@@ -188,7 +188,7 @@ TEST(accessMem, bufferPointer_is_testBuffer_OnCreate)
 	TEST_ASSERT_EQUAL_PTR(testBuffer,  myTest_accessMem->bufferPointer);
 }
 
-TEST(accessMem, IO_actionComplete_cb_is_Null_OnCreate)
+TEST(accessMem, actionComplete_cb_is_Null_OnCreate)
 {
 	TEST_ASSERT_EQUAL_PTR(NULL,  myTest_accessMem->actionDone_cb);
 }
@@ -196,6 +196,11 @@ TEST(accessMem, IO_actionComplete_cb_is_Null_OnCreate)
 TEST(accessMem, objectPointer_is_Null_OnCreate)
 {
 	TEST_ASSERT_EQUAL_PTR(NULL,  myTest_accessMem->objectPointer);
+}
+
+TEST(accessMem, hardwareConfig_is_Null_OnCreate)
+{
+	TEST_ASSERT_EQUAL_PTR(NULL,  myTest_accessMem->hardwareConfig);
 }
 
 /****  delete/Access_dtor  ****************/
@@ -387,6 +392,17 @@ TEST(accessMem, Access_setBufferSize_canSetSpecificValue)
 	TEST_ASSERT_EQUAL(4,  myTest_accessMem->bufferSize);
 }
 
+
+TEST(accessMem, Access_autoUpdateBufferSize_returnsUnknownOnNullPtr)
+{
+	TEST_ASSERT_EQUAL(0,  Access_autoUpdateBufferSize(NULL));
+}
+
+TEST(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize)
+{
+	TEST_ASSERT_EQUAL(sizeof(testBuffer),  Access_autoUpdateBufferSize(myTest_accessMem));
+}
+
 /****  Set/Get Access_actionComplete_cb  ****************/
 
 TEST(accessMem, Access_getIO_actionComplete_cb_returns_UnknownOnCreate)
@@ -446,7 +462,36 @@ TEST(accessMem, Access_setObjectPointer_canSetSpecificValue)
 	TEST_ASSERT_EQUAL(testBuffer,  myTest_accessMem->objectPointer);
 }
 
-//****  copy IO_io_copy  ****************
+/****  Set/Get hardwareConfig  ****************/
+
+TEST(accessMem, Access_getHardwareConfig_returns_UnknownOnCreate)
+{
+	TEST_ASSERT_EQUAL(NULL,  Access_getHardwareConfig(myTest_accessMem) );
+}
+
+TEST(accessMem, Access_getHardwareConfig_returns_specificValue)
+{
+	myTest_accessMem->hardwareConfig = (void *)testBuffer;
+	TEST_ASSERT_EQUAL(testBuffer,  Access_getHardwareConfig(myTest_accessMem) );
+}
+
+TEST(accessMem, Access_setHardwareConfig_returnsSpecificValue)
+{
+	TEST_ASSERT_EQUAL(testBuffer,  Access_setHardwareConfig(myTest_accessMem, testBuffer));
+}
+
+TEST(accessMem, Access_setHardwareConfig_returnsUnknownOnNullPtr)
+{
+	TEST_ASSERT_EQUAL(NULL,  Access_setHardwareConfig(NULL, testBuffer));
+}
+
+TEST(accessMem, Access_setHardwareConfig_canSetSpecificValue)
+{
+	Access_setHardwareConfig(myTest_accessMem, testBuffer);
+	TEST_ASSERT_EQUAL(testBuffer,  myTest_accessMem->hardwareConfig);
+}
+
+//****  copy AccessMEM  ****************
 
 TEST(accessMem, copy_returnsSelfOnSuccess)
 {
@@ -465,8 +510,9 @@ TEST(accessMem, copy_AllItemsCopiedToSelf)
 	Access_setReadCount     (masterAccess, 5);
 	Access_setWriteCount    (masterAccess, 6);
 	Access_setBufferPointer (masterAccess, otherTestBuffer);
-	Access_setActionDone_cb(masterAccess, (io_cb_fnct)otherTestBuffer);
+	Access_setActionDone_cb (masterAccess, (io_cb_fnct)otherTestBuffer);
 	Access_setObjectPointer (masterAccess, otherTestBuffer);
+	Access_setHardwareConfig(masterAccess, otherTestBuffer);
 
 	copy(myTest_accessMem, masterAccess);
 
@@ -479,6 +525,7 @@ TEST(accessMem, copy_AllItemsCopiedToSelf)
 	//TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_accessMem->bufferPointer);
 	TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_accessMem->actionDone_cb);
 	TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_accessMem->objectPointer);
+	TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_accessMem->hardwareConfig);
 
 	masterAccess = safeDelete(masterAccess);
 }
@@ -487,7 +534,7 @@ TEST(accessMem, copy_returnsNullOnNullSelf)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
 	Access_setReadCount(masterIO, 5);
-	TEST_ASSERT_EQUAL_PTR(NULL, copy(NULL, masterIO)  );
+	TEST_ASSERT_EQUAL_PTR(NULL, copy(NULL, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
 
@@ -499,7 +546,7 @@ TEST(accessMem, copy_returnsNullOnNullMaster)
 	masterIO = safeDelete(masterIO);
 }
 
-//****  equal IO_io_equal  ********************
+//****  equal AccessMEM  ********************
 
 TEST(accessMem, myTest_accessMem_IsEqualTo_myTest_accessMem)
 {
@@ -563,6 +610,14 @@ TEST(accessMem, equal_UnequalActionDoneCB_Unequal)
 	masterIO = safeDelete(masterIO);
 }
 
+TEST(accessMem, equal_UnequalHardwareConfigUnequal)
+{
+	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
+	Access_setHardwareConfig(masterIO, otherTestBuffer);
+	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
+	masterIO = safeDelete(masterIO);
+}
+
 TEST(accessMem, equal_UnequalObjectPointerUnequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
@@ -571,7 +626,8 @@ TEST(accessMem, equal_UnequalObjectPointerUnequal)
 	masterIO = safeDelete(masterIO);
 }
 
-TEST(accessMem, equal_NullReturns_Null)
+
+TEST(accessMem, equal_NullReturns_OBJECT_UNEQUAL)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, NULL));

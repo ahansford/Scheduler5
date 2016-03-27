@@ -497,8 +497,9 @@ int Access_setBufferSize(void * _self, int _bufferSize)
 int Access_autoUpdateBufferSize(void * _self)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if ( self == NULL ) { return 0; }
+	if ( self == NULL )               { return 0; }
 	void * localBufferPointer = Access_getBufferPointer(_self);
+	if ( localBufferPointer == NULL ) { return 0; }
 	int bufferSize =( sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
 	Access_setBufferSize(_self, bufferSize);
 	return bufferSize;
@@ -543,14 +544,14 @@ void * Access_setObjectPointer(void * _self, void * _objectPointer)
 /*****************************************/
 /*****  set and get hardwareConfig  *******/
 
-void * Access_getHardwareConfigPtr(const void * _self)
+void * Access_getHardwareConfig(const void * _self)
 {
 	const struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
 	return self->hardwareConfig;
 }
 
-void * Access_setHardwareConfigPtr(void * _self, void * _hardwareConfig)
+void * Access_setHardwareConfig(void * _self, void * _hardwareConfig)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return NULL; }
@@ -575,7 +576,7 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
 	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
 	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
-	Access_setHardwareConfigPtr(_copyTo, Access_getHardwareConfigPtr(_copyFrom));
+	Access_setHardwareConfig(_copyTo, Access_getHardwareConfig(_copyFrom));
 	return _copyTo;
 
 	//TODO: add test coverage for hardware pointer
@@ -593,7 +594,7 @@ static void * implement_Access_MEM_ctor(void * _self)
 			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
 	Access_setActionDone_cb(_self, NULL);
 	Access_setObjectPointer(_self, NULL);
-	Access_setHardwareConfigPtr(_self, NULL);
+	Access_setHardwareConfig(_self, NULL);
 	return _self;
 }
 
@@ -643,7 +644,7 @@ static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
 	if( Access_getObjectPointer(self) != Access_getObjectPointer(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
-	if( Access_getHardwareConfigPtr(self) != Access_getHardwareConfigPtr(comparisonObject) )
+	if( Access_getHardwareConfig(self) != Access_getHardwareConfig(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
 
 	// all data members are congruent
