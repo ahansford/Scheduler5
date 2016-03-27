@@ -148,54 +148,26 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, equal_NullReturns_OBJECT_UNEQUAL);
 	RUN_TEST_CASE(accessMem, equal_CopiedSensorReturnsEqual);
 
-	//****  IO_addWriteValue  ********************
-	/*
-	RUN_TEST_CASE(accessMem, IO_addWriteValue_Returns_selfOnSuccess);
-	RUN_TEST_CASE(accessMem, IO_addWriteValue_incrementsWriteCountOnSingleAdd);
-	RUN_TEST_CASE(accessMem, IO_addWriteValue_addsSingleValue);
-	RUN_TEST_CASE(accessMem, IO_addWriteValue_addsMultipleValues);
-	RUN_TEST_CASE(accessMem, IO_addWriteValue_incrementsWriteCountOnMultipleAdd);
-	RUN_TEST_CASE(accessMem, IO_addWriteValue_AddingMoreThanBufferSizeReturnsNULL);
-*/
-	//****  IO_addIOActionToList  *********************
-	/*
-	RUN_TEST_CASE(accessMem, IO_addIOActionToList_returnsNullOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_addIOActionToList_Returns_selfOnSuccess);
-	RUN_TEST_CASE(accessMem, IO_addIOActionToList_addsSingleIOObject);
-	RUN_TEST_CASE(accessMem, IO_addIOActionToList_addsMultipleIOObjects);
-*/
-	//****  IO_getActionFromList  *********************
-	/*
-	RUN_TEST_CASE(accessMem, IO_getActionFromList_returnsNullOnNullPtr);
-	RUN_TEST_CASE(accessMem, IO_getActionFromList_Returns_NullOnemptyList);
-	RUN_TEST_CASE(accessMem, IO_getActionFromList_Returns_ioObjectFromList);
-	RUN_TEST_CASE(accessMem, IO_getActionFromList_Returns_MultipleioObjectsFromList);
-*/
+	//****  AccessMEM_addWriteValue  ********************
+	/**/
+	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_Returns_selfOnSuccess);
+	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_incrementsWriteCountOnSingleAdd);
+	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_addsSingleValue);
+	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_addsMultipleValues);
+	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_incrementsWriteCountOnMultipleAdd);
+	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_AddingMoreThanBufferSizeReturnsNULL);
+
 	//****  IO_processSequence  ****************
-	/*
-	//RUN_TEST_CASE(io, IO_processSequence_Returns_selfOnSuccess);
-	//RUN_TEST_CASE(io, IO_processSequence_writeSingleToSingleAddress);
-	//RUN_TEST_CASE(io, IO_processSequence_writeMultipleValuesToSingleaddress);
-	//RUN_TEST_CASE(io, IO_processSequence_writeMultipleValuesToSequentialLocation);
+	/**/
+	RUN_TEST_CASE(accessMem, IO_processSequence_Returns_selfOnSuccess);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeSingleToSingleAddress);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeMultipleValuesToSingleaddress);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeMultipleValuesToSequentialLocation);
 
-	//RUN_TEST_CASE(io, IO_processSequence_readSingleValue);
-	//RUN_TEST_CASE(io, IO_processSequence_readSequentialMultipleValues);
-	//RUN_TEST_CASE(io, IO_processSequence_readMultipleValuesfromSingleLocation);
-	 */
+	RUN_TEST_CASE(accessMem, IO_processSequence_readSingleValue);
+	RUN_TEST_CASE(accessMem, IO_processSequence_readSequentialMultipleValues);
+	RUN_TEST_CASE(accessMem, IO_processSequence_readMultipleValuesfromSingleLocation);
 
-	//****  IO_update  *********************
-	/*
-	//RUN_TEST_CASE(io, IO_update_writeSingleToSingleAddress);
-	//RUN_TEST_CASE(io, IO_update_writeMultipleValuesToSingleAddress);
-	//RUN_TEST_CASE(io, IO_update_writeMultipleValuesToSequentialLocation);
-
-	//RUN_TEST_CASE(io, IO_update_readSingleValue);
-	//RUN_TEST_CASE(io, IO_update_readSequentialMultipleValues);
-	//RUN_TEST_CASE(io, IO_update_readMultipleValuesfromSingleLocation);
-
-	//RUN_TEST_CASE(io, IO_update_firesCallback);
-	//RUN_TEST_CASE(io, IO_update_canBeCalledMultipleTimesWithEmplyList);
-	 */
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback);
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr);
 
