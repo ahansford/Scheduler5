@@ -169,6 +169,6 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, IO_processSequence_readMultipleValuesfromSingleLocation);
 
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback);
-	//RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr);
+	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr);
 
 }
