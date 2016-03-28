@@ -800,7 +800,7 @@ TEST(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr)
 	TEST_ASSERT_EQUAL(myTest_accessMem, access_test_cb_ptr );
 }
 
-//****  Support Methods  ****************
+//****  Support Methods  **************
 
 /**/
 void * accessMem_test_general_cb(void * _self)
