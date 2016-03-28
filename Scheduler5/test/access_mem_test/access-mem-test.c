@@ -507,7 +507,7 @@ TEST(accessMem, copy_AllItemsCopiedToSelf)
 	struct AccessMEM * masterAccess = new(AccessMEM, otherTestBuffer);
 	Access_setAddress       (masterAccess, otherTestBuffer);
 	Access_setIOAction      (masterAccess, ACCESS_WRITE_SINGLE);
-	Access_setReadCount     (masterAccess, 5);
+	Access_setReadCount     (masterAccess, 2);
 	Access_setWriteCount    (masterAccess, 6);
 	Access_setBufferPointer (masterAccess, otherTestBuffer);
 	Access_setActionDone_cb (masterAccess, (io_cb_fnct)otherTestBuffer);
@@ -519,7 +519,7 @@ TEST(accessMem, copy_AllItemsCopiedToSelf)
 	// NOTE: sensorState, and pointers are unique for every sensor
 	TEST_ASSERT_EQUAL(otherTestBuffer,     myTest_accessMem->address);
 	TEST_ASSERT_EQUAL(ACCESS_WRITE_SINGLE, myTest_accessMem->ioAction);
-	TEST_ASSERT_EQUAL(5,                   myTest_accessMem->readCount);
+	TEST_ASSERT_EQUAL(2,                   myTest_accessMem->readCount);
 	TEST_ASSERT_EQUAL(6,                   myTest_accessMem->writeCount);
 	// The buffer pointer is unique for every new(AccessMEM, &buffer) instantiation
 	//TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_accessMem->bufferPointer);
@@ -572,7 +572,7 @@ TEST(accessMem, equal_UnequalIOActionReturn_Unequal)
 TEST(accessMem, equal_UnequalReadCountReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setReadCount(masterIO, 5);
+	Access_setReadCount(masterIO, 1);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
@@ -783,12 +783,92 @@ TEST(accessMem, IO_processSequence_readMultipleValuesfromSingleLocation)
 	TEST_ASSERT_EQUAL(0x01, testBuffer[2] );
 }
 
+TEST(accessMem, IO_processSequence_writeSingleReturnsNullOnNullBuffer)
+{
+	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setBufferPointer(myTest_accessMem, NULL);
+	Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_SINGLE);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_writeSingleReturnsNullOnNullAddress)
+{
+	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	//Access_setBufferPointer(myTest_accessMem, NULL);
+	//Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_SINGLE);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_writeSingleReturnsNullOnZeroCount)
+{
+	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_SINGLE);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_writeSequentialReturnsNullOnZeroCount)
+{
+	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_SEQUENTIAL);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_readSingleReturnsNullOnZeroCount)
+{
+	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_READ_SINGLE);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_readSequentialReturnsNullOnZeroCount)
+{
+	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_READ_SEQUENTIAL);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_writeReadSingleReturnsNullOnZeroCount)
+{
+	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setReadCount(myTest_accessMem, 2);
+	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction (myTest_accessMem, ACCESS_WRITE_READ_SINGLE);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_writeReadSequentialReturnsNullOnZeroCount)
+{
+	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_setReadCount(myTest_accessMem, 0);
+	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction (myTest_accessMem, ACCESS_WRITE_READ_SEQUENTIAL);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+TEST(accessMem, IO_processSequence_readSingleReturnsNullOnOverCount)
+{
+	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
+	Access_autoUpdateBufferSize(myTest_accessMem);
+	Access_setReadCount(myTest_accessMem, Access_getBufferSize(myTest_accessMem)+1);
+	Access_setAddress (myTest_accessMem, otherTestBuffer);
+	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_READ_SINGLE);
+	TEST_ASSERT_EQUAL(NULL, Access_processSequence(myTest_accessMem) );
+}
+
+//++++++++++++++++++++++++++++++//
+
 TEST(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback)
 {
-	TEST_ASSERT_EQUAL(0, access_test_cb_count );
+	TEST_ASSERT_EQUAL(0, access_test_cb_count);
 	Access_setActionDone_cb(myTest_accessMem, (void *)accessMem_test_general_cb);
 	Access_sequenceComplete_cb(myTest_accessMem);
-	TEST_ASSERT_EQUAL(1, access_test_cb_count );
+	TEST_ASSERT_EQUAL(1, access_test_cb_count);
 }
 
 TEST(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr)

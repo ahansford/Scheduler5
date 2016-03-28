@@ -119,49 +119,34 @@ void Access_init(void);
 void * Access_clearCommandBuffer(void * _self);
 
 /*!
- * Writes communication sequences to the IO holding buffer.  Values will be
- * written to IO address when IO_update()via the scheduler task.  Returns
+ * Writes communication sequences to the command holding buffer.  Values will
+ * be written to IO address when IO_update()via the scheduler task.  Returns
  * self on success.  The writeCount is automatically managed by add.
  */
 void * Access_addWriteCommandToSequence(void * _self, access_data_t _value);
 
 /*!
- * Use IO_setReadCount(_self, _readCount) to trigger a read sequence.  Reads
- * execute immediately after any preceding write commands.  The writeCount is
+ * Use AccessMEM_setReadCount(_self, _readCount) to trigger a read sequence.
+ * Reads execute immediately after preceding write commands.  The writeCount is
  * set automatically when write commands are added to the command buffer with
- * IO_addWriteCommandToSequence().  WARNING:  There are no protections against
- * counts larger than the command buffer size.  The external code calling the
- * IO methods should carefully manage size.
+ * Access_addWriteCommandToSequence().  WARNING:  Reads will fail if the buffer
+ * size is smaller than the read count.
  */
 
 /*!
- * Adds the sequence of commands to the List of sequences managed by IO.
- * Returns command sequence on success.
+ * Adds the sequence of commands to the buffer of sequences managed by Access.
+ * Returns AccessMEM pointer on success.
  */
 void * Access_addIOSequenceToList(void * _self);
 
 /*!
- * Executes the IO state machine, and called from the scheduler.  Returns
- * processed struct IO object pointer on completion.
- */
-void Access_update(void);
-
-/*!
- * Executes communications sequence.  Called from within IO_update().
+ * Executes communications sequence.
  */
 void * Access_processSequence(void * _self);
 
 /*!
- * Possible new method to allow multiple sequences to hold control of the
- * communication bus.  Method returns NULL if no follow-on sequence is needed.
- * Returns the follow-on sequence if one exists.  This function would
- * be overloadabled.
- * void * IO_getFollowOnSequence(void * _self);
- */
-
-/*!
- * Generic IO callback that fires when I/O action is complete.  The sequence
- * will be marked completed and the state will increment automatically
+ * Generic Access callback that fires when Access I/O action is complete.
+ * The sequence will be marked completed.
  */
 void * Access_sequenceComplete_cb(struct AccessMEM * _self);
 
@@ -175,21 +160,25 @@ void * Access_xxxx(void);
 /****** access methods  *******/
 
 /*!
- * Address for read or write operation.  Memory access to a NULL address is
- * ignored.
+ * Address for read or write operations.
+ * Memory access to a NULL address is ignored.
  */
 void * Access_getAddress(const void * _self);
 void * Access_setAddress(      void * _self, void * _address);
 
-//! Type of IO operation
+//! Type of Access operation
 access_read_write_t Access_getIOAction(const void * _self);
-access_read_write_t Access_setIOAction(void * _self, access_read_write_t _ioAction);
+access_read_write_t Access_setIOAction(void * _self,
+		                               access_read_write_t _ioAction);
 
-//! Number of values to read.  Must be set before add sequence on to IO list.
+//! Number of values to read.
+//! Returns the value set.
+//! returns and sets zero if count exceeds buffere size.
 int Access_getReadCount(const void * _self);
 int Access_setReadCount(      void * _self, int _readCount);
 
-//! Number of bytes to write.  Automatically managed when adding a command to buffer.
+//! Number of bytes to write.
+//! Automatically managed when adding a command to buffer.
 int Access_getWriteCount(const void * _self);
 int Access_setWriteCount(      void * _self, int _writeCount);
 
