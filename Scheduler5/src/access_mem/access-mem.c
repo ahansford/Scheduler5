@@ -1,5 +1,5 @@
 /*
- * io.c
+ * access-mem.c
  *
  *  Created on: Sep 30, 2015
  *      Author: Alan
@@ -12,10 +12,8 @@
 #include "..\..\src\objects\objects.h"       // safety include
 #include "..\..\src\scheduler\scheduler.h"   // safety include
 #include "..\..\src\lists\lists.h"           // safety include
-//#include "..\..\src\nodes\nodes.h"         // safety include
 
 static void * implement_Access_MEM_ctor(void * _self);
-static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self, access_data_t _value);
 
 static void * implement_Access_MEM_ctor(void * _self);
 static void * implement_Access_MEM_dtor(        struct AccessMEM * _self);
@@ -25,12 +23,11 @@ static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
 		                             const struct AccessMEM * _comparisonObject);
 static void * implement_Access_MEM_config(      struct AccessMEM * _self,
 									 const struct AccessMEM * _master);
-static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self, FILE * _fp);
+static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self,
+		                                                         FILE * _fp);
 
-
-//static void * implement_Access_MEM_addWriteValue(struct AccessMEM * _self,
-//		                                         access_data_t   _value);
-
+static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self,
+		                                                          access_data_t _value);
 static void * implement_Access_MEM_processSequence(struct AccessMEM * _self);
 //static void * implement_Access_MEM_xxxx(struct AccessMEM * _self);
 
@@ -46,12 +43,6 @@ static void Access_MEM_readSequential (void * _to, void * _from, int _readCount)
 const void * AccessMEM		= NULL;
 const void * AccessMEMClass = NULL;
 
-//TODO: remove the list concept from access since is lives in IO ??
-//struct List *      accessObjectList = NULL; // pointer to the List of sequence
-//struct AccessMEM * accessObject;  // pointer to the access object currently being executed
-// the internally managed IO state machine state used in Access_XXX_update()
-//access_xxx_update_state_t access_xxx_update_state;
-
 
 // MUST be called before other access methods are called
 void Access_init(void)
@@ -59,12 +50,6 @@ void Access_init(void)
 	// Insert the lines below for any derived subclasses
 	//if (!ACCESS_MEM)      {ACCESS_MEM_init();}
 	//if (!ACCESS_MEMClass) {ACCESS_MEM_init();}
-
-	// todo:validate that lists are actually used here
-	// IO uses a List to manage sequences before they are executed
-	// AccessMEM uses a simple buffer
-	//if (!List)      {List_init();}
-	//if (!ListClass) {List_init();}
 
 	if (!AccessMEMClass) {
 		 AccessMEMClass = new(Class,  		// should be "Class"
@@ -95,9 +80,6 @@ void Access_init(void)
 
 					 0);	// Terminator
 	}
-
-	// todo: needed??
-	//ioSequenceList = _ioSequenceList;
 
 	// requires #include "..\..\src\lists\lists.h" to support class registry
 	//implement_Access_MEM_registerKeyClasses();
@@ -291,7 +273,7 @@ puto_return_t Access_MEM_puto(const void * _self, FILE * _fp)
 
 
 /****************************************************************************/
-/********  New functions for  class "AccessMEMClass"  ******************************/
+/********  New functions for  class "AccessMEMClass"  ***********************/
 /****************************************************************************/
 
 
@@ -301,18 +283,23 @@ puto_return_t Access_MEM_puto(const void * _self, FILE * _fp)
 void *  Access_addWriteCommandToSequence(void * _self, access_data_t _value)
 {
 	const struct AccessMEMClass * class = classOf( cast(AccessMEM, _self) );
-	if ( class == NULL )                                   { return NULL; } // fail
-	if ( class->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
+	if ( class == NULL )
+		{ return NULL; } // fail
+	if ( class->Access_addWriteCommandToSequence == NULL )
+		{ return NULL; } // fail
 	return class->Access_addWriteCommandToSequence(_self, _value);
 }
 
-void * super_Access_addWriteCommandToSequence(const void * _class, void * _self, access_data_t _value)
+void * super_Access_addWriteCommandToSequence(const void *  _class,
+		                                            void *  _self,
+											  access_data_t _value)
 {
 	// verify that ACCESS_MEMClass is in the superclass chain of _class
 	if ( ! isOfSuper(AccessMEM, _self) ) { return NULL; } // fail
 	const struct AccessMEMClass * superclass = super(_class);
 	if ( superclass == NULL )            { return NULL; } // fail
-	if ( superclass->Access_addWriteCommandToSequence == NULL ) { return NULL; } // fail
+	if ( superclass->Access_addWriteCommandToSequence == NULL )
+		                                 { return NULL; } // fail
 	return superclass->Access_addWriteCommandToSequence(_self, _value);
 }
 
@@ -352,31 +339,31 @@ void * Access_MEM_processSequence(void * _self)
 }
 
 /*************************************/
-/***********  IO_xxxx    *************/
+/***********  Access_xxxx    *************/
 /*
-void *  IO_xxxx(void * _self)
+void * Access_xxxx(void * _self)
 {
-	const struct IOClass * class = classOf( cast(IO, _self) );
-	if ( class == NULL )          { return NULL; } // fail
-	if ( class->IO_xxxx == NULL ) { return NULL; } // fail
-	return class->IO_xxxx(_self);
+	const struct AccessMEMClass * class = classOf( cast(MEM, _self) );
+	if ( class == NULL )              { return NULL; } // fail
+	if ( class->Access_xxxx == NULL ) { return NULL; } // fail
+	return class->Access_xxxx(_self);
 }
 
-void * super_IO_xxxx(const void * _class, void * _self)
+void * super_Access_xxxx(const void * _class, void * _self)
 {
-	// verify that IOClass is in the superclass chain of _class
-	if ( ! isOfSuper(IOClass, _self) ) { return NULL; } // fail
-	const struct IOClass * superclass = super(_class);
-	if ( superclass == NULL )          { return NULL; } // fail
-	if ( superclass->IO_xxxx == NULL ) { return NULL; } // fail
-	return superclass->IO_xxxx(_self);
+	// verify that AccessMEMClass is in the superclass chain of _class
+	if ( ! isOfSuper(AccessMEMClass, _self) ) { return NULL; } // fail
+	const struct AccessMEMClass * superclass = super(_class);
+	if ( superclass == NULL )                 { return NULL; } // fail
+	if ( superclass->Access_xxxx == NULL )    { return NULL; } // fail
+	return superclass->Access_xxxx(_self);
 }
 
-void * IO_io_xxxx(void * _self)
+void * Access_MEM_xxxx(void * _self)
 {
-	struct IO * self = cast(IO, _self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
 	if( self == NULL ) { return NULL; } // fail
-	return implement_IO_io_xxxx(self);
+	return implement_Access_MEM_xxxx(self);
 }
 */
 
@@ -435,6 +422,12 @@ int Access_setReadCount(void * _self, int _readCount)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL ) { return 0; }
+
+	// check for count request that is larger than buffer
+	Access_autoUpdateBufferSize(self);
+	int bufferSize = Access_getBufferSize(self);
+	if ( _readCount > bufferSize ) { _readCount = 0; }
+
 	self->readCount = _readCount;
 	return _readCount;
 }
@@ -574,6 +567,7 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	//Access_setBufferPointer (_copyTo, Access_getBufferPointer(_copyFrom));
 	// buffer count May be unique and should not be copied
 	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
+	Access_autoUpdateBufferSize(_copyTo);
 	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
 	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
 	Access_setHardwareConfig(_copyTo, Access_getHardwareConfig(_copyFrom));
@@ -609,6 +603,7 @@ static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 	Access_setBufferSize   (_self, 0);
 	Access_setActionDone_cb(_self, NULL);
 	Access_setObjectPointer(_self, NULL);
+	Access_setHardwareConfig(_self, NULL);
 	return _self;
 }
 
@@ -673,7 +668,6 @@ void * Access_clearCommandBuffer(void * _self)
 	return _self;
 }
 
-
 static void * implement_Access_MEM_addWriteCommandToSequence(struct AccessMEM * _self, access_data_t _value)
 {
 	access_data_t * bufferPointer = Access_getBufferPointer(_self);
@@ -701,34 +695,45 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 	int                 writeCount    = Access_getWriteCount(_self);
 	int                 readCount     = Access_getReadCount(_self);
 	access_data_t *     bufferAddress = Access_getBufferPointer(_self);
+	int                 bufferSize    = Access_getBufferSize(_self);
+
+	if ( address == NULL )        { return NULL; }
+	if ( bufferAddress == NULL )  { return NULL; }
+	if ( readCount > bufferSize ) { return NULL; }
 
 	switch (ioAction) {
 
 	case ACCESS_WRITE_SINGLE: {
+		if (writeCount == 0 ) { return NULL; }
 		Access_MEM_writeSingle(address, bufferAddress, writeCount);
 		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_WRITE_SEQUENTIAL: {
+		if (writeCount == 0 ) { return NULL; }
 		Access_MEM_writeSequential(address, bufferAddress, writeCount);
 		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_READ_SINGLE: {
+		if (readCount == 0 ) { return NULL; }
 		Access_MEM_readSingle(bufferAddress, address, readCount);
 		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_READ_SEQUENTIAL: {
+		if (readCount == 0 ) { return NULL; }
 		Access_MEM_readSequential(bufferAddress, address, readCount);
 		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
 	case ACCESS_WRITE_READ_SINGLE: {
+		if (writeCount == 0 ) { return NULL; }
+		if (readCount == 0 )  { return NULL; }
 		Access_MEM_writeSingle(address, bufferAddress, writeCount);
 		Access_MEM_readSingle(bufferAddress, address, readCount);
 		Access_sequenceComplete_cb(_self);
@@ -736,13 +741,17 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 	}
 
 	case ACCESS_WRITE_READ_SEQUENTIAL: {
+		if (writeCount == 0 ) { return NULL; }
+		if (readCount == 0 )  { return NULL; }
 		Access_MEM_writeSequential(address, bufferAddress, writeCount);
 		Access_MEM_readSequential(bufferAddress, address, readCount);
 		Access_sequenceComplete_cb(_self);
 		break;
 	}
 
-	default: { break; }
+	default: {
+		return NULL;
+		break; }
 
 	}// end switch
 

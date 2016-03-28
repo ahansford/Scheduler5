@@ -168,6 +168,16 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, IO_processSequence_readSequentialMultipleValues);
 	RUN_TEST_CASE(accessMem, IO_processSequence_readMultipleValuesfromSingleLocation);
 
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeSingleReturnsNullOnNullBuffer);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeSingleReturnsNullOnNullAddress);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeSingleReturnsNullOnZeroCount);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeSequentialReturnsNullOnZeroCount);
+	RUN_TEST_CASE(accessMem, IO_processSequence_readSingleReturnsNullOnZeroCount);
+	RUN_TEST_CASE(accessMem, IO_processSequence_readSequentialReturnsNullOnZeroCount);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeReadSingleReturnsNullOnZeroCount);
+	RUN_TEST_CASE(accessMem, IO_processSequence_writeReadSequentialReturnsNullOnZeroCount);
+	RUN_TEST_CASE(accessMem, IO_processSequence_readSingleReturnsNullOnOverCount);
+
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback);
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr);
 
