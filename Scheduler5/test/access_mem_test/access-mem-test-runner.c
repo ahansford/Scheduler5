@@ -31,7 +31,7 @@ TEST_GROUP_RUNNER(accessMem)
 
 	RUN_TEST_CASE(accessMem, Access_addWriteCommandToSequence_is_Access_MEM_addWriteCommandToSequence);
 	RUN_TEST_CASE(accessMem, Access_processSequence_is_Access_MEM_processSequence);
-	//RUN_TEST_CASE(accessMem, IO_read_is_IO_io_read);
+	//RUN_TEST_CASE(accessMem, Access_xxxx_is_Access_MEM_xxxx);
 
 
 	RUN_TEST_CASE(accessMem, address_is_Null_OnCreate);
@@ -90,15 +90,10 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, Access_setBufferPointer_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(accessMem, Access_setBufferPointer_canSetSpecificValue);
 
-	/****  Set/Get bufferSize  ****************/
+	/****  autoSet/Get bufferSize  ****************/
 	/**/
-	RUN_TEST_CASE(accessMem, Access_getBufferSize_returns_DefineValueOnCreate);
-	RUN_TEST_CASE(accessMem, Access_getBufferSize_returns_specificValue);
-	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsSpecificValue);
-	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(accessMem, Access_setBufferSize_canSetSpecificValue);
-
-	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_getBufferSize_returns_CorrectValueOnCreate);
+	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsZeroOnNullPtr);
 	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize);
 
 	/****  Set/Get Access_actionComplete_cb  ****************/

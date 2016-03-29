@@ -13,8 +13,8 @@
 
 //#include "..\cross_compiler_defs.h"
 #include "..\..\src\objects\objects.h"
-#include "..\..\src\scheduler\scheduler.h"
-#include "..\..\src\lists\lists.h"
+//#include "..\..\src\scheduler\scheduler.h"
+//#include "..\..\src\lists\lists.h"
 //#include "..\..\src\nodes\nodes.h"
 
 /***********************************************/
@@ -41,12 +41,12 @@ typedef enum access_read_write_t {
 /*!
  * The generic callback typedef that takes a void pointer and returns a void
  * pointer.  Registered functions of this type can be called on completion of
- * the IO operation.  The void*-void* form was selected over the IO*-IO* form
- * so that external modules can registers callbacks as well.  For example
- * a sensor can register Sensor_incrementMiniState() using void*-void*.
+ * the Access operation.  The void*-void* form was selected over the
+ * ACCESS*-ACCESS* form so that external modules can register a callback.
+ * For example a sensor can register Sensor_incrementMiniState() using
+ * void*-void*.
  */
 typedef void * (* access_cb_fnct)(void * _io);
-
 
 
 /***********************************************/
@@ -60,63 +60,51 @@ typedef void * (* access_cb_fnct)(void * _io);
 /****** application interface functions  *******/
 
 /*!
- *	IO_init(struct List * ioActionList) MUST be called the class before other methods are called...
- *	returns self on success, otherwise returns NULL.
+ *	// initialize the AccessMEM class
+ *	Access_init();
  *
- *	@code
- *	// Create a List where IO will store IO sequences waiting to be executed
- *	void * IO_actionBuffer[4];
- *	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
- *	IO_init(IOTest_ioActionList);
+ *	// create a command and data buffer
+ *	#define ACCESS_COMMAND_BUFFER_SIZE  4
+ *	access_data_t dataCommandBuffer[ACCESS_COMMAND_BUFFER_SIZE];
  *
- *	// Create a new IO object
- * 	struct IO * myIOobject = new(IO, ioActionList);
+ *	// create an AccessMEM object
+ *	// pointer and buffer size assignments are handled automatically
+ *	my_accessMem = new(AccessMEM, dataCommandBuffer);
+ *	if ( myTest_accessMem == NULL )
+ *		{ failure to create object; error handling here }
  *
- *	// Create an area in memory where reads and write are allowed
- *	// Set address to this area
- *	io_data_t allowedMemoryArea[16];
- *	IO_setAddress(myIOobject, allowedMemoryArea);
+ *	// set the AccessMEM data members before triggering processing
+ *  Access_setAddress   (my_accessMem, otherTestBuffer);
+ *  Access_setIOAction  (my_accessMem, ACCESS_WRITE_READ_SINGLE);
  *
- *	// Clear the command buffer
- *	IO_clearCommandSequences(myIOobject);
+ *  // add any write commands to the command buffer
+ *  Access_addWriteCommandToSequence(my_accessMem, 0x01);
+ *  Access_addWriteCommandToSequence(my_accessMem, 0x02);
+ *  Access_addWriteCommandToSequence(my_accessMem, 0x03);
  *
- *	// Add write commands to the buffer (example only)
- *	// Write counts are managed by the add operation
- *	IO_addWriteCommandToSequence(myIOobject, 0x03);
- *	IO_addWriteCommandToSequence(myIOobject, 0x41);
+ *  // OPTIONAL:  If read operations are executed, the read count is set here.
+ *  Access_setReadCount(my_accessMem, 3);
  *
- *	// OPTIONAL:  If read operations are executed, the read count is set here.
- *	IO_setReadCount(myIOobject, 1);
+ *  // Set the call back function to fire once Access completes.
+ *  // Assumes that a higher level module is calling down into Access.
+ *  // The callback function should be from the higher level module.
+ *  // The object of the callback, should be a pointer to the higher
+ *  // level module reference itself.  This way there is a path back up
+ *  // the call chain.
+ *  access_cb_fnct Access_setActionDone_cb(my_accessMem, access_cb_fnct _cb);
+ *  Access_setObjectPointer(my_accessMem, void * _higherLevelObject);
  *
- *	// Set IO action to desired format
- *	IO_setIOAction(myIOobject, IO_WRITE_SEQUENTIAL);
  *
- *	// Set communication complete callback ... fired when communication is done
- *	IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct) My_CommCompleteDone_CB);
- *	IO_setObjectPointer(localIoStructPtr, (void *)My_Pointer);
+ *  // All setup is complete.  Proceed to process the sequence.
+ *  Access_processSequence(my_accessMem);
  *
- *	// Add the IO sequence to the main IO list IOTest_ioActionList
- *	IO_addIOSequenceToList(myIOobject)
+ *  { use data etc. }
  *
- * 	// Set recurrent scheduler task specifying a suitable period in ticks.
- * 	scheduler_AddTask(IO_update,
- *                    _ticksOfDelay,
- *					  _period);
- *
- *	// Once the communication sequence completes, the callback is fired by IO.
- *	// ... My_CommCompleteDone_CB(My_Pointer);
- *	// The module calling IO can use this callback to initiate next steps.
- *
- *	@endcode
+ *  // Optional: clear the data and command buffer before the next use
+ *  Access_clearCommandBuffer(my_accessMem);
  *
  */
 void Access_init(void);
-
-/*!
- * Resets write and read counts indicating that the CMD buffer is clear.
- * Does not delete data previously loaded into the buffer area.
- */
-void * Access_clearCommandBuffer(void * _self);
 
 /*!
  * Writes communication sequences to the command holding buffer.  Values will
@@ -126,34 +114,24 @@ void * Access_clearCommandBuffer(void * _self);
 void * Access_addWriteCommandToSequence(void * _self, access_data_t _value);
 
 /*!
- * Use AccessMEM_setReadCount(_self, _readCount) to trigger a read sequence.
- * Reads execute immediately after preceding write commands.  The writeCount is
- * set automatically when write commands are added to the command buffer with
- * Access_addWriteCommandToSequence().  WARNING:  Reads will fail if the buffer
- * size is smaller than the read count.
- */
-
-/*!
- * Adds the sequence of commands to the buffer of sequences managed by Access.
- * Returns AccessMEM pointer on success.
- */
-void * Access_addIOSequenceToList(void * _self);
-
-/*!
  * Executes communications sequence.
  */
 void * Access_processSequence(void * _self);
 
+// WARNING: this method is not implemented
+void * Access_xxxx(void);
+
 /*!
- * Generic Access callback that fires when Access I/O action is complete.
+ * PRIVATE: generic Access callback that fires when Access I/O action is complete.
  * The sequence will be marked completed.
  */
 void * Access_sequenceComplete_cb(struct AccessMEM * _self);
 
-
-
-// WARNING: this method is not implemented
-void * Access_xxxx(void);
+/*!
+ * OPTIONAL: Resets write and read counts indicating that the CMD buffer is
+ * clear.  Does not delete data previously loaded into the buffer area.
+ */
+void * Access_clearCommandBuffer(void * _self);
 
 
 /******************************/
@@ -173,27 +151,26 @@ access_read_write_t Access_setIOAction(void * _self,
 
 //! Number of values to read.
 //! Returns the value set.
-//! returns and sets zero if count exceeds buffere size.
+//! returns and sets zero if count exceeds buffer size.
 int Access_getReadCount(const void * _self);
 int Access_setReadCount(      void * _self, int _readCount);
 
-//! Number of bytes to write.
+//! PRIVATE: Number of bytes to write.
 //! Automatically managed when adding a command to buffer.
 int Access_getWriteCount(const void * _self);
 int Access_setWriteCount(      void * _self, int _writeCount);
 
 /*!
- * Struct List pointer to buffer holding data for writes and reads.
+ * PRIVATE: pointer to buffer holding data for writes and reads.
  * Write operations are executed first.  Read data overwrites any previous
  * write data in the command buffer.
  */
 void * Access_getBufferPointer(const void * _self);
 void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
 
-//! Number of values that can be stored in the command buffer.
-int Access_getBufferSize(    const void * _self);
-int Access_setBufferSize(          void * _self, int _bufferSize);
-int Access_autoUpdateBufferSize(   void * _self);
+//! PRIVATE: Number of values that can be stored in the command buffer.
+int Access_getBufferSize(const void * _self);
+int Access_autoSetBufferSize(  void * _self);
 
 /*!
  * Called when operation is complete is function pointer is not NULL.

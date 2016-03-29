@@ -10,8 +10,8 @@
 #include "access-mem-private.h"
 
 #include "..\..\src\objects\objects.h"       // safety include
-#include "..\..\src\scheduler\scheduler.h"   // safety include
-#include "..\..\src\lists\lists.h"           // safety include
+//#include "..\..\src\scheduler\scheduler.h"   // safety include
+//#include "..\..\src\lists\lists.h"           // safety include
 
 static void * implement_Access_MEM_ctor(void * _self);
 
@@ -424,7 +424,7 @@ int Access_setReadCount(void * _self, int _readCount)
 	if ( self == NULL ) { return 0; }
 
 	// check for count request that is larger than buffer
-	Access_autoUpdateBufferSize(self);
+	Access_autoSetBufferSize(self);
 	int bufferSize = Access_getBufferSize(self);
 	if ( _readCount > bufferSize ) { _readCount = 0; }
 
@@ -473,28 +473,17 @@ void * Access_setBufferPointer(void * _self, void * _bufferPointer)
 
 int Access_getBufferSize(const void * _self)
 {
-	const struct AccessMEM * self = cast(AccessMEM, _self);
-	if ( self == NULL ) { return 0; }
-	return self->bufferSize;
+	return Access_autoSetBufferSize((void *)_self);
 }
 
-int Access_setBufferSize(void * _self, int _bufferSize)
-{
-	// NOTE: no information is available for the item size; set externally
-	struct AccessMEM * self = cast(AccessMEM, _self);
-	if ( self == NULL ) { return 0; }
-	self->bufferSize = _bufferSize;
-	return _bufferSize;
-}
-
-int Access_autoUpdateBufferSize(void * _self)
+int Access_autoSetBufferSize(void * _self)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if ( self == NULL )               { return 0; }
 	void * localBufferPointer = Access_getBufferPointer(_self);
 	if ( localBufferPointer == NULL ) { return 0; }
-	int bufferSize =( sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	Access_setBufferSize(_self, bufferSize);
+	int bufferSize =( sizeof ( localBufferPointer )/sizeof(localBufferPointer[0]) );
+	self->bufferSize = bufferSize;
 	return bufferSize;
 }
 
@@ -566,8 +555,7 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	// data pointers are unique and should not be copied
 	//Access_setBufferPointer (_copyTo, Access_getBufferPointer(_copyFrom));
 	// buffer count May be unique and should not be copied
-	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
-	Access_autoUpdateBufferSize(_copyTo);
+	Access_autoSetBufferSize(_copyTo);
 	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
 	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
 	Access_setHardwareConfig(_copyTo, Access_getHardwareConfig(_copyFrom));
@@ -578,17 +566,15 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 
 static void * implement_Access_MEM_ctor(void * _self)
 {
-	Access_setAddress       (_self, NULL);
-	Access_setIOAction      (_self, ACCESS_ACTION_UNKNOWN);
-	Access_setReadCount     (_self, 0);
-	Access_setWriteCount    (_self, 0);
-	//Access_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
-	void * localBufferPointer = Access_getBufferPointer(_self);
-	Access_setBufferSize(_self, \
-			sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	Access_setActionDone_cb(_self, NULL);
-	Access_setObjectPointer(_self, NULL);
-	Access_setHardwareConfig(_self, NULL);
+	Access_setAddress          (_self, NULL);
+	Access_setIOAction         (_self, ACCESS_ACTION_UNKNOWN);
+	Access_setReadCount        (_self, 0);
+	Access_setWriteCount       (_self, 0);
+	//Access_setBufferPointer  (_self, bufferPointer);  // WARNING: set in main ctor
+	Access_autoSetBufferSize(_self);
+	Access_setActionDone_cb    (_self, NULL);
+	Access_setObjectPointer    (_self, NULL);
+	Access_setHardwareConfig   (_self, NULL);
 	return _self;
 }
 
@@ -598,11 +584,12 @@ static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 	Access_setIOAction     (_self, ACCESS_ACTION_UNKNOWN);
 	Access_setReadCount    (_self, 0);
 	Access_setWriteCount   (_self, 0);
+	Access_clearCommandBuffer(_self);
 	// WARNING: TODO:  delete/free the command buffer externally
-	Access_setBufferPointer(_self, NULL);
-	Access_setBufferSize   (_self, 0);
-	Access_setActionDone_cb(_self, NULL);
-	Access_setObjectPointer(_self, NULL);
+	Access_setBufferPointer (_self, NULL);
+	Access_autoSetBufferSize(_self);
+	Access_setActionDone_cb (_self, NULL);
+	Access_setObjectPointer (_self, NULL);
 	Access_setHardwareConfig(_self, NULL);
 	return _self;
 }
@@ -659,10 +646,13 @@ static puto_return_t implement_Access_MEM_puto(const struct AccessMEM * _self, F
 }
 
 void * Access_clearCommandBuffer(void * _self)
-//void * implement_Access_MEM_clearCommandSequences(void * _self)
 {
 	access_data_t * bufferPointer = Access_getBufferPointer(_self);
 	if ( bufferPointer == NULL ) { return NULL; } // fail
+	int i;
+	for( i = 0; i < Access_getBufferSize(_self); i++ ) {
+		bufferPointer[i] = (access_data_t)0;
+	}
 	Access_setWriteCount(_self, 0);
 	Access_setReadCount(_self, 0);
 	return _self;
@@ -755,8 +745,8 @@ static void * implement_Access_MEM_processSequence(struct AccessMEM * _self)
 
 	}// end switch
 
-	// WARNING: do not fire Access_sequenceComplete_cb() here
-	// the individual sequence cases should each fire when needed
+	// WARNING: do not fire Access_sequenceComplete_cb() here.
+	// The individual sequence cases should each fire when needed.
 	return _self;
 }
 
@@ -817,7 +807,7 @@ static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 
 void * Access_sequenceComplete_cb(struct AccessMEM * _self)
 {
-	//Goal:  call the action complete callback in the IO module
+	//Goal:  call the action complete callback in the higher level module
 
 	// verify the Access object pointer
 	struct AccessMEM * self = cast(AccessMEM, _self);

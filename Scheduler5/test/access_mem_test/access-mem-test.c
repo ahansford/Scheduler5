@@ -24,9 +24,11 @@ struct       AccessMEM *      myTest_accessMem;
 
 // test buffer is a combined memory area for both write and read data
 // write data is assumed to be loaded first, and then potentially overwritten by the read operation
-#define ACCESS_COMMAND_BUFFER_SIZE  4
+#define ACCESS_COMMAND_BUFFER_SIZE  9
+#define ACCESS_OTHER_COMMAND_BUFFER_SIZE  7
+
 access_data_t testBuffer[ACCESS_COMMAND_BUFFER_SIZE];
-access_data_t otherTestBuffer[ACCESS_COMMAND_BUFFER_SIZE];
+access_data_t otherTestBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
 void * accessMem_test_general_cb(void * _self);
@@ -365,45 +367,23 @@ TEST(accessMem, Access_setBufferPointer_canSetSpecificValue)
 
 /****  Set/Get bufferSize  ****************/
 
-TEST(accessMem, Access_getBufferSize_returns_DefineValueOnCreate)
+TEST(accessMem, Access_getBufferSize_returns_CorrectValueOnCreate)
 {
 	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE,  Access_getBufferSize(myTest_accessMem) );
 }
 
-TEST(accessMem, Access_getBufferSize_returns_specificValue)
+TEST(accessMem, Access_autoUpdateBufferSize_returnsZeroOnNullPtr)
 {
-	myTest_accessMem->bufferSize = 1;
-	TEST_ASSERT_EQUAL(1,  Access_getBufferSize(myTest_accessMem) );
-}
-
-TEST(accessMem, Access_setBufferSize_returnsSpecificValue)
-{
-	TEST_ASSERT_EQUAL(2,  Access_setBufferSize(myTest_accessMem, 2));
-}
-
-TEST(accessMem, Access_setBufferSize_returnsUnknownOnNullPtr)
-{
-	TEST_ASSERT_EQUAL(0,  Access_setBufferSize(NULL, 3));
-}
-
-TEST(accessMem, Access_setBufferSize_canSetSpecificValue)
-{
-	Access_setBufferSize(myTest_accessMem, 4);
-	TEST_ASSERT_EQUAL(4,  myTest_accessMem->bufferSize);
-}
-
-
-TEST(accessMem, Access_autoUpdateBufferSize_returnsUnknownOnNullPtr)
-{
-	TEST_ASSERT_EQUAL(0,  Access_autoUpdateBufferSize(NULL));
+	TEST_ASSERT_EQUAL(0,  Access_autoSetBufferSize(NULL));
 }
 
 TEST(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize)
 {
-	TEST_ASSERT_EQUAL(sizeof(testBuffer),  Access_autoUpdateBufferSize(myTest_accessMem));
+	TEST_ASSERT_EQUAL(sizeof(testBuffer),  Access_autoSetBufferSize(myTest_accessMem));
+	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE,  Access_autoSetBufferSize(myTest_accessMem));
 }
 
-/****  Set/Get Access_actionComplete_cb  ****************/
+/****  autoSet/Get Access_actionComplete_cb  ****************/
 
 TEST(accessMem, Access_getIO_actionComplete_cb_returns_UnknownOnCreate)
 {
@@ -597,7 +577,12 @@ TEST(accessMem, equal_UnequalBufferPointerReturn_Equal)
 TEST(accessMem, equal_UnequalBufferSizeReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setBufferSize(masterIO, myTest_accessMem->bufferSize + 1 );
+	//Access_getBufferSize_returns_CorrectValueOnCreate
+	//masterIO->bufferSize = myTest_accessMem->bufferSize + 1 ;
+	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE, Access_autoSetBufferSize(myTest_accessMem) );
+	TEST_ASSERT_EQUAL(ACCESS_OTHER_COMMAND_BUFFER_SIZE, sizeof (*masterIO->bufferPointer) );
+
+	TEST_ASSERT_EQUAL(ACCESS_OTHER_COMMAND_BUFFER_SIZE, Access_autoSetBufferSize(masterIO) );
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
@@ -748,7 +733,7 @@ TEST(accessMem, IO_processSequence_writeMultipleValuesToSequentialLocation)
 TEST(accessMem, IO_processSequence_readSingleValue)
 {
 	otherTestBuffer[0] = 0x01;
-	Access_setReadCount (myTest_accessMem, 1);
+	Access_setReadCount   (myTest_accessMem, 1);
 	Access_setAddress     (myTest_accessMem, otherTestBuffer);
 	Access_setIOAction    (myTest_accessMem, ACCESS_READ_SINGLE);
 	Access_processSequence(myTest_accessMem);
@@ -763,7 +748,7 @@ TEST(accessMem, IO_processSequence_readSequentialMultipleValues)
 	Access_setReadCount (myTest_accessMem, 3);
 	Access_setAddress   (myTest_accessMem, otherTestBuffer);
 	Access_setIOAction  (myTest_accessMem, ACCESS_READ_SEQUENTIAL);
-	Access_processSequence       (myTest_accessMem);
+	Access_processSequence(myTest_accessMem);
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x02, testBuffer[1] );
 	TEST_ASSERT_EQUAL(0x03, testBuffer[2] );
@@ -854,7 +839,7 @@ TEST(accessMem, IO_processSequence_writeReadSequentialReturnsNullOnZeroCount)
 TEST(accessMem, IO_processSequence_readSingleReturnsNullOnOverCount)
 {
 	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
-	Access_autoUpdateBufferSize(myTest_accessMem);
+	Access_autoSetBufferSize(myTest_accessMem);
 	Access_setReadCount(myTest_accessMem, Access_getBufferSize(myTest_accessMem)+1);
 	Access_setAddress (myTest_accessMem, otherTestBuffer);
 	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_READ_SINGLE);
