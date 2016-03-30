@@ -73,6 +73,9 @@ typedef void * (* access_cb_fnct)(void * _io);
  *	if ( myTest_accessMem == NULL )
  *		{ failure to create object; error handling here }
  *
+ *	// set buffer size before setting other Access object data members
+ *	Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
+ *
  *	// set the AccessMEM data members before triggering processing
  *  Access_setAddress   (my_accessMem, otherTestBuffer);
  *  Access_setIOAction  (my_accessMem, ACCESS_WRITE_READ_SINGLE);
@@ -168,9 +171,12 @@ int Access_setWriteCount(      void * _self, int _writeCount);
 void * Access_getBufferPointer(const void * _self);
 void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
 
-//! PRIVATE: Number of values that can be stored in the command buffer.
+/*!
+ * Number of values that can be stored in the command buffer.
+ * Should be set immediately after new(AccessMEM, _commandBufferPtr); is called
+ */
 int Access_getBufferSize(const void * _self);
-int Access_autoSetBufferSize(  void * _self);
+int Access_setBufferSize(      void * _self, int _size);
 
 /*!
  * Called when operation is complete is function pointer is not NULL.

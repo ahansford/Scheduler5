@@ -25,7 +25,7 @@ struct       AccessMEM *      myTest_accessMem;
 // test buffer is a combined memory area for both write and read data
 // write data is assumed to be loaded first, and then potentially overwritten by the read operation
 #define ACCESS_COMMAND_BUFFER_SIZE  9
-#define ACCESS_OTHER_COMMAND_BUFFER_SIZE  7
+#define ACCESS_OTHER_COMMAND_BUFFER_SIZE  (ACCESS_COMMAND_BUFFER_SIZE + 1)
 
 access_data_t testBuffer[ACCESS_COMMAND_BUFFER_SIZE];
 access_data_t otherTestBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
@@ -64,6 +64,7 @@ TEST_SETUP(accessMem)
 
 	if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
 
+	Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
 	// TODO: remove
 	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	//myTest_Sensor_class_PTR = Sensor;
@@ -374,13 +375,13 @@ TEST(accessMem, Access_getBufferSize_returns_CorrectValueOnCreate)
 
 TEST(accessMem, Access_autoUpdateBufferSize_returnsZeroOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(0,  Access_autoSetBufferSize(NULL));
+	TEST_ASSERT_EQUAL(0,  Access_setBufferSize(NULL, ACCESS_COMMAND_BUFFER_SIZE));
 }
 
 TEST(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize)
 {
-	TEST_ASSERT_EQUAL(sizeof(testBuffer),  Access_autoSetBufferSize(myTest_accessMem));
-	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE,  Access_autoSetBufferSize(myTest_accessMem));
+	TEST_ASSERT_EQUAL(sizeof(testBuffer),  Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE));
+	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE,  Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE));
 }
 
 /****  autoSet/Get Access_actionComplete_cb  ****************/
@@ -485,6 +486,8 @@ TEST(accessMem, copy_AllItemsCopiedToSelf)
 {
 	// NOTE: sensorState, and pointers are unique for every sensor
 	struct AccessMEM * masterAccess = new(AccessMEM, otherTestBuffer);
+	Access_setBufferSize    (masterAccess, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+
 	Access_setAddress       (masterAccess, otherTestBuffer);
 	Access_setIOAction      (masterAccess, ACCESS_WRITE_SINGLE);
 	Access_setReadCount     (masterAccess, 2);
@@ -552,6 +555,7 @@ TEST(accessMem, equal_UnequalIOActionReturn_Unequal)
 TEST(accessMem, equal_UnequalReadCountReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
+	Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
 	Access_setReadCount(masterIO, 1);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
@@ -569,7 +573,7 @@ TEST(accessMem, equal_UnequalBufferPointerReturn_Equal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
 	Access_setBufferPointer(masterIO, otherTestBuffer);
-	// bufferPointers are unique and will not trigger OBJECT_UNEQUAL
+	// buffer pointers and sizes are unique and will not trigger OBJECT_UNEQUAL
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
@@ -577,13 +581,9 @@ TEST(accessMem, equal_UnequalBufferPointerReturn_Equal)
 TEST(accessMem, equal_UnequalBufferSizeReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	//Access_getBufferSize_returns_CorrectValueOnCreate
-	//masterIO->bufferSize = myTest_accessMem->bufferSize + 1 ;
-	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE, Access_autoSetBufferSize(myTest_accessMem) );
-	TEST_ASSERT_EQUAL(ACCESS_OTHER_COMMAND_BUFFER_SIZE, sizeof (*masterIO->bufferPointer) );
-
-	TEST_ASSERT_EQUAL(ACCESS_OTHER_COMMAND_BUFFER_SIZE, Access_autoSetBufferSize(masterIO) );
-	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
+	Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE );
+	// buffer pointers and sizes are unique and will not trigger OBJECT_UNEQUAL
+	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }
 
@@ -839,7 +839,7 @@ TEST(accessMem, IO_processSequence_writeReadSequentialReturnsNullOnZeroCount)
 TEST(accessMem, IO_processSequence_readSingleReturnsNullOnOverCount)
 {
 	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
-	Access_autoSetBufferSize(myTest_accessMem);
+	Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
 	Access_setReadCount(myTest_accessMem, Access_getBufferSize(myTest_accessMem)+1);
 	Access_setAddress (myTest_accessMem, otherTestBuffer);
 	Access_setIOAction(myTest_accessMem, ACCESS_WRITE_READ_SINGLE);

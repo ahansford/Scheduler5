@@ -424,9 +424,8 @@ int Access_setReadCount(void * _self, int _readCount)
 	if ( self == NULL ) { return 0; }
 
 	// check for count request that is larger than buffer
-	Access_autoSetBufferSize(self);
 	int bufferSize = Access_getBufferSize(self);
-	if ( _readCount > bufferSize ) { _readCount = 0; }
+	if ( _readCount > bufferSize ) { _readCount = 0; }  // fail
 
 	self->readCount = _readCount;
 	return _readCount;
@@ -473,18 +472,17 @@ void * Access_setBufferPointer(void * _self, void * _bufferPointer)
 
 int Access_getBufferSize(const void * _self)
 {
-	return Access_autoSetBufferSize((void *)_self);
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if ( self == NULL ) { return 0; }
+	return self->bufferSize;
 }
 
-int Access_autoSetBufferSize(void * _self)
+int Access_setBufferSize(void * _self, int _size)
 {
 	struct AccessMEM * self = cast(AccessMEM, _self);
-	if ( self == NULL )               { return 0; }
-	void * localBufferPointer = Access_getBufferPointer(_self);
-	if ( localBufferPointer == NULL ) { return 0; }
-	int bufferSize =( sizeof ( localBufferPointer )/sizeof(localBufferPointer[0]) );
-	self->bufferSize = bufferSize;
-	return bufferSize;
+	if ( self == NULL ) { return 0; }
+	self->bufferSize = _size;
+	return _size;
 }
 
 /************************************************/
@@ -553,9 +551,9 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	Access_setReadCount     (_copyTo, Access_getReadCount(_copyFrom));
 	Access_setWriteCount    (_copyTo, Access_getWriteCount(_copyFrom));
 	// data pointers are unique and should not be copied
-	//Access_setBufferPointer (_copyTo, Access_getBufferPointer(_copyFrom));
+	//Access_setBufferPointer(_copyTo, Access_getBufferPointer(_copyFrom));
 	// buffer count May be unique and should not be copied
-	Access_autoSetBufferSize(_copyTo);
+	//Access_setBufferSize(_copyTo, Access_getBufferSize(_copyFrom));
 	Access_setActionDone_cb(_copyTo, Access_getActionDone_cb(_copyFrom));
 	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
 	Access_setHardwareConfig(_copyTo, Access_getHardwareConfig(_copyFrom));
@@ -566,15 +564,15 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 
 static void * implement_Access_MEM_ctor(void * _self)
 {
-	Access_setAddress          (_self, NULL);
-	Access_setIOAction         (_self, ACCESS_ACTION_UNKNOWN);
-	Access_setReadCount        (_self, 0);
-	Access_setWriteCount       (_self, 0);
-	//Access_setBufferPointer  (_self, bufferPointer);  // WARNING: set in main ctor
-	Access_autoSetBufferSize(_self);
-	Access_setActionDone_cb    (_self, NULL);
-	Access_setObjectPointer    (_self, NULL);
-	Access_setHardwareConfig   (_self, NULL);
+	Access_setAddress        (_self, NULL);
+	Access_setIOAction       (_self, ACCESS_ACTION_UNKNOWN);
+	Access_setReadCount      (_self, 0);
+	Access_setWriteCount     (_self, 0);
+	//Access_setBufferPointer(_self, bufferPointer);  // WARNING: set in main ctor
+	Access_setBufferSize     (_self, 0);
+	Access_setActionDone_cb  (_self, NULL);
+	Access_setObjectPointer  (_self, NULL);
+	Access_setHardwareConfig (_self, NULL);
 	return _self;
 }
 
@@ -587,7 +585,7 @@ static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 	Access_clearCommandBuffer(_self);
 	// WARNING: TODO:  delete/free the command buffer externally
 	Access_setBufferPointer (_self, NULL);
-	Access_autoSetBufferSize(_self);
+	Access_setBufferSize    (_self, 0);
 	Access_setActionDone_cb (_self, NULL);
 	Access_setObjectPointer (_self, NULL);
 	Access_setHardwareConfig(_self, NULL);
@@ -617,8 +615,9 @@ static equal_t implement_Access_MEM_equal(const struct AccessMEM * _self,
 	//if( Access_MEM_getBufferPointer(self) != Access_MEM_getBufferPointer(comparisonObject) )
 	//	{ return OBJECT_UNEQUAL; }
 
-	if( Access_getBufferSize(self) != Access_getBufferSize(comparisonObject) )
-		{ return OBJECT_UNEQUAL; }
+	// buffer sizes are unique and should not be included in the comparison
+	//if( Access_getBufferSize(self) != Access_getBufferSize(comparisonObject) )
+	//	{ return OBJECT_UNEQUAL; }
 
 	if( Access_getActionDone_cb(self) != Access_getActionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
