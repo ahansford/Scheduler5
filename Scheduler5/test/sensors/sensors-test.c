@@ -715,20 +715,37 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	TEST_ASSERT_EQUAL(6,  targetArray[1] );
 
 	struct SENSOR_DEFAULT_IO_TYPE * Access_struct = Sensor_getIoStructPointer(myTest_Sensor);
+	TEST_ASSERT_NOT_EQUAL(NULL,  Access_struct);
 	Access_struct->address = targetArray;
 	Access_struct->bufferPointer[0]= 0x00;
 	Access_struct->bufferPointer[1]= 0x00;
 	Access_struct->readCount = 2;
+	// TODO: don't know if this is needed.. seems to be set Automatically
+	//Access_struct->ioAction = ACCESS_READ_SINGLE;
+	//Access_struct->ioAction = ACCESS_READ_SEQUENTIAL;
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_readDataFromSensor(myTest_Sensor));
 	printf("\n start IO_update calls");
 	//IO_commandExecuteComplete_cb();
-	//IO_sequenceComplete_cb(myTest_AccessMEM);
+
+	//TODO:  need to reset the IO state machine to a benign state.
+	//       Where is the IO module being initialized?
+	//       look to IO test to get a sense of what is needed
+	//       todo: add to the sensor setup.  Probably a function like IO_getIoManagerPtr();
+	//
+	IO_sequenceComplete_cb();
+	IO_update();
+	printf("\n sensorState: %i", myTest_Sensor->sensorState);
+	IO_update();
+	printf("\n sensorState: %i", myTest_Sensor->sensorState);
+	IO_update();
+	printf("\n sensorState: %i", myTest_Sensor->sensorState);
 	IO_update();
 	IO_update();
 	IO_update();
 	IO_update();
 	IO_update();
 
+	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(0x05,  Access_struct->bufferPointer[0] );
 	TEST_ASSERT_EQUAL(0x06,  Access_struct->bufferPointer[1] );
 
@@ -1135,6 +1152,7 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb2, myTest_Sensor->Sensor_onAlarmTriggered_cb);
 	struct IO * toIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
 	TEST_ASSERT_EQUAL(11, Access_getAddress(toIoPointer));
+	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(12, Access_getIOAction(toIoPointer));
 	TEST_ASSERT_EQUAL(13, Access_getReadCount(toIoPointer));
 	TEST_ASSERT_EQUAL(14, Access_getWriteCount(toIoPointer));
@@ -1455,6 +1473,7 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	IO_update();
 	}
 
+	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 
 	// garbage collection ... failure to assign back to original will leave original buffer undeleted
@@ -1612,6 +1631,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	IO_update();
 
+	// TODO: FIX this error
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
 
 	// tests below depend on knowledge of the scheduler implementation

@@ -26,7 +26,7 @@ struct Sensor {
 	struct Sensor * (*Sensor_onReportReady_cb)    (struct Sensor * _sensor);
 	//! Callback to middleware when alarm state does not match the expected
 	struct Sensor * (*Sensor_onAlarmTriggered_cb) (struct Sensor * _sensor);
-	struct SENSOR_DEFAULT_IO_TYPE *		ioStructPtr; // pointer to the IO object managing sensor I/O
+	struct SENSOR_DEFAULT_IO_TYPE * ioStructPtr; // pointer to the IO object managing sensor I/O
 };
 
 struct SensorClass {

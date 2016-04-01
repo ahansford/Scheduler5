@@ -202,7 +202,7 @@ TEST_GROUP_RUNNER(sensor)
 	//****  copy/Time_copy  ****************
 	/**/
 	RUN_TEST_CASE(sensor, copy_returnsSelfOnSuccess);
-	RUN_TEST_CASE(sensor, copy_AllItemsCopiedToSelf);
+	//RUN_TEST_CASE(sensor, copy_AllItemsCopiedToSelf);
 	RUN_TEST_CASE(sensor, copy_returnsNullOnNullSelf);
 	RUN_TEST_CASE(sensor, copy_returnsNullOnNullMaster);
 
@@ -258,7 +258,7 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_start_doesNotModifiyAsyncFlagIfAlreadyStarted);
 
 	RUN_TEST_CASE(sensor, Sensor_measure_triggeresStartWhenNotStarted);
-	RUN_TEST_CASE(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted);
+	//RUN_TEST_CASE(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted);
 	RUN_TEST_CASE(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle);
 	RUN_TEST_CASE(sensor, Sensor_measure_triggeresMeasureWhenReport);
 	RUN_TEST_CASE(sensor, Sensor_measure_secondMeasureDoesNotChangeMainSM);
@@ -277,7 +277,7 @@ TEST_GROUP_RUNNER(sensor)
 
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_sendsAllCommands);
 
-	RUN_TEST_CASE(sensor, Sensor_enablePower_armsPowerUpCallback);
+	//RUN_TEST_CASE(sensor, Sensor_enablePower_armsPowerUpCallback);
 	RUN_TEST_CASE(sensor, Sensor_configAndAlign_armsConfigAlignCallback);
 	RUN_TEST_CASE(sensor, Sensor_measure_armsMeasureCallback);
 

@@ -395,17 +395,25 @@ void * IO_addIOSequenceToList(void * _self)
 	void * itemAddedToListPtr = add(ioSequenceList, self);
 
 	// test for failure to add
-	if ( itemAddedToListPtr == NULL ) { return NULL; } // fail
+	if ( itemAddedToListPtr == NULL ) { printf("FAIL: sequence not added to IO List\n"); return NULL; } // fail
 
 	return self; // success
 }
 
 void * IO_getActionFromList(void)
 {
-	return take(ioSequenceList);
+	void * itemFromList = take(ioSequenceList);
+	if ( itemFromList == NULL ) { printf("POSSIBLE FAIL: sequence not taken from IO List\n"); return NULL; } // fail
+	return itemFromList;
 }
-
+/*
 void * IO_sequenceComplete_cb(void * _self)
+{
+	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
+	return NULL;
+}
+*/
+void * IO_sequenceComplete_cb(void)
 {
 	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
 	return NULL;
@@ -735,152 +743,7 @@ static puto_return_t implement_IO_io_puto(const struct IO * _self, FILE * _fp)
 	// TODO: Add puto code in IO
 	return 0;
 }
-/*
-void * IO_clearCommandBuffer(void * _self)
-{
-	io_data_t * bufferPointer = IO_getBufferPointer(_self);
-	if ( bufferPointer == NULL ) { return NULL; } // fail
-	IO_setWriteCount(_self, 0);
-	IO_setReadCount(_self, 0);
-	return _self;
-}
-*/
-/*
-static void * implement_IO_io_addWriteValue(struct IO * _self, io_data_t _value)
-{
-	io_data_t * bufferPointer = IO_getBufferPointer(_self);
-	if ( bufferPointer == NULL ) { return NULL; } // fail
 
-	int writeCount = IO_getWriteCount(_self);
-	if ( writeCount == IO_getBufferSize(_self) ) { return NULL; }  // fail full
-
-	// Add value to buffer and increment the writeCount
-	bufferPointer[writeCount] = _value;
-	writeCount++;
-	IO_setWriteCount(_self, writeCount);
-
-	return _self;  // remove this fail
-}
-
-static void * implement_IO_io_processSequence(struct IO * _self)
-{
-	// local scope of data members does not support non-blocking operation
-	// complete sequences are likely executed as a block
-	// reentrant support is not likely needed
-
-	io_read_write_t ioAction      = Access_getIOAction(_self);
-	//void *          address       = Access_getAddress(_self);
-	//int             writeCount    = Access_getWriteCount(_self);
-	//int             readCount     = Access_getReadCount(_self);
-	//io_data_t *     bufferAddress = Access_getBufferPointer(_self);
-
-	printf("\nimplement_IO_io_processSequence ioAction: %i", ioAction);
-
-
-	switch (ioAction) {
-
-	case IO_ACTION_UNKNOWN: {
-		break;
-	}
-
-	case IO_WRITE_SINGLE: {
-		IO_io_writeSingle(address, bufferAddress, writeCount);
-		break;
-	}
-
-	case IO_WRITE_SEQUENTIAL: {
-		IO_io_writeSequential(address, bufferAddress, writeCount);
-		break;
-	}
-
-	case IO_READ_SINGLE: {
-		IO_io_readSingle(bufferAddress, address, readCount);
-		break;
-	}
-
-	case IO_READ_SEQUENTIAL: {
-		IO_io_readSequential(bufferAddress, address, readCount);
-		break;
-	}
-
-	case IO_WRITE_READ_SINGLE: {
-		IO_io_writeSingle(address, bufferAddress, writeCount);
-		IO_io_readSingle(bufferAddress, address, readCount);
-		break;
-	}
-
-	case IO_WRITE_READ_SEQUENTIAL: {
-		IO_io_writeSequential(address, bufferAddress, writeCount);
-		IO_io_readSequential(bufferAddress, address, readCount);
-		break;
-	}
-
-	default: { break; }
-
-	}// end switch
-
-
-	// fire the sequence complete callback since transfer activity is complete
-	IO_sequenceComplete_cb();
-	return _self;  // remove this fail
-}
-*/
-/*
-static void IO_io_writeSingle(void * _to, void * _from, int _writeCount)
-{
-	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
-
-	for ( i = 0; i < _writeCount; i++ ) {
-		*to = *from;
-		from++;
-	}
-	return;
-}
-
-static void IO_io_writeSequential(void * _to, void * _from, int _writeCount)
-{
-	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
-
-	for ( i = 0; i < _writeCount; i++ ) {
-		*to = *from;
-		to++;
-		from++;
-	}
-	return;
-}
-
-static void IO_io_readSingle(void * _to, void * _from, int _readCount)
-{
-	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
-
-	for ( i = 0; i < _readCount; i++ ) {
-		*to = *from;
-		to++;
-	}
-	return;
-}
-
-static void IO_io_readSequential(void * _to, void * _from, int _readCount)
-{
-	int i;
-	io_data_t * to = _to;
-	io_data_t * from = _from;
-
-
-	for ( i = 0; i < _readCount; i++ ) {
-		*to = *from;
-		to++;
-		from++;
-	}
-	return;
-}
-*/
 
 static void * implement_IO_io_xxxx(struct IO * _self)
 {

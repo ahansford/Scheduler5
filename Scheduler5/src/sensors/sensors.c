@@ -635,6 +635,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// create new IO access structure object
 	struct IO * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
 	Sensor_setIoStructPointer(_self, ioStructPointer);
+	if (ioStructPointer == NULL ) { printf("FAIL in sensor ctor; no AccessMEM object\n"); }
 
 	// set the IO address to NULL for safety
 	// Ordinary drivers will select a non-NULL value
@@ -1703,6 +1704,8 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 	// set for sequential writes to successive locations starting with "address"
 	// default sensor is a simple memory access module and assumes sequential
 	Access_setIOAction(localIoStructPtr, ACCESS_READ_SEQUENTIAL);
+
+	//TODO:  how is sequential or single overwritten?
 
 	// add the command sequence to the IO list for processing when possible
 	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {

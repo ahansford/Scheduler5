@@ -41,8 +41,8 @@ static void RunAllTests(void)
 	RUN_TEST_GROUP(events);
 	RUN_TEST_GROUP(eventController); // come back to check this one
 	RUN_TEST_GROUP(button);
-	//RUN_TEST_GROUP(sensor);
-	//RUN_TEST_GROUP(io);
+	RUN_TEST_GROUP(sensor);
+	RUN_TEST_GROUP(io);
 	RUN_TEST_GROUP(accessMem);
 
 }
@@ -60,9 +60,9 @@ int main(int argc, char* argv[])
 	EventController_init(UPDATE_SECONDS);
 	Stack_init();
 	Button_init(100);
-	//Sensor_init();
+	Sensor_init();
 	Node_X10_init();
-	//IO_init(NULL);
+	IO_init(NULL);
 	Access_init();
 
 	clearFile("scheduler_puto.txt");
