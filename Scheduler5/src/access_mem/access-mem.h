@@ -194,4 +194,6 @@ void * Access_setObjectPointer(      void * _self, void * _objectPointer);
 void * Access_getHardwareConfig(const void * _self);
 void * Access_setHardwareConfig(      void * _self, void * _hardwareConfig);
 
+// used to validate a sequence before being added to an IO list
+void * Access_sequenceIsValid(struct AccessMEM * _self);
 #endif /* SRC_ACCESS_MEM_ACCESS_MEM_H_ */
