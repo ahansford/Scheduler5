@@ -632,16 +632,21 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// WARNING TODO:  internal IO management List needed for IO_init() should
 	//                ... be created external to Sensor.  This weakness should
 	//                ... be corrected
-	// create new IO access structure object
-	struct IO * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
-	Sensor_setIoStructPointer(_self, ioStructPointer);
+
+
+	// create new Access structure object
+	struct SENSOR_DEFAULT_IO_TYPE * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
 	if (ioStructPointer == NULL ) { printf("FAIL in sensor ctor; no AccessMEM object\n"); }
+	// WARNING:  MUST set the bufferSize when the Access structure
+	Access_setBufferSize(ioStructPointer, SENSOR_DEFAULT_MAX_COMMANDS);
+	// Point the sensor to its access object
+	Sensor_setIoStructPointer(_self, ioStructPointer);
+
 
 	// set the IO address to NULL for safety
 	// Ordinary drivers will select a non-NULL value
 	// can be overwritten externally for testing
 	ioStructPointer->address = SENSOR_DEFAULT_ADDRESS;
-
 
 
 	// generate raw data object

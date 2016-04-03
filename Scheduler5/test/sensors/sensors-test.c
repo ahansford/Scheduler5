@@ -1126,9 +1126,9 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 
 	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
 	Access_setAddress   (masterIoPointer, (void *)11);
-	Access_setIOAction  (masterIoPointer, 12);
-	Access_setReadCount (masterIoPointer, 13);
-	Access_setWriteCount(masterIoPointer, 14);
+	Access_setIOAction  (masterIoPointer, ACCESS_READ_SINGLE);
+	Access_setReadCount (masterIoPointer, 1);
+	Access_setWriteCount(masterIoPointer, 1);
 	//Access_setBufferPointer(masterIoPointer, NULL);
 	Access_setActionDone_cb(masterIoPointer, NULL);
 	Access_setObjectPointer(masterIoPointer, NULL);
@@ -1153,9 +1153,9 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	struct IO * toIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
 	TEST_ASSERT_EQUAL(11, Access_getAddress(toIoPointer));
 	// TODO: FIX this error
-	TEST_ASSERT_EQUAL(12, Access_getIOAction(toIoPointer));
-	TEST_ASSERT_EQUAL(13, Access_getReadCount(toIoPointer));
-	TEST_ASSERT_EQUAL(14, Access_getWriteCount(toIoPointer));
+	TEST_ASSERT_EQUAL(ACCESS_READ_SINGLE, Access_getIOAction(toIoPointer));
+	TEST_ASSERT_EQUAL(1, Access_getReadCount(toIoPointer));
+	TEST_ASSERT_EQUAL(1, Access_getWriteCount(toIoPointer));
 	//TEST_ASSERT_EQUAL_PTR(NULL, IO_getBufferPointer(toIoPointer));
 	TEST_ASSERT_EQUAL_PTR(NULL, Access_getActionDone_cb(toIoPointer));
 	TEST_ASSERT_EQUAL_PTR(NULL, Access_getObjectPointer(toIoPointer));

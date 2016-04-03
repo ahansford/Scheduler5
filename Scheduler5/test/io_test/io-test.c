@@ -867,7 +867,7 @@ TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x02);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x03);
 	Access_setAddress      (myTest_AccessMEM, otherTestBuffer);
-	Access_setActionDone_cb(myTest_AccessMEM, IO_sequenceComplete_cb);
+	Access_setActionDone_cb(myTest_AccessMEM, (void *)IO_sequenceComplete_cb);
 	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
 	IO_addIOSequenceToList (myTest_AccessMEM);
 	IO_update();

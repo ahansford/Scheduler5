@@ -823,6 +823,31 @@ void * Access_sequenceComplete_cb(struct AccessMEM * _self)
 	return self;
 }
 
+void * Access_sequenceIsValid(struct AccessMEM * _self)
+{
+	access_read_write_t ioAction      = Access_getIOAction(_self);
+	void *              address       = Access_getAddress(_self);
+	int                 writeCount    = Access_getWriteCount(_self);
+	int                 readCount     = Access_getReadCount(_self);
+	access_data_t *     bufferAddress = Access_getBufferPointer(_self);
+	int                 bufferSize    = Access_getBufferSize(_self);
+
+	if ( ioAction <= ACCESS_ACTION_UNKNOWN ) { printf("ioAction unknown-\n"); return NULL; }
+	if ( ioAction > ACCESS_READ_SEQUENTIAL ) { printf("ioAction unknown+\n"); return NULL; }
+
+	if ( ioAction >= ACCESS_WRITE_SINGLE ) {
+			if ( address == NULL )       { printf("address NULL\n"); return NULL; }
+			if ( bufferAddress == NULL ) { printf("bufferAddress NULL"); return NULL; }
+			if ( writeCount > bufferSize ){ printf("writeCount larger than bufferSize\n"); return NULL; }
+	}
+
+	if ( ioAction >= ACCESS_WRITE_READ_SINGLE ) {
+		if ( readCount > bufferSize )    { printf("readCount larger than bufferSize\n"); return NULL; }
+	}
+
+	return _self;
+}
+
 /*
 static void * implement_Access_MEM_xxxx(struct AccessMEM * _self)
 {
