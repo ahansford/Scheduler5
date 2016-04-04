@@ -402,10 +402,9 @@ void * IO_addIOSequenceToList(void * _self)
 	return self; // success
 }
 
-void * IO_getActionFromList(void)
+void * IO_getIOSequenceFromList(void)
 {
 	void * itemFromList = take(ioSequenceList);
-	if ( itemFromList == NULL ) { printf("POSSIBLE FAIL: sequence not taken from IO List\n"); return NULL; } // fail
 	return itemFromList;
 }
 
@@ -433,7 +432,7 @@ void IO_update(void)
 	case IO_UPDATE_IDLE: {
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time per I/O access method
-		sequence = IO_getActionFromList();
+		sequence = IO_getIOSequenceFromList();
 
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
@@ -662,8 +661,8 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 	////IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
 	//// buffer count May be unique and should not be copied
 	////IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
-	//IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
-	//IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
+	IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
+	IO_setObjectPointer (_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
 

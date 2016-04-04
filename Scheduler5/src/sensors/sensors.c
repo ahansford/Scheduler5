@@ -1692,9 +1692,7 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
 	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
 										Sensor_getIoStructPointer(_self);
-	if ( localIoStructPtr == NULL ) {
-		printf("\nimplement_Sensor_default_readDataFromSensor: FAIL NULL localIoStructPtr");
-		return NULL; }  // fail no IO struct
+	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
 	// get command buffer pointer
 	command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
@@ -2250,6 +2248,5 @@ void * Sensor_getIoCommandBufPointer( void * _self)
 		printf("\nFAIL for NULL Access_getBufferPointer");
 		return NULL;  // fail
 	}
-	printf("\nSensor_getIoCommandBufPointer returning: %p", commandBufferPTR);
 	return commandBufferPTR;
 }
