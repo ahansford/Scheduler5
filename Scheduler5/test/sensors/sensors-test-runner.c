@@ -277,7 +277,8 @@ TEST_GROUP_RUNNER(sensor)
 
 	RUN_TEST_CASE(sensor, Sensor_measureAndProcess_sendsAllCommands);
 
-	//RUN_TEST_CASE(sensor, Sensor_enablePower_armsPowerUpCallback);
+	// TODO: should this test pass?
+	RUN_TEST_CASE(sensor, Sensor_enablePower_armsPowerUpCallback);
 	RUN_TEST_CASE(sensor, Sensor_configAndAlign_armsConfigAlignCallback);
 	RUN_TEST_CASE(sensor, Sensor_measure_armsMeasureCallback);
 
@@ -288,7 +289,9 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_stop_endsInUnpoweredIdle);
 
 	RUN_TEST_CASE(sensor, Sensor_stop_endsInUnpoweredIdle);
-	//RUN_TEST_CASE(sensor, Sensor_stop_sendsPowerDownCommands);
+
+	// TODO: should this test pass?
+	RUN_TEST_CASE(sensor, Sensor_stop_sendsPowerDownCommands);
 
 	RUN_TEST_CASE(sensor, Sensor_resetMiniState_setsToStateZero);
 	RUN_TEST_CASE(sensor, Sensor_incrementMiniState_movesToNextState);

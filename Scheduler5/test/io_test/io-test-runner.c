@@ -59,8 +59,8 @@ TEST_GROUP_RUNNER(io)
 
 	/****  Set/Get ioAction  ****************/
 	/*
-	RUN_TEST_CASE(io, IO_getIOAction_returns_UnknownOnCreate);
-	RUN_TEST_CASE(io, IO_getIOAction_returns_specificValue);
+	//RUN_TEST_CASE(io, IO_getIOAction_returns_UnknownOnCreate);
+	//RUN_TEST_CASE(io, IO_getIOAction_returns_specificValue);
 	RUN_TEST_CASE(io, IO_setIOAction_returnsSpecificValue);
 	RUN_TEST_CASE(io, IO_setIOAction_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(io, IO_setIOAction_canSetSpecificValue);
@@ -109,9 +109,9 @@ TEST_GROUP_RUNNER(io)
 	/*
 	RUN_TEST_CASE(io, IO_getObjectPointer_returns_UnknownOnCreate);
 	RUN_TEST_CASE(io, IO_getObjectPointer_returns_specificValue);
-	RUN_TEST_CASE(io, IO_setObjectPointer_returnsSpecificValue);
-	RUN_TEST_CASE(io, IO_setObjectPointer_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(io, IO_setObjectPointer_canSetSpecificValue);
+	//RUN_TEST_CASE(io, IO_setObjectPointer_returnsSpecificValue);
+	//RUN_TEST_CASE(io, IO_setObjectPointer_returnsUnknownOnNullPtr);
+	//RUN_TEST_CASE(io, IO_setObjectPointer_canSetSpecificValue);
 	 */
 	//****  copy/Time_copy  ****************
 	/**/

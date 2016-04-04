@@ -1678,6 +1678,7 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 	// default sensor is a simple memory access module and assumes sequential
 	Access_setIOAction(localIoStructPtr, IO_WRITE_SEQUENTIAL);
 
+	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
 	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {
 		printf("\nFAIL4"); return NULL;  // fail
@@ -1712,6 +1713,7 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 
 	//TODO:  how is sequential or single overwritten?
 
+	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
 	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr) {
 		printf("\nimplement_Sensor_default_readDataFromSensor: FAIL to add sequence to list");

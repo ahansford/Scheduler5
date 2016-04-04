@@ -111,8 +111,8 @@ void Access_init(void);
 
 /*!
  * Writes communication sequences to the command holding buffer.  Values will
- * be written to IO address when IO_update()via the scheduler task.  Returns
- * self on success.  The writeCount is automatically managed by add.
+ * be written to IO address when IO_update() fires via the scheduler task.
+ * Returns self on success.  The writeCount is automatically managed by add.
  */
 void * Access_addWriteCommandToSequence(void * _self, access_data_t _value);
 
@@ -179,9 +179,9 @@ int Access_getBufferSize(const void * _self);
 int Access_setBufferSize(      void * _self, int _size);
 
 /*!
- * Called when operation is complete is function pointer is not NULL.
+ * Called when operation is complete if function pointer is not NULL.
  * Passes parameter of objectPointer, accessible through
- * IO_getObjectPointer(), even if this value is NULL.
+ * Access_getObjectPointer(), even if this value is NULL.
  */
 access_cb_fnct Access_getActionDone_cb(const void * _self);
 access_cb_fnct Access_setActionDone_cb(      void * _self, access_cb_fnct _cb);

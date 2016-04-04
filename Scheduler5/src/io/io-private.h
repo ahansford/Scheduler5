@@ -10,12 +10,13 @@
 
 struct IO {
 	const struct Object _;	// should the Object or the "superclass"
-	void * 			address;
-	io_read_write_t ioAction;
-	int 			readCount;
-	int 			writeCount;
+	//void * 			address;
+	//io_read_write_t ioAction;
+	//int 			readCount;
+	//int 			writeCount;
+	// TODO: probably has no use, but still in the constuctor
 	io_data_t *   	bufferPointer;
-	int				bufferSize;
+	//int				bufferSize;
 	io_cb_fnct		actionDone_cb;
 	void * 			objectPointer;  // back ptr to the original item
 };
