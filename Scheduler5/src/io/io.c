@@ -121,6 +121,8 @@ void * IO_io_ctor(void * _self, va_list * app)
 	// Only uncomment if all data members will be specified in new() command
 	// ... this seems like an undue burden on the user.  Leave commented out
 	// ... numerous unit tests will need to be adapted if uncommented
+	// TODO: needs to be removed from the listing, or converted to a list of
+	//       lists where meme, I2C and SPI are covered
 	self->bufferPointer = va_arg(* app, io_data_t *);
 	//self->minute = va_arg(* app, minute_t);
 
@@ -406,18 +408,14 @@ void * IO_getActionFromList(void)
 	if ( itemFromList == NULL ) { printf("POSSIBLE FAIL: sequence not taken from IO List\n"); return NULL; } // fail
 	return itemFromList;
 }
-/*
+
 void * IO_sequenceComplete_cb(void * _self)
 {
+	//TODO: when does this fire ??  who fires it ??
 	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
 	return NULL;
 }
-*/
-void * IO_sequenceComplete_cb(void)
-{
-	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
-	return NULL;
-}
+
 
 /*********************/
 /***** IO_update *****/
@@ -448,6 +446,10 @@ void IO_update(void)
 	}
 
 	case IO_UPDATE_EXECUTE_COMMAND: {
+
+		// TODO:  IO_processSequence() may not be used anymore here
+		// TODO:  Understand what replaces IO_processSequence()
+
 		// set next transition to WAITING ... assumes the wait is needed
 		// the IO_processSequence() method can override with COMPLETE if needed
 		// immediate action drivers should override
@@ -671,11 +673,11 @@ static void * implement_IO_io_ctor(void * _self)
 	//IO_setIOAction      (_self, IO_ACTION_UNKNOWN);
 	//IO_setReadCount     (_self, 0);
 	//IO_setWriteCount    (_self, 0);
-	////IO_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
-	// void * localBufferPointer = IO_getBufferPointer(_self);
-	// IO_setBufferSize(_self, sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
-	//IO_setActionDone_cb(_self, NULL);
-	//IO_setObjectPointer (_self, NULL);
+	//IO_setBufferPointer (_self, bufferPointer);  // WARNING: set in main ctor
+	//void * localBufferPointer = IO_getBufferPointer(_self);
+	//IO_setBufferSize(_self, sizeof(localBufferPointer)/sizeof(localBufferPointer[0]) );
+	IO_setActionDone_cb(_self, NULL);
+	IO_setObjectPointer (_self, NULL);
 	return _self;
 }
 

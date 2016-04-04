@@ -35,10 +35,11 @@ int io_test_cb_count;
 
 //int i;
 
-
+// pointer to List of sequences
 struct List * IOTest_ioActionList = NULL;
 void *        IOTest_ioActionBuffer[4];
 
+// local Access object pointer
 struct AccessMEM * myTest_AccessMEM;
 
 
@@ -49,6 +50,7 @@ TEST_GROUP(io);
 TEST_SETUP(io)
 {
 	RuntimeErrorStub_Reset();
+
 	// TODO: change to ioListOfSequences
 	IOTest_ioActionList = new(List, IOTest_ioActionBuffer);
 	IO_init(IOTest_ioActionList);

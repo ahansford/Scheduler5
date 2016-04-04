@@ -732,7 +732,7 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	//       look to IO test to get a sense of what is needed
 	//       todo: add to the sensor setup.  Probably a function like IO_getIoManagerPtr();
 	//
-	IO_sequenceComplete_cb();
+	//IO_sequenceComplete_cb();
 	IO_update();
 	printf("\n sensorState: %i", myTest_Sensor->sensorState);
 	IO_update();
