@@ -656,7 +656,7 @@ TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
 /****  Sensor_writeCommandsToSensor  ****************/
 /**/
 TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
-{printf("\nTEST: Sensor_writesCommandDataToSpecifiedLocation Line: %i\n", __LINE__);
+{
 	void * IO_actionBuffer[0];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	IO_init(IOTest_ioActionList);
@@ -684,7 +684,6 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 	TEST_ASSERT_EQUAL(0x06,  targetArray[1] );
 
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
-	printf("\nEND: Sensor_writesCommandDataToSpecifiedLocation Line: %i\n", __LINE__);
 }
 
 TEST(sensor, Sensor_writesCommandtakesNoActionOnNullAddress)
@@ -702,7 +701,6 @@ TEST(sensor, Sensor_writesCommandtakesNoActionOnNullObject)
 /**/
 TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 {
-	printf("\nTEST: Sensor_readsCommandDataFromSpecifiedLocation LINE: %i\n", __LINE__);
 	void * IO_actionBuffer[1];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	TEST_ASSERT_TRUE(IOTest_ioActionList != NULL );
@@ -724,7 +722,6 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	//Access_struct->ioAction = ACCESS_READ_SINGLE;
 	//Access_struct->ioAction = ACCESS_READ_SEQUENTIAL;
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_readDataFromSensor(myTest_Sensor));
-	printf("\n start IO_update calls");
 	//IO_commandExecuteComplete_cb();
 
 	//TODO:  need to reset the IO state machine to a benign state.
@@ -734,11 +731,8 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	//
 	//IO_sequenceComplete_cb();
 	IO_update();
-	printf("\n sensorState: %i", myTest_Sensor->sensorState);
 	IO_update();
-	printf("\n sensorState: %i", myTest_Sensor->sensorState);
 	IO_update();
-	printf("\n sensorState: %i", myTest_Sensor->sensorState);
 	IO_update();
 	IO_update();
 	IO_update();
@@ -750,7 +744,6 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	TEST_ASSERT_EQUAL(0x06,  Access_struct->bufferPointer[1] );
 
 	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
-	printf("\nEND: Sensor_readsCommandDataFromSpecifiedLocation Line: %i\n", __LINE__);
 }
 
 TEST(sensor, Sensor_readsCommandtakesNoActionOnNullAddress)
