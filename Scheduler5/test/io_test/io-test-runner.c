@@ -28,17 +28,6 @@ TEST_GROUP_RUNNER(io)
 
 	RUN_TEST_CASE(io, Class_ctor_is_IO_Class_ctor);
 
-	//RUN_TEST_CASE(io, IO_write_is_IO_io_write);
-	//RUN_TEST_CASE(io, IO_writeRead_is_IO_io_writeRead);
-	//RUN_TEST_CASE(io, IO_read_is_IO_io_read);
-
-	/*
-	RUN_TEST_CASE(io, address_is_Null_OnCreate);
-	RUN_TEST_CASE(io, ioAction_is_UNKNOWN_OnCreate);
-	RUN_TEST_CASE(io, readCount_is_Zero_OnCreate);
-	RUN_TEST_CASE(io, writeCount_is_Zero_OnCreate);
-	*/
-
 	RUN_TEST_CASE(io, bufferPointer_is_testBuffer_OnCreate);
 	RUN_TEST_CASE(io, IO_actionComplete_cb_is_Null_OnCreate);
 	RUN_TEST_CASE(io, objectPointer_is_Null_OnCreate);
