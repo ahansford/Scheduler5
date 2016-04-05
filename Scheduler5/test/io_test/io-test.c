@@ -549,55 +549,63 @@ TEST(io, IO_getIOSequenceFromList_Returns_MultipleioObjectsFromList)
 
 TEST(io, IO_update_writeSingleToSingleAddress)
 {
-	Access_setIOAction     (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
+	Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
-	Access_setAddress      (myTest_AccessMEM, otherTestBuffer);
-	Access_setActionDone_cb(myTest_AccessMEM, IO_sequenceComplete_cb);
-	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
-	IO_addIOSequenceToList (myTest_AccessMEM);
+	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
+	//Access_setActionDone_cb         (myTest_AccessMEM, IO_sequenceComplete_cb);
+	//Access_setObjectPointer         (myTest_AccessMEM, (void *)myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
+	IO_addIOSequenceToList(myTest_AccessMEM);
 
 	IO_update();
 	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(0xFF, otherTestBuffer[0] );
 }
 
 TEST(io, IO_update_writeMultipleValuesToSingleAddress)
 {
-	Access_setAddress (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction(myTest_AccessMEM, ACCESS_WRITE_SINGLE);
+	Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x02);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x03);
-	IO_addIOSequenceToList          (myTest_AccessMEM);
+	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
+	IO_addIOSequenceToList(myTest_AccessMEM);
+
 	IO_update();
 	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[0] );
 }
 
 TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 {
-	Access_setIOAction    (myTest_AccessMEM, ACCESS_WRITE_SEQUENTIAL);
+	Access_setIOAction             (myTest_AccessMEM, ACCESS_WRITE_SEQUENTIAL);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x02);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x03);
-	Access_setAddress      (myTest_AccessMEM, otherTestBuffer);
+	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
 	Access_setActionDone_cb(myTest_AccessMEM, (void *)IO_sequenceComplete_cb);
 	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
 	IO_addIOSequenceToList (myTest_AccessMEM);
+
 	IO_update();
 	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, otherTestBuffer[0] );
 	TEST_ASSERT_EQUAL(0x02, otherTestBuffer[1] );
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[2] );
@@ -605,29 +613,36 @@ TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 
 TEST(io, IO_update_readSingleValue)
 {
+	Access_setIOAction (myTest_AccessMEM, ACCESS_READ_SINGLE);
+	Access_setAddress  (myTest_AccessMEM, otherTestBuffer);
+	Access_setReadCount(myTest_AccessMEM, 1);
 	otherTestBuffer[0] = 0x01;
-	Access_setReadCount   (myTest_AccessMEM, 1);
-	Access_setAddress     (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction    (myTest_AccessMEM, ACCESS_READ_SINGLE);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
 	IO_addIOSequenceToList(myTest_AccessMEM);
+
 	IO_update();
 	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
+	IO_update(); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 }
 
 TEST(io, IO_update_readSequentialMultipleValues)
 {
+	Access_setIOAction (myTest_AccessMEM, ACCESS_READ_SEQUENTIAL);
+	Access_setAddress  (myTest_AccessMEM, otherTestBuffer);
+	Access_setReadCount(myTest_AccessMEM, 3);
 	otherTestBuffer[0] = 0x01;
 	otherTestBuffer[1] = 0x02;
 	otherTestBuffer[2] = 0x03;
-	Access_setReadCount (myTest_AccessMEM, 3);
-	Access_setAddress   (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction  (myTest_AccessMEM, ACCESS_READ_SEQUENTIAL);
+
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
 	IO_addIOSequenceToList(myTest_AccessMEM);
+
 	IO_update();
 	IO_update();
 	IO_update(); // <<-- safety call
@@ -641,13 +656,16 @@ TEST(io, IO_update_readSequentialMultipleValues)
 
 TEST(io, IO_update_readMultipleValuesfromSingleLocation)
 {
+	Access_setIOAction  (myTest_AccessMEM, ACCESS_READ_SINGLE);
+	Access_setAddress   (myTest_AccessMEM, otherTestBuffer);
+	Access_setReadCount (myTest_AccessMEM, 3);
 	otherTestBuffer[0] = 0x01;
 	otherTestBuffer[1] = 0x02;
 	otherTestBuffer[2] = 0x03;
-	Access_setReadCount (myTest_AccessMEM, 3);
-	Access_setAddress   (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction  (myTest_AccessMEM, ACCESS_READ_SINGLE);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
 	IO_addIOSequenceToList(myTest_AccessMEM);
+
 	IO_update();
 	IO_update();
 	IO_update(); // <<-- safety call
@@ -661,19 +679,18 @@ TEST(io, IO_update_readMultipleValuesfromSingleLocation)
 
 TEST(io, IO_update_firesCallback)
 {
+	Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
-	Access_setAddress   (myTest_AccessMEM, otherTestBuffer);
-	Access_setIOAction  (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
+	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
 	Access_setActionDone_cb(myTest_AccessMEM, (void *)io_test_general_cb);
 	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
 	IO_addIOSequenceToList(myTest_AccessMEM);
+
+	TEST_ASSERT_EQUAL(0, io_test_cb_count );
 	IO_update();
 	IO_update();
-	//IO_update(); // <<-- safety call
-	TEST_ASSERT_EQUAL(0xFF, otherTestBuffer[0] );
-	//IO_sequenceComplete_cb();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
 	IO_update(); // <<-- safety call
