@@ -153,47 +153,6 @@ TEST(io, Class_ctor_is_IO_Class_ctor)
 	const struct IOClass * localIOClass = IOClass;
 	TEST_ASSERT_EQUAL_PTR(IOClass_ctor,  localIOClass->_.ctor);
 }
-/*
-TEST(io, IO_write_is_IO_io_write)
-{
-	//const struct IOClass * localIOClass = classOf(myTest_IO);
-	//TEST_ASSERT_EQUAL_PTR(IO_io_addWriteValue,  localIOClass->IO_addWriteValue);
-}
-
-TEST(io, IO_writeRead_is_IO_io_writeRead)
-{
-	const struct IOClass * localIOClass = classOf(myTest_IO);
-	TEST_ASSERT_EQUAL_PTR(IO_io_processSequence,  localIOClass->IO_processSequence);
-}
-
-TEST(io, IO_read_is_IO_io_read)
-{
-	const struct IOClass * localIOClass = classOf(myTest_IO);
-	TEST_ASSERT_EQUAL_PTR(IO_io_xxxx,  localIOClass->IO_xxxx);
-}
-*/
-
-/*
-TEST(io, address_is_Null_OnCreate)
-{
-	TEST_ASSERT_EQUAL_PTR(NULL,  myTest_IO->address);
-}
-
-TEST(io, ioAction_is_UNKNOWN_OnCreate)
-{
-	TEST_ASSERT_EQUAL(IO_ACTION_UNKNOWN,  myTest_IO->ioAction);
-}
-
-TEST(io, readCount_is_Zero_OnCreate)
-{
-	TEST_ASSERT_EQUAL(0,  myTest_IO->readCount);
-}
-
-TEST(io, writeCount_is_Zero_OnCreate)
-{
-	TEST_ASSERT_EQUAL(0,  myTest_IO->writeCount);
-}
-*/
 
 TEST(io, bufferPointer_is_testBuffer_OnCreate)
 {

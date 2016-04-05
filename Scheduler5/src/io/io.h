@@ -183,26 +183,6 @@ void * IO_xxxx(void * _self);
 /****** access methods  *******/
 
 /*!
- * Address for read or write operation.  Memory access to a NULL address is
- * ignored.
- */
-//void * IO_getAddress(const void * _self);
-//void * IO_setAddress(      void * _self, void * _address);
-
-//! Type of IO operation
-//io_read_write_t IO_getIOAction(const void * _self);
-//io_read_write_t IO_setIOAction(void * _self, io_read_write_t _ioAction);
-
-//! Number of values to read.  Must set before adding sequence on to IO list.
-//int IO_getReadCount(const void * _self);
-//int IO_setReadCount(      void * _self, int _readCount);
-
-//! Number of bytes to write.  Automatically managed when adding a command to buffer.
-//  TODO: why is this public?
-//int IO_getWriteCount(const void * _self);
-//int IO_setWriteCount(      void * _self, int _writeCount);
-
-/*!
  * Struct List pointer to buffer holding data for writes and reads.
  * Write operations are executed first.  Read data overwrites any previous
  * write data in the command buffer.
