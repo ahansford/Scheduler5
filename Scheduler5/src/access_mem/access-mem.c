@@ -829,23 +829,26 @@ void * Access_sequenceIsValid(struct AccessMEM * _self)
 	void *              address       = Access_getAddress(_self);
 	int                 writeCount    = Access_getWriteCount(_self);
 	int                 readCount     = Access_getReadCount(_self);
-	access_data_t *     bufferAddress = Access_getBufferPointer(_self);
+	access_data_t *     bufferPointer = Access_getBufferPointer(_self);
 	int                 bufferSize    = Access_getBufferSize(_self);
 
-	if ( ioAction <= ACCESS_ACTION_UNKNOWN ) { printf("ioAction unknown-\n"); return NULL; }
-	if ( ioAction > ACCESS_READ_SEQUENTIAL ) { printf("ioAction unknown+\n"); return NULL; }
+	if ( ioAction <= ACCESS_ACTION_UNKNOWN ) { return NULL; }
+	if ( ioAction > ACCESS_READ_SEQUENTIAL ) { return NULL; }
+	if ( bufferSize <= 0 )                   { return NULL; }
+	if ( address == NULL )                   { return NULL; }
+	if ( bufferPointer == NULL )             { return NULL; }
 
 	if ( ioAction >= ACCESS_WRITE_SINGLE ) {
-			if ( address == NULL )       { printf("address NULL\n"); return NULL; }
-			if ( bufferAddress == NULL ) { printf("bufferAddress NULL"); return NULL; }
-			if ( writeCount > bufferSize ){ printf("writeCount larger than bufferSize\n"); return NULL; }
+		if ( writeCount > bufferSize )       { return NULL; }
+		if ( writeCount < 0 )                { return NULL; }
 	}
 
 	if ( ioAction >= ACCESS_WRITE_READ_SINGLE ) {
-		if ( readCount > bufferSize )    { printf("readCount larger than bufferSize\n"); return NULL; }
+		if ( readCount > bufferSize )        { return NULL; }
+		if ( readCount < 0 )                 { return NULL; }
 	}
 
-	return _self;
+	return _self;  // Access object is legal ... success
 }
 
 /*
