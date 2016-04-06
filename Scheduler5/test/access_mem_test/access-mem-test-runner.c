@@ -120,6 +120,26 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, Access_setHardwareConfig_returnsUnknownOnNullPtr);
 	RUN_TEST_CASE(accessMem, Access_setHardwareConfig_canSetSpecificValue);
 
+	//****  Access_sequenceIsValid  ****************
+	/**/
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_SelfOnSingleWrite);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialWrite);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_SelfOnSingleWriteRead);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialWriteRead);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_SelfOnSingleRead);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialRead);
+
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnIoActionLessThanWriteSingle);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnIoActionGreaterThanReadSequential);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnWriteWithNullAddress);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnWriteWithNullBuffer);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnWriteCountLargerThanBufferSize);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnReadCountGreaterThanBufferSize);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnBufferSizeNegative);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnWriteCountNegative);
+	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnReadCountNegative);
+
 	//****  copy AccessMEM  ****************
 	/**/
 	RUN_TEST_CASE(accessMem, copy_returnsSelfOnSuccess);
