@@ -672,7 +672,6 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 	IO_struct->bufferPointer[0]= 0x05;
 	IO_struct->bufferPointer[1]= 0x06;
 	IO_struct->writeCount = 2;
-	//myTest_Sensor->ioStructPtr->ioAction = IO_WRITE_SEQUENTIAL;
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
 	IO_update();
 	IO_update();

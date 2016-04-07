@@ -63,5 +63,11 @@ void *    IO_io_xxxx(void * _self);
 //  gets struct IO item from internal list specified by IO_init(struct List *)
 void * IO_getIOSequenceFromList(void);
 
+/*!
+ * Generic IO callback that fires when I/O action is complete.  The IO state variable will
+ * increment automatically to a completed setting.
+ */
+void * IO_sequenceComplete_cb(void * _self);
+
 
 #endif /* SRC_IO_IO_PRIVATE_H_ */

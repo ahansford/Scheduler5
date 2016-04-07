@@ -327,7 +327,7 @@ TEST(io, copy_AllItemsCopiedToSelf)
 
 	// NOTE: sensorState, and pointers are unique for every sensor
 	//TEST_ASSERT_EQUAL(otherTestBuffer,     myTest_IO->address);
-	//TEST_ASSERT_EQUAL(IO_WRITE_SINGLE,            myTest_IO->ioAction);
+	//TEST_ASSERT_EQUAL(ACCESS_WRITE_SINGLE,            myTest_IO->ioAction);
 	//TEST_ASSERT_EQUAL(5,                   myTest_IO->readCount);
 	//TEST_ASSERT_EQUAL(6,                   myTest_IO->writeCount);
 	//// The buffer pointer is unique for every new(IO, &buffer) instantiation

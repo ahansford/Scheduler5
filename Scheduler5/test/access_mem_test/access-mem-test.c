@@ -264,7 +264,7 @@ TEST(accessMem, Access_getIOAction_returns_specificValue)
 
 TEST(accessMem, Access_setIOAction_returnsSpecificValue)
 {
-	TEST_ASSERT_EQUAL(ACCESS_WRITE_SINGLE,  Access_setIOAction(myTest_accessMem, IO_WRITE_SINGLE));
+	TEST_ASSERT_EQUAL(ACCESS_WRITE_SINGLE,  Access_setIOAction(myTest_accessMem, ACCESS_WRITE_SINGLE));
 }
 
 TEST(accessMem, Access_setIOAction_returnsUnknownOnNullPtr)

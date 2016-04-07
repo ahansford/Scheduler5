@@ -28,17 +28,17 @@ extern const void * IOClass;
  */
 typedef unsigned char io_data_t;
 
-/**/
+/*
 typedef enum io_read_write_t {
 	IO_ACTION_UNKNOWN = -1,
-	IO_WRITE_SINGLE,
-	IO_WRITE_SEQUENTIAL,
-	IO_WRITE_READ_SINGLE,
-	IO_WRITE_READ_SEQUENTIAL,
-	IO_READ_SINGLE,
-	IO_READ_SEQUENTIAL
+	//IO_WRITE_SINGLE,
+	//IO_WRITE_SEQUENTIAL,
+	//IO_WRITE_READ_SINGLE,
+	//IO_WRITE_READ_SEQUENTIAL,
+	//IO_READ_SINGLE,
+	//IO_READ_SEQUENTIAL
 } io_read_write_t;
-
+*/
 /*!
  * The generic callback typedef that takes a void pointer and returns a void
  * pointer.  Registered functions of this type can be called on completion of
@@ -114,7 +114,6 @@ typedef void * (* io_cb_fnct)(void * _io);
 void IO_init(struct List * _ioSequenceList);
 
 
-
 /*!
  * Adds the sequence of commands to the List of sequences managed by IO.
  * Returns command sequence on success.
@@ -127,11 +126,6 @@ void * IO_addIOSequenceToList(void * _self);
  */
 void IO_update(void);
 
-/*!  TODO:  This may be removed now that it is moved to AccessMEM
- * Executes communications sequence.  Called from within IO_update().
- * TODO: why is this function in the public header?
- */
-void * IO_processSequence(void * _self);
 
 /*!
  * Possible new method to allow multiple sequences to hold control of the
@@ -141,63 +135,22 @@ void * IO_processSequence(void * _self);
  * void * IO_getFollowOnSequence(void * _self);
  */
 
-/*!
- * Generic IO callback that fires when I/O action is complete.  The IO state variable will
- * increment automatically to a completed setting.
- */
-void * IO_sequenceComplete_cb(void * _self);
-
-
-
-
-
 // WARNING: this method is not implemented
 void * IO_xxxx(void * _self);
-
-/*!
- * Resets write and read counts indicating that the CMD buffer is clear.
- * Does not delete data previously loaded into the buffer area.
- */
-//void * IO_clearCommandBuffer(void * _self);
-
-/*!
- * TODO: NO LONGER USED
- * Writes communication sequences to the IO holding buffer.  Values will be
- * written to IO address when IO_update()via the scheduler task.  Returns
- * self on success.  The writeCount is automatically managed by add.
- */
-//void * IO_addWriteCommandToSequence(void * _self, io_data_t _value);
-
-/*!
- * Use IO_setReadCount(_self, _readCount) to set the number of bytes to read
- * after any write commands are executed.  The reads will
- * execute immediately after any preceding write commands.  The writeCount is
- * set automatically when write commands are added to the command buffer with
- * IO_addWriteCommandToSequence().  WARNING:  There are no protections against
- * counts larger than the command buffer size.  The external code calling the
- * IO methods should carefully manage size.
- */
 
 
 /******************************/
 /****** access methods  *******/
 
 /*!
- * Struct List pointer to buffer holding data for writes and reads.
- * Write operations are executed first.  Read data overwrites any previous
- * write data in the command buffer.
- */
-//void * IO_getBufferPointer(const void * _self);
-//void * IO_setBufferPointer(      void * _self, void * _bufferPointer);
-
-//! Number of values that can be stored in the command buffer.
-//int IO_getBufferSize(const void * _self);
-//int IO_setBufferSize(      void * _self, int _bufferSize);
-
-/*!
  * Called when operation is complete if function pointer is not NULL.
  * Passes parameter of objectPointer, accessible through
  * IO_getObjectPointer(), even if this value is NULL.
+ *
+ * WARNING: this callback is fired when any IO sequence is completed
+ * IO sequences can be from various modules and to various sink devices
+ * there is NO 1:1 relationship between a given sequence and this cb
+ * likely use is as part of a callback chain spanning several modules
  */
 io_cb_fnct IO_getActionDone_cb(const void * _self);
 io_cb_fnct IO_setActionDone_cb(      void * _self, io_cb_fnct _cb);

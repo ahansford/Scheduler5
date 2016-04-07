@@ -132,7 +132,7 @@ void * Access_sequenceComplete_cb(struct AccessMEM * _self);
 
 /*!
  * OPTIONAL: Resets write and read counts indicating that the CMD buffer is
- * clear.  Does not delete data previously loaded into the buffer area.
+ * clear.  Overwrites any data previously loaded into the buffer area, with zeros.
  */
 void * Access_clearCommandBuffer(void * _self);
 
@@ -143,11 +143,13 @@ void * Access_clearCommandBuffer(void * _self);
 /*!
  * Address for read or write operations.
  * Memory access to a NULL address is ignored.
+ * Access_getAddress() should be PRIVATE
  */
 void * Access_getAddress(const void * _self);
 void * Access_setAddress(      void * _self, void * _address);
 
 //! Type of Access operation
+// Access_getIOAction() should be PRIVATE
 access_read_write_t Access_getIOAction(const void * _self);
 access_read_write_t Access_setIOAction(void * _self,
 		                               access_read_write_t _ioAction);
@@ -155,6 +157,7 @@ access_read_write_t Access_setIOAction(void * _self,
 //! Number of values to read.
 //! Returns the value set.
 //! returns and sets zero if count exceeds buffer size.
+// Access_getReadCount() should be PRIVATE
 int Access_getReadCount(const void * _self);
 int Access_setReadCount(      void * _self, int _readCount);
 
@@ -167,6 +170,7 @@ int Access_setWriteCount(      void * _self, int _writeCount);
  * PRIVATE: pointer to buffer holding data for writes and reads.
  * Write operations are executed first.  Read data overwrites any previous
  * write data in the command buffer.
+ * // Access_setBufferPointer() should be PRIVATE
  */
 void * Access_getBufferPointer(const void * _self);
 void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
@@ -174,6 +178,8 @@ void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
 /*!
  * Number of values that can be stored in the command buffer.
  * Should be set immediately after new(AccessMEM, _commandBufferPtr); is called
+ * TODO: Shift the command buffer to an internally generated buffer
+ * Access_getBufferSize() is PRIVATE
  */
 int Access_getBufferSize(const void * _self);
 int Access_setBufferSize(      void * _self, int _size);
@@ -182,11 +188,16 @@ int Access_setBufferSize(      void * _self, int _size);
  * Called when operation is complete if function pointer is not NULL.
  * Passes parameter of objectPointer, accessible through
  * Access_getObjectPointer(), even if this value is NULL.
+ * Likely use is to increment a sensor state machine to the next state.
+ * This is done by setting the function pointer to the sensor increment
+ * process, while the object pointer is set to the specific calling object
+ * Access_getActionDone_cb() is PRIVATE
  */
 access_cb_fnct Access_getActionDone_cb(const void * _self);
 access_cb_fnct Access_setActionDone_cb(      void * _self, access_cb_fnct _cb);
 
 //! Object pointer parameter value for action done callback.
+//  Access_getObjectPointer() is PRIVATE
 void * Access_getObjectPointer(const void * _self);
 void * Access_setObjectPointer(      void * _self, void * _objectPointer);
 
