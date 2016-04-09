@@ -104,7 +104,12 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 	// TODO: created the command buffer once if pointer is NULL
 	// if buffer is created in this constructor, then its deletion
 	// must be kept separate from externally generated list buffers
-	self->bufferPointer = va_arg(* app, access_data_t *);
+
+	// c pointer assignments do not carry type information
+	// todo5:
+	Access_setBufferPointer(self, va_arg(* app, void *));
+	//Access_setBufferPointer(self, va_arg(* app, access_data_t *));
+	//Access_setBufferSize(self, va_arg(* app, int));
 
 	//self->minute = va_arg(* app, minute_t);
 

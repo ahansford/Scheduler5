@@ -25,6 +25,9 @@ struct       IO *      myTest_IO;
 // write data is assumed to be loaded first, and then potentially overwritten by the read operation
 #define IO_COMMAND_BUFFER_SIZE  4
 io_data_t testBuffer[IO_COMMAND_BUFFER_SIZE];
+//todo5:
+//io_data_t * testBuffer;
+
 io_data_t otherTestBuffer[IO_COMMAND_BUFFER_SIZE];
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
@@ -78,6 +81,9 @@ TEST_SETUP(io)
 	// WARNING:  must always set the buffer size when creating this object
 	myTest_AccessMEM = new(AccessMEM, testBuffer);
 	Access_setBufferSize(myTest_AccessMEM, IO_COMMAND_BUFFER_SIZE);
+	//todo5:
+	//myTest_AccessMEM = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
+	//testBuffer = Access_getBufferPointer(myTest_AccessMEM);
 
 }
 

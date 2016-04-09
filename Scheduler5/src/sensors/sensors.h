@@ -163,7 +163,7 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
  *  Do NOT set a value of 0 commands; this risks disallowed access to memory.
  */
 #define SENSOR_DEFAULT_MAX_COMMANDS 4
-typedef unsigned char command_t;
+typedef unsigned char sensor_default_command_t;
 
 /*!
  * The default memory address of 0x00 is loaded when the sensor initialized.

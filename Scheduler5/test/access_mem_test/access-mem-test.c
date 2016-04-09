@@ -29,6 +29,10 @@ struct       AccessMEM *      myTest_accessMem;
 
 access_data_t testBuffer[ACCESS_COMMAND_BUFFER_SIZE];
 access_data_t otherTestBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
+// todo5:
+//access_data_t * testBuffer;
+//access_data_t * otherTestBuffer;
+
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
 void * accessMem_test_general_cb(void * _self);
@@ -61,10 +65,12 @@ TEST_SETUP(accessMem)
 
 	// create a new AccessMEM object using the externally created testBuffer
 	myTest_accessMem = new(AccessMEM, testBuffer);
-
 	if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
-
 	Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
+	// todo5:
+	//myTest_accessMem = new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE);
+	//testBuffer = Access_getBufferPointer(myTest_accessMem);
+
 	// TODO: remove
 	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	//myTest_Sensor_class_PTR = Sensor;
@@ -638,6 +644,9 @@ TEST(accessMem, copy_AllItemsCopiedToSelf)
 	// NOTE: sensorState, and pointers are unique for every sensor
 	struct AccessMEM * masterAccess = new(AccessMEM, otherTestBuffer);
 	Access_setBufferSize    (masterAccess, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//todo5:
+	//struct AccessMEM * masterAccess = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//otherTestBuffer = Access_getBufferPointer(masterAccess);
 
 	Access_setAddress       (masterAccess, otherTestBuffer);
 	Access_setIOAction      (masterAccess, ACCESS_WRITE_SINGLE);
@@ -707,6 +716,10 @@ TEST(accessMem, equal_UnequalReadCountReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
 	Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//todo5:
+	//struct AccessMEM * masterIO = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//otherTestBuffer = Access_getBufferPointer(masterIO);
+
 	Access_setReadCount(masterIO, 1);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
@@ -733,6 +746,10 @@ TEST(accessMem, equal_UnequalBufferSizeReturn_Unequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
 	Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE );
+	//todo5:
+	//struct AccessMEM * masterIO = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//otherTestBuffer = Access_getBufferPointer(masterIO);
+
 	// buffer pointers and sizes are unique and will not trigger OBJECT_UNEQUAL
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
@@ -830,7 +847,7 @@ TEST(accessMem, AccessMEM_addWriteValue_AddingMoreThanBufferSizeReturnsNULL)
 	// pre-load the command buffer with max number of values
 	int i;
 	for ( i = 0; i < ACCESS_COMMAND_BUFFER_SIZE; i++ ) {
-		Access_addWriteCommandToSequence( myTest_accessMem, (io_data_t)i );
+		Access_addWriteCommandToSequence( myTest_accessMem, (access_data_t)i );
 	}
 
 	// add one too many values

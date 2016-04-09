@@ -623,10 +623,11 @@ static void * implement_Sensor_default_ctor(void * _self)
 	// complete initialization of values is only used for create and destroy
 	implement_Sensor_default_clearAllValues(self);
 
-	// create IO access structure and its data objects
+	// create an IO access structure and its data objects
+	
 	// allocate memory for the command buffer and assign the pointer
-	command_t * commandBufferPTR =
-			(command_t *)malloc(sizeof(command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
+	sensor_default_command_t * commandBufferPTR =
+			(sensor_default_command_t *)malloc(sizeof(sensor_default_command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
 	// WARNING TODO:  internal IO management List needed for IO_init() should
@@ -635,7 +636,12 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 
 	// create new Access structure object
+
 	struct SENSOR_DEFAULT_IO_TYPE * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
+	// todo5:
+	//struct SENSOR_DEFAULT_IO_TYPE * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, SENSOR_DEFAULT_MAX_COMMANDS);
+
+
 	if (ioStructPointer == NULL ) { printf("FAIL in sensor ctor; no AccessMEM object\n"); }
 	// WARNING:  MUST set the bufferSize when the Access structure
 	Access_setBufferSize(ioStructPointer, SENSOR_DEFAULT_MAX_COMMANDS);
@@ -1783,7 +1789,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		if ( localIoStructPtr == NULL ) { return NULL; }  // fail
 
 		//  get pointer to the command buffer
-		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+		sensor_default_command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
 		if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
 		// comm address is usually set externally once, just after new(Sensor)
@@ -1936,7 +1942,7 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		if ( localIoStructPtr == NULL ) { return NULL; }  // fail
 
 		//  get pointer to the command buffer
-		command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
+		sensor_default_command_t * commandBufferPTR = Sensor_getIoCommandBufPointer(_self);
 		if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
 		// comm address is usually set externally once, just after new(Sensor)
@@ -2222,7 +2228,7 @@ void * Sensor_getIoCommandBufPointer( void * _self)
 	}
 
 	//  get command buffer pointer
-	command_t * commandBufferPTR = Access_getBufferPointer(localIoStructPtr);
+	sensor_default_command_t * commandBufferPTR = Access_getBufferPointer(localIoStructPtr);
 	if ( commandBufferPTR == NULL ) {
 		Sensor_incrementMiniState(self);
 		return NULL;  // fail
