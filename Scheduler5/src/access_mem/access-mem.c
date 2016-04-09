@@ -6,6 +6,7 @@
  */
 
 //#include <string.h>
+#include <stdlib.h>                    // for free() and malloc()
 #include "access-mem.h"
 #include "access-mem-private.h"
 
@@ -106,10 +107,13 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 	// must be kept separate from externally generated list buffers
 
 	// c pointer assignments do not carry type information
-	// todo5:
-	Access_setBufferPointer(self, va_arg(* app, void *));
+
+
 	//Access_setBufferPointer(self, va_arg(* app, access_data_t *));
-	//Access_setBufferSize(self, va_arg(* app, int));
+
+	//Access_setBufferPointer(self, va_arg(* app, void *));
+	// todo5:
+	Access_setBufferSize(self, va_arg(* app, int));
 
 	//self->minute = va_arg(* app, minute_t);
 
@@ -573,8 +577,17 @@ static void * implement_Access_MEM_ctor(void * _self)
 	Access_setIOAction       (_self, ACCESS_ACTION_UNKNOWN);
 	Access_setReadCount      (_self, 0);
 	Access_setWriteCount     (_self, 0);
-	//Access_setBufferPointer(_self, bufferPointer);  // WARNING: set in main ctor
-	Access_setBufferSize     (_self, 0);
+
+	//Access_setBufferSize     (_self, 0);
+	//todo5:
+	// allocate memory for the command buffer and assign the pointer
+	int localBufferSize = Access_getBufferSize(_self);
+	access_data_t * commandBufferPTR =
+			(access_data_t *)malloc(sizeof(access_data_t)*localBufferSize);
+	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
+	Access_setBufferPointer(_self, commandBufferPTR);
+
+
 	Access_setActionDone_cb  (_self, NULL);
 	Access_setObjectPointer  (_self, NULL);
 	Access_setHardwareConfig (_self, NULL);

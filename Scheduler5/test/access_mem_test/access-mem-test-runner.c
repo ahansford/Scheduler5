@@ -14,7 +14,7 @@ TEST_GROUP_RUNNER(accessMem)
 {
 	/**************************************/
 	/**************  New  *****************/
-
+/**/
 	RUN_TEST_CASE(accessMem, myTest_accessMem_IsNotNullOnCreate);
 
 	RUN_TEST_CASE(accessMem, AccessMEM_IsNotNullOnCreate);
@@ -31,7 +31,7 @@ TEST_GROUP_RUNNER(accessMem)
 
 	RUN_TEST_CASE(accessMem, Access_addWriteCommandToSequence_is_Access_MEM_addWriteCommandToSequence);
 	RUN_TEST_CASE(accessMem, Access_processSequence_is_Access_MEM_processSequence);
-	//RUN_TEST_CASE(accessMem, Access_xxxx_is_Access_MEM_xxxx);
+	////RUN_TEST_CASE(accessMem, Access_xxxx_is_Access_MEM_xxxx);
 
 
 	RUN_TEST_CASE(accessMem, address_is_Null_OnCreate);
@@ -93,8 +93,8 @@ TEST_GROUP_RUNNER(accessMem)
 	/****  autoSet/Get bufferSize  ****************/
 	/**/
 	RUN_TEST_CASE(accessMem, Access_getBufferSize_returns_CorrectValueOnCreate);
-	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsZeroOnNullPtr);
-	RUN_TEST_CASE(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize);
+	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsZeroOnNullPtr);
+	RUN_TEST_CASE(accessMem, Access_setBufferSize_returnsCorrectBuffereSize);
 
 	/****  Set/Get Access_actionComplete_cb  ****************/
 	/**/
@@ -141,14 +141,14 @@ TEST_GROUP_RUNNER(accessMem)
 	RUN_TEST_CASE(accessMem, Access_sequenceIsValid_returns_NullOnReadCountNegative);
 
 	//****  copy AccessMEM  ****************
-	/**/
+	/*
 	RUN_TEST_CASE(accessMem, copy_returnsSelfOnSuccess);
 	RUN_TEST_CASE(accessMem, copy_AllItemsCopiedToSelf);
 	RUN_TEST_CASE(accessMem, copy_returnsNullOnNullSelf);
 	RUN_TEST_CASE(accessMem, copy_returnsNullOnNullMaster);
-
+*/
 	//****  equal AccessMEM  ********************
-	/**/
+	/*
 	RUN_TEST_CASE(accessMem, myTest_accessMem_IsEqualTo_myTest_accessMem);
 	RUN_TEST_CASE(accessMem, equal_UnequalAddressReturn_Unequal);
 	RUN_TEST_CASE(accessMem, equal_UnequalIOActionReturn_Unequal);
@@ -162,18 +162,18 @@ TEST_GROUP_RUNNER(accessMem)
 
 	RUN_TEST_CASE(accessMem, equal_NullReturns_OBJECT_UNEQUAL);
 	RUN_TEST_CASE(accessMem, equal_CopiedSensorReturnsEqual);
-
+*/
 	//****  AccessMEM_addWriteValue  ********************
-	/**/
+	/*
 	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_Returns_selfOnSuccess);
 	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_incrementsWriteCountOnSingleAdd);
 	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_addsSingleValue);
 	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_addsMultipleValues);
 	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_incrementsWriteCountOnMultipleAdd);
 	RUN_TEST_CASE(accessMem, AccessMEM_addWriteValue_AddingMoreThanBufferSizeReturnsNULL);
-
+*/
 	//****  IO_processSequence  ****************
-	/**/
+	/*
 	RUN_TEST_CASE(accessMem, IO_processSequence_Returns_selfOnSuccess);
 	RUN_TEST_CASE(accessMem, IO_processSequence_writeSingleToSingleAddress);
 	RUN_TEST_CASE(accessMem, IO_processSequence_writeMultipleValuesToSingleaddress);
@@ -195,5 +195,5 @@ TEST_GROUP_RUNNER(accessMem)
 
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_firesDesignatedCallback);
 	RUN_TEST_CASE(accessMem, Access_sequenceComplete_cb_sendsCorrectPtr);
-
+*/
 }

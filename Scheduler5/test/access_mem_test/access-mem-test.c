@@ -27,11 +27,13 @@ struct       AccessMEM *      myTest_accessMem;
 #define ACCESS_COMMAND_BUFFER_SIZE  9
 #define ACCESS_OTHER_COMMAND_BUFFER_SIZE  (ACCESS_COMMAND_BUFFER_SIZE + 1)
 
-access_data_t testBuffer[ACCESS_COMMAND_BUFFER_SIZE];
-access_data_t otherTestBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
+//access_data_t testBuffer[ACCESS_COMMAND_BUFFER_SIZE];
+//access_data_t otherTestBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
 // todo5:
-//access_data_t * testBuffer;
-//access_data_t * otherTestBuffer;
+access_data_t * testBuffer;
+access_data_t * otherTestBuffer;
+
+access_data_t scratchArrayBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
 
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
@@ -46,7 +48,7 @@ void * access_test_cb_ptr = NULL;
 
 
 //struct List * accessMemTest_ioActionList = NULL;
-void *        ASSECCTest_ioActionBuffer[4];
+//void *        ASSECCTest_ioActionBuffer[4];
 
 
 
@@ -64,25 +66,33 @@ TEST_SETUP(accessMem)
 	Access_init();
 
 	// create a new AccessMEM object using the externally created testBuffer
-	myTest_accessMem = new(AccessMEM, testBuffer);
-	if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
-	Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
+	//myTest_accessMem = new(AccessMEM, testBuffer);
+	//if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
+	//Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
 	// todo5:
-	//myTest_accessMem = new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE);
-	//testBuffer = Access_getBufferPointer(myTest_accessMem);
+	myTest_accessMem = new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE);
+	if ( myTest_accessMem == NULL ) { printf("new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE) is NULL\n"); }
+
+
+	testBuffer = Access_getBufferPointer(myTest_accessMem);
+	if ( testBuffer == NULL ) { printf("Access_getBufferPointer is NULL\n");}
 
 	// TODO: remove
 	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	//myTest_Sensor_class_PTR = Sensor;
 	//scheduler_Create(testTASKS_sensors);
 
-	otherTestBuffer[0] = 0x00;
-	otherTestBuffer[1] = 0x00;
-	otherTestBuffer[2] = 0x00;
+	scratchArrayBuffer[0] = 0x00;
+	scratchArrayBuffer[1] = 0x00;
+	scratchArrayBuffer[2] = 0x00;
 
 	testBuffer[0] = 0x00;
 	testBuffer[1] = 0x00;
 	testBuffer[2] = 0x00;
+
+	//otherTestBuffer[0] = 0x00;
+	//otherTestBuffer[1] = 0x00;
+	//otherTestBuffer[2] = 0x00;
 
 	access_test_cb_count  = 0;
 	//sensor_test_cb_count2 = 0;
@@ -379,15 +389,17 @@ TEST(accessMem, Access_getBufferSize_returns_CorrectValueOnCreate)
 	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE,  Access_getBufferSize(myTest_accessMem) );
 }
 
-TEST(accessMem, Access_autoUpdateBufferSize_returnsZeroOnNullPtr)
+TEST(accessMem, Access_setBufferSize_returnsZeroOnNullPtr)
 {
 	TEST_ASSERT_EQUAL(0,  Access_setBufferSize(NULL, ACCESS_COMMAND_BUFFER_SIZE));
 }
 
-TEST(accessMem, Access_autoUpdateBufferSize_returnsCorrectBuffereSize)
+TEST(accessMem, Access_setBufferSize_returnsCorrectBuffereSize)
 {
-	TEST_ASSERT_EQUAL(sizeof(testBuffer),  Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE));
+	// it's dangerous to modify the buffer size
+	access_data_t localBufferSize = Access_getBufferSize(myTest_accessMem);
 	TEST_ASSERT_EQUAL(ACCESS_COMMAND_BUFFER_SIZE,  Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE));
+	Access_setBufferSize(myTest_accessMem, localBufferSize);
 }
 
 /****  autoSet/Get Access_actionComplete_cb  ****************/
@@ -488,7 +500,7 @@ TEST(accessMem, Access_sequenceIsValid_returns_NullOnNullPtr)
 
 TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSingleWrite)
 {
-	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setAddress  (myTest_accessMem, scratchArrayBuffer);
 	Access_setIOAction (myTest_accessMem, ACCESS_WRITE_READ_SINGLE);
 	Access_setReadCount(myTest_accessMem, 1);
 	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
@@ -497,7 +509,7 @@ TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSingleWrite)
 
 TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialWrite)
 {
-	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setAddress  (myTest_accessMem, scratchArrayBuffer);
 	Access_setIOAction (myTest_accessMem, ACCESS_WRITE_SEQUENTIAL);
 	//Access_setReadCount(myTest_accessMem, 1);
 	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
@@ -506,7 +518,7 @@ TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialWrite)
 
 TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSingleWriteRead)
 {
-	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setAddress  (myTest_accessMem, scratchArrayBuffer);
 	Access_setIOAction (myTest_accessMem, ACCESS_WRITE_SINGLE);
 	//Access_setReadCount(myTest_accessMem, 1);
 	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
@@ -515,7 +527,7 @@ TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSingleWriteRead)
 
 TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialWriteRead)
 {
-	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setAddress  (myTest_accessMem, scratchArrayBuffer);
 	Access_setIOAction (myTest_accessMem, ACCESS_WRITE_READ_SEQUENTIAL);
 	Access_setReadCount(myTest_accessMem, 1);
 	Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
@@ -524,7 +536,7 @@ TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialWriteRead)
 
 TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSingleRead)
 {
-	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setAddress  (myTest_accessMem, scratchArrayBuffer);
 	Access_setIOAction (myTest_accessMem, ACCESS_READ_SINGLE);
 	Access_setReadCount(myTest_accessMem, 1);
 	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
@@ -533,7 +545,7 @@ TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSingleRead)
 
 TEST(accessMem, Access_sequenceIsValid_returns_SelfOnSequentialRead)
 {
-	Access_setAddress  (myTest_accessMem, otherTestBuffer);
+	Access_setAddress  (myTest_accessMem, scratchArrayBuffer);
 	Access_setIOAction (myTest_accessMem, ACCESS_READ_SEQUENTIAL);
 	Access_setReadCount(myTest_accessMem, 1);
 	//Access_addWriteCommandToSequence(myTest_accessMem, 0xFF);
@@ -642,11 +654,11 @@ TEST(accessMem, copy_returnsSelfOnSuccess)
 TEST(accessMem, copy_AllItemsCopiedToSelf)
 {
 	// NOTE: sensorState, and pointers are unique for every sensor
-	struct AccessMEM * masterAccess = new(AccessMEM, otherTestBuffer);
-	Access_setBufferSize    (masterAccess, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//struct AccessMEM * masterAccess = new(AccessMEM, otherTestBuffer);
+	//Access_setBufferSize    (masterAccess, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
 	//todo5:
-	//struct AccessMEM * masterAccess = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
-	//otherTestBuffer = Access_getBufferPointer(masterAccess);
+	struct AccessMEM * masterAccess = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	otherTestBuffer = Access_getBufferPointer(masterAccess);
 
 	Access_setAddress       (masterAccess, otherTestBuffer);
 	Access_setIOAction      (masterAccess, ACCESS_WRITE_SINGLE);
@@ -714,11 +726,11 @@ TEST(accessMem, equal_UnequalIOActionReturn_Unequal)
 
 TEST(accessMem, equal_UnequalReadCountReturn_Unequal)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	//struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
+	//Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
 	//todo5:
-	//struct AccessMEM * masterIO = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
-	//otherTestBuffer = Access_getBufferPointer(masterIO);
+	struct AccessMEM * masterIO = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	otherTestBuffer = Access_getBufferPointer(masterIO);
 
 	Access_setReadCount(masterIO, 1);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
@@ -744,11 +756,11 @@ TEST(accessMem, equal_UnequalBufferPointerReturn_Equal)
 
 TEST(accessMem, equal_UnequalBufferSizeReturn_Unequal)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE );
+	//struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
+	//Access_setBufferSize(masterIO, ACCESS_OTHER_COMMAND_BUFFER_SIZE );
 	//todo5:
-	//struct AccessMEM * masterIO = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
-	//otherTestBuffer = Access_getBufferPointer(masterIO);
+	struct AccessMEM * masterIO = new(AccessMEM, ACCESS_OTHER_COMMAND_BUFFER_SIZE);
+	otherTestBuffer = Access_getBufferPointer(masterIO);
 
 	// buffer pointers and sizes are unique and will not trigger OBJECT_UNEQUAL
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_accessMem, masterIO) );
