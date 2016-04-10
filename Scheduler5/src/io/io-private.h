@@ -11,8 +11,7 @@
 struct IO {
 	const struct Object _;	// should the Object or the "superclass"
 	// TODO: probably has no use, but still in the constuctor
-	io_data_t *   	bufferPointer;
-	//int				bufferSize;
+	struct List *   ioSequenceList;
 	io_cb_fnct		actionDone_cb;
 	void * 			objectPointer;  // back ptr to the original item
 };
@@ -61,7 +60,7 @@ void * super_IO_xxxx(const void * _class, void * _self);
 void *    IO_io_xxxx(void * _self);
 
 //  gets struct IO item from internal list specified by IO_init(struct List *)
-void * IO_getIOSequenceFromList(void);
+void * IO_getIOSequenceFromList(void * _self);
 
 /*!
  * Generic IO callback that fires when I/O action is complete.  The IO state variable will
@@ -69,5 +68,11 @@ void * IO_getIOSequenceFromList(void);
  */
 void * IO_sequenceComplete_cb(void * _self);
 
+
+/*!
+ * PRIVATE: Accessor method for internal List to hold IO actions
+ */
+void * IO_getIoSequenceList(const void * _self);
+void * IO_setIoSequenceList(void * _self, void * _ioSequenceList);
 
 #endif /* SRC_IO_IO_PRIVATE_H_ */

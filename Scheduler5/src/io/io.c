@@ -34,7 +34,7 @@ const void * IOClass = NULL;
 const void * IO      = NULL;
 
 struct List * ioSequenceList = NULL; // pointer to the List of sequences
-struct IO *   sequence = NULL;       // pointer to the sequence currently being executed
+struct AccessMEM * sequence  = NULL;       // pointer to the sequence currently being executed
 
 // the internally managed IO state machine state used in IO_update()
 io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
@@ -109,8 +109,9 @@ void * IO_io_ctor(void * _self, va_list * app)
 	// ... numerous unit tests will need to be adapted if uncommented
 	// TODO: needs to be removed from the listing, or converted to a list of
 	//       lists where meme, I2C and SPI are covered
-	self->bufferPointer = va_arg(* app, io_data_t *);
+	//self->bufferPointer = va_arg(* app, io_data_t *);
 	//self->minute = va_arg(* app, minute_t);
+	IO_setIoSequenceList(self, va_arg(* app, void *));
 
 	// modify return if data members are individually initialized above
 
@@ -304,13 +305,14 @@ void * IO_io_xxxx(void * _self)
 /*************************************************************/
 /***** store and get struct IO objects from ioActionList *****/
 
-void * IO_addIOSequenceToList(void * _self)
+void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 {
-	// TODO:  Add additional pointer (void * _self, void * _access)
 	struct AccessMEM * self = cast(AccessMEM, _self);
 	if( self == NULL ) { return NULL; } // fail
 
-	void * itemAddedToListPtr = add(ioSequenceList, self);
+	struct List * localIoSequenceList = IO_getIoSequenceList(self);
+	void * itemAddedToListPtr = add(localIoSequenceList, _ioSequence);
+	//void * itemAddedToListPtr = add(ioSequenceList, self);
 
 	// test for failure to add
 	if ( itemAddedToListPtr == NULL ) { return NULL; } // fail
@@ -318,9 +320,13 @@ void * IO_addIOSequenceToList(void * _self)
 	return self; // success
 }
 
-void * IO_getIOSequenceFromList(void)
+void * IO_getIOSequenceFromList(void * _self)
 {
-	void * itemFromList = take(ioSequenceList);
+	struct AccessMEM * self = cast(AccessMEM, _self);
+	if( self == NULL ) { return NULL; } // fail
+	struct List * localIoSequenceList = IO_getIoSequenceList(self);
+
+	void * itemFromList = take(localIoSequenceList);
 	return itemFromList;
 }
 
@@ -335,9 +341,10 @@ void * IO_sequenceComplete_cb(void * _self)
 /*********************/
 /***** IO_update *****/
 
-void IO_update(void)
+void * IO_update(void * _self)
 {
-	// TODO:  Add new parameter (void * _self)
+	struct IO * self = cast(IO, _self);
+	if (self == NULL ) { return NULL; }
 
 	// TODO: io_state_t io_update_state = IO_getIoState(_self);
 	// TODO: struct AccessMEM * sequence = cast( AccessMEM, IO_getSequencePtr(_self));
@@ -348,7 +355,7 @@ void IO_update(void)
 	case IO_UPDATE_IDLE: {
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time per I/O access method
-		sequence = IO_getIOSequenceFromList();
+		sequence = IO_getIOSequenceFromList(self);
 
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
@@ -409,7 +416,7 @@ void IO_update(void)
 	}  //  end switch
 
 	// TODO: IO_setIoState(_self, io_update_state);
-	return;
+	return self;
 }
 
 
@@ -418,23 +425,23 @@ void IO_update(void)
 /****************************************************************************/
 
 /*****************************************/
-/*****  set and get bufferPointer  *******/
-/*
-void * IO_getBufferPointer(const void * _self)
+/*****  set and get ioSequenceList  *******/
+
+void * IO_getIoSequenceList(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
-	return self->bufferPointer;
+	return self->ioSequenceList;
 }
 
-void * IO_setBufferPointer(void * _self, void * _bufferPointer)
+void * IO_setIoSequenceList(void * _self, void * _ioSequenceList)
 {
 	struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return NULL; }
-	self->bufferPointer = _bufferPointer;
-	return _bufferPointer;
+	self->ioSequenceList = _ioSequenceList;
+	return _ioSequenceList;
 }
-*/
+
 /*****************************************/
 /*****  set and get bufferSize  *******/
 /*

@@ -15,18 +15,17 @@
 #include "..\..\src\io\io.h"
 //#include "..\..\src\sensors\sensors-private.h"
 
+
 /****************************************/
 /*** Basic Object and Class Testing ****/
 struct       IO *      myTest_IO;
-//const struct IOClass * myTest_IOClass_PTR;
-//const struct Class *       myTest_IO_class_PTR;
 
 // test buffer is a combined memory area for both write and read data
 // write data is assumed to be loaded first, and then potentially overwritten by the read operation
 #define IO_COMMAND_BUFFER_SIZE  4
-io_data_t testBuffer[IO_COMMAND_BUFFER_SIZE];
+io_data_t scratchArrayBuffer[IO_COMMAND_BUFFER_SIZE];
 //todo5:
-//io_data_t * testBuffer;
+io_data_t * testBuffer;
 
 io_data_t otherTestBuffer[IO_COMMAND_BUFFER_SIZE];
 //struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
@@ -64,27 +63,26 @@ TEST_SETUP(io)
 
 	io_test_cb_count  = 0;
 
-	//sensor_test_cb_count2 = 0;
-	//myTest_SensorClass_PTR  = classOf(myTest_Sensor);
-	//myTest_Sensor_class_PTR = Sensor;
 	//scheduler_Create(testTASKS_sensors);
 
 	otherTestBuffer[0] = 0x00;
 	otherTestBuffer[1] = 0x00;
 	otherTestBuffer[2] = 0x00;
 
-	testBuffer[0] = 0x00;
-	testBuffer[1] = 0x00;
-	testBuffer[2] = 0x00;
+
 
 	// create an AccessMEM object with an EXTERNAL data buffer
 	// WARNING:  must always set the buffer size when creating this object
-	myTest_AccessMEM = new(AccessMEM, testBuffer);
-	Access_setBufferSize(myTest_AccessMEM, IO_COMMAND_BUFFER_SIZE);
+	//myTest_AccessMEM = new(AccessMEM, testBuffer);
+	//Access_setBufferSize(myTest_AccessMEM, IO_COMMAND_BUFFER_SIZE);
 	//todo5:
-	//myTest_AccessMEM = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
-	//testBuffer = Access_getBufferPointer(myTest_AccessMEM);
+	myTest_AccessMEM = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
 
+	// secure access the the internal command buffer for testing
+	testBuffer = Access_getBufferPointer(myTest_AccessMEM);
+	testBuffer[0] = 0x00;
+	testBuffer[1] = 0x00;
+	testBuffer[2] = 0x00;
 }
 
 TEST_TEAR_DOWN(io)
@@ -162,7 +160,7 @@ TEST(io, Class_ctor_is_IO_Class_ctor)
 
 TEST(io, bufferPointer_is_testBuffer_OnCreate)
 {
-	TEST_ASSERT_EQUAL_PTR(testBuffer,  myTest_IO->bufferPointer);
+	//TEST_ASSERT_EQUAL_PTR(testBuffer,  myTest_IO->bufferPointer);
 }
 
 TEST(io, IO_actionComplete_cb_is_Null_OnCreate)
@@ -430,24 +428,26 @@ TEST(io, equal_CopiedSensorReturnsEqual)
 
 TEST(io, IO_addIOSequenceToList_returnsNullOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(NULL, IO_addIOSequenceToList(NULL) );
+	TEST_ASSERT_EQUAL(NULL, IO_addIOSequenceToList(myTest_IO, NULL) );
 }
 
 TEST(io, IO_addIOSequenceToList_Returns_selfOnSuccess)
 {
-	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_addIOSequenceToList(myTest_AccessMEM) );
+	printf("\n TEST: IO_addIOSequenceToList_Returns_selfOnSuccess at LINE: %i", __LINE__);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM) );
+	printf("\n TEST END: %i", __LINE__);
 }
 
 TEST(io, IO_addIOSequenceToList_takeRemovesItemFromList)
 {
-	IO_addIOSequenceToList(myTest_AccessMEM);
-	TEST_ASSERT_EQUAL(myTest_AccessMEM, take(IOTest_ioListOfSequences) );
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, take(myTest_IO) );
 }
 
 TEST(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd)
 {
-	IO_addIOSequenceToList(myTest_AccessMEM);
-	TEST_ASSERT_EQUAL(1, getItemCount(IOTest_ioListOfSequences) );
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(1, getItemCount(myTest_IO) );
 }
 
 TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
@@ -455,9 +455,9 @@ TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
 	struct AccessMEM * myTest_Access_1 = new(AccessMEM, testBuffer);
 	struct AccessMEM * myTest_Access_2 = new(AccessMEM, testBuffer);
 	struct AccessMEM * myTest_Access_3 = new(AccessMEM, testBuffer);
-	IO_addIOSequenceToList(myTest_Access_1);
-	IO_addIOSequenceToList(myTest_Access_2);
-	IO_addIOSequenceToList(myTest_Access_3);
+	IO_addIOSequenceToList(myTest_IO, myTest_Access_1);
+	IO_addIOSequenceToList(myTest_IO, myTest_Access_2);
+	IO_addIOSequenceToList(myTest_IO, myTest_Access_3);
 	TEST_ASSERT_EQUAL(myTest_Access_1, take(IOTest_ioListOfSequences) );
 	TEST_ASSERT_EQUAL(myTest_Access_2, take(IOTest_ioListOfSequences) );
 	TEST_ASSERT_EQUAL(myTest_Access_3, take(IOTest_ioListOfSequences) );
@@ -471,38 +471,38 @@ TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
 
 TEST(io, IO_getIOSequenceFromList_returnsNullOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList() );
+	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList(myTest_AccessMEM) );
 }
 
 TEST(io, IO_getIOSequenceFromList_Returns_NullOnemptyList)
 {
-	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList() );
+	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList(myTest_AccessMEM) );
 }
 
 TEST(io, IO_getIOSequenceFromList_Returns_objectFromList)
 {
-	IO_addIOSequenceToList(myTest_AccessMEM);
-	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_getIOSequenceFromList() );
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_getIOSequenceFromList(myTest_AccessMEM) );
 }
 
 TEST(io, IO_getIOSequenceFromList_listContainsZeroItemsAfterGet)
 {
-	IO_addIOSequenceToList(myTest_AccessMEM);
-	IO_getIOSequenceFromList();
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
+	IO_getIOSequenceFromList(myTest_IO);
 	TEST_ASSERT_EQUAL(0, getItemCount(IOTest_ioListOfSequences) );
 }
 
 TEST(io, IO_getIOSequenceFromList_Returns_MultipleioObjectsFromList)
 {
-	struct AccessMEM * myTest_IO_1 = new(AccessMEM, testBuffer);
-	struct AccessMEM * myTest_IO_2 = new(AccessMEM, testBuffer);
-	struct AccessMEM * myTest_IO_3 = new(AccessMEM, testBuffer);
-	IO_addIOSequenceToList(myTest_IO_1);
-	IO_addIOSequenceToList(myTest_IO_2);
-	IO_addIOSequenceToList(myTest_IO_3);
-	TEST_ASSERT_EQUAL(myTest_IO_1, IO_getIOSequenceFromList() );
-	TEST_ASSERT_EQUAL(myTest_IO_2, IO_getIOSequenceFromList() );
-	TEST_ASSERT_EQUAL(myTest_IO_3, IO_getIOSequenceFromList() );
+	struct AccessMEM * myTest_IO_1 = new(AccessMEM, 3);
+	struct AccessMEM * myTest_IO_2 = new(AccessMEM, 3);
+	struct AccessMEM * myTest_IO_3 = new(AccessMEM, 3);
+	IO_addIOSequenceToList(myTest_IO, myTest_IO_1);
+	IO_addIOSequenceToList(myTest_IO, myTest_IO_2);
+	IO_addIOSequenceToList(myTest_IO, myTest_IO_3);
+	TEST_ASSERT_EQUAL(myTest_IO_1, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_IO_2, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_IO_3, IO_getIOSequenceFromList(myTest_IO) );
 	TEST_ASSERT_EQUAL(NULL, take(IOTest_ioListOfSequences) );
 	myTest_IO_1 = safeDelete(myTest_IO_1);
 	myTest_IO_2 = safeDelete(myTest_IO_2);
@@ -521,14 +521,14 @@ TEST(io, IO_update_writeSingleToSingleAddress)
 	//Access_setObjectPointer         (myTest_AccessMEM, (void *)myTest_AccessMEM);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(0xFF, otherTestBuffer[0] );
 }
 
@@ -541,14 +541,14 @@ TEST(io, IO_update_writeMultipleValuesToSingleAddress)
 	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_AccessMEM);
+	IO_update(myTest_AccessMEM);
+	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_AccessMEM); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[0] );
 }
 
@@ -563,14 +563,14 @@ TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList (myTest_AccessMEM);
+	IO_addIOSequenceToList (myTest_IO, myTest_AccessMEM);
 
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_AccessMEM);
+	IO_update(myTest_AccessMEM);
+	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_AccessMEM); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, otherTestBuffer[0] );
 	TEST_ASSERT_EQUAL(0x02, otherTestBuffer[1] );
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[2] );
@@ -584,14 +584,14 @@ TEST(io, IO_update_readSingleValue)
 	otherTestBuffer[0] = 0x01;
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 }
 
@@ -606,14 +606,14 @@ TEST(io, IO_update_readSequentialMultipleValues)
 
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x02, testBuffer[1] );
 	TEST_ASSERT_EQUAL(0x03, testBuffer[2] );
@@ -629,14 +629,14 @@ TEST(io, IO_update_readMultipleValuesfromSingleLocation)
 	otherTestBuffer[2] = 0x03;
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x01, testBuffer[1] );
 	TEST_ASSERT_EQUAL(0x01, testBuffer[2] );
@@ -651,26 +651,26 @@ TEST(io, IO_update_firesCallback)
 	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
-	IO_addIOSequenceToList(myTest_AccessMEM);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
 	TEST_ASSERT_EQUAL(0, io_test_cb_count );
-	IO_update();
-	IO_update();
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
-	IO_update(); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(1, io_test_cb_count );
 }
 
 TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 {
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
 	TEST_ASSERT_EQUAL(0x00, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x00, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x00, testBuffer[1] );

@@ -118,13 +118,13 @@ void IO_init(struct List * _ioSequenceList);
  * Adds the sequence of commands to the List of sequences managed by IO.
  * Returns command sequence on success.
  */
-void * IO_addIOSequenceToList(void * _self);
+void * IO_addIOSequenceToList(void * _self, void * _ioSequence);
 
 /*!
  * Executes the IO state machine, and is called from the scheduler.  Returns
  * processed struct IO object pointer on completion.
  */
-void IO_update(void);
+void * IO_update(void * _self);
 
 
 /*!

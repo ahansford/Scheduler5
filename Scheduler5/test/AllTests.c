@@ -42,7 +42,7 @@ static void RunAllTests(void)
 	RUN_TEST_GROUP(eventController); // come back to check this one
 	RUN_TEST_GROUP(button);
 	//RUN_TEST_GROUP(sensor);
-	//RUN_TEST_GROUP(io);
+	RUN_TEST_GROUP(io);
 	RUN_TEST_GROUP(accessMem);
 
 }
