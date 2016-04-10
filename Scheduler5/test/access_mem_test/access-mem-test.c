@@ -19,8 +19,6 @@
 /****************************************/
 /*** Basic Object and Class Testing ****/
 struct       AccessMEM *      myTest_accessMem;
-//const struct IOClass * myTest_accessMemClass_PTR;
-//const struct Class *       myTest_accessMem_class_PTR;
 
 // test buffer is a combined memory area for both write and read data
 // write data is assumed to be loaded first, and then potentially overwritten by the read operation
@@ -39,6 +37,7 @@ access_data_t scratchArrayBuffer[ACCESS_OTHER_COMMAND_BUFFER_SIZE];
 
 void * accessMem_test_general_cb(void * _self);
 //struct Sensor * Sensor_test_general_cb2(struct Sensor * _self);
+
 int access_test_cb_count;
 //int access_test_cb_count2;
 

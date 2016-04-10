@@ -587,7 +587,6 @@ static void * implement_Access_MEM_ctor(void * _self)
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 	Access_setBufferPointer(_self, commandBufferPTR);
 
-
 	Access_setActionDone_cb  (_self, NULL);
 	Access_setObjectPointer  (_self, NULL);
 	Access_setHardwareConfig (_self, NULL);
@@ -600,9 +599,14 @@ static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 	Access_setIOAction     (_self, ACCESS_ACTION_UNKNOWN);
 	Access_setReadCount    (_self, 0);
 	Access_setWriteCount   (_self, 0);
+
+	//todo5:
+	// free the memory block
 	Access_clearCommandBuffer(_self);
-	// WARNING: TODO:  delete/free the command buffer externally
+	void * localBufferPointer = Access_getBufferPointer(_self);
+	if( localBufferPointer != NULL ) { free(localBufferPointer); }
 	Access_setBufferPointer (_self, NULL);
+
 	Access_setBufferSize    (_self, 0);
 	Access_setActionDone_cb (_self, NULL);
 	Access_setObjectPointer (_self, NULL);
@@ -670,8 +674,8 @@ void * Access_clearCommandBuffer(void * _self)
 	for( i = 0; i < Access_getBufferSize(_self); i++ ) {
 		bufferPointer[i] = (access_data_t)0;
 	}
-	Access_setWriteCount(_self, 0);
-	Access_setReadCount(_self, 0);
+	//Access_setWriteCount(_self, 0);
+	//Access_setReadCount(_self, 0);
 	return _self;
 }
 

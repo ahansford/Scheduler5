@@ -65,19 +65,15 @@ typedef void * (* access_cb_fnct)(void * _io);
  *
  *	// create a command and data buffer
  *	#define ACCESS_COMMAND_BUFFER_SIZE  4
- *	access_data_t dataCommandBuffer[ACCESS_COMMAND_BUFFER_SIZE];
  *
  *	// create an AccessMEM object
  *	// pointer and buffer size assignments are handled automatically
- *	my_accessMem = new(AccessMEM, dataCommandBuffer);
+ *	my_accessMem = new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE);
  *	if ( myTest_accessMem == NULL )
  *		{ failure to create object; error handling here }
  *
- *	// set buffer size before setting other Access object data members
- *	Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
- *
  *	// set the AccessMEM data members before triggering processing
- *  Access_setAddress   (my_accessMem, otherTestBuffer);
+ *  Access_setAddress   (my_accessMem, targetAddress);
  *  Access_setIOAction  (my_accessMem, ACCESS_WRITE_READ_SINGLE);
  *
  *  // add any write commands to the command buffer
@@ -87,6 +83,9 @@ typedef void * (* access_cb_fnct)(void * _io);
  *
  *  // OPTIONAL:  If read operations are executed, the read count is set here.
  *  Access_setReadCount(my_accessMem, 3);
+ *
+ *  if ( Access_sequenceIsValid(my_accessMem) == NULL )
+ *  	{ ERROR due to incomplete IO structure settings }
  *
  *  // Set the call back function to fire once Access completes.
  *  // Assumes that a higher level module is calling down into Access.
