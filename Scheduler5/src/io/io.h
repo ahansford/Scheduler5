@@ -65,8 +65,10 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	success, otherwise returns NULL.
  *
  *	@code
- *	// Create a List where IO will store IO sequences waiting to be executed
+ *
+ *	// create an initial array to seed a List for IO storage
  *	void * IO_actionBuffer[4];
+ *	// Create a List where IO will store IO sequences waiting to be executed
  *	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
  *	IO_init(IOTest_ioActionList);
  *
@@ -76,28 +78,33 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	// Create an area in memory where reads and write are allowed
  *	// Set address to this area
  *	io_data_t allowedMemoryArea[16];
- *	IO_setAddress(myIOobject, allowedMemoryArea);
+ *
+ *	// create an Access object
+ *	myAccessObject = new(AccessMEM, MAX_NUMBER_OF_COMMANDS);
+ *	IO_setAddress(myAccessObject, allowedMemoryArea);
  *
  *	// Clear the command buffer
- *	IO_clearCommandSequences(myIOobject);
+ *	IO_clearCommandSequences(myAccessObject);
  *
  *	// Add write commands to the buffer (example only)
  *	// Write counts are managed by the add operation
- *	IO_addWriteCommandToSequence(myIOobject, 0x03);
- *	IO_addWriteCommandToSequence(myIOobject, 0x41);
+ *	IO_addWriteCommandToSequence(myAccessObject, 0x03);
+ *	IO_addWriteCommandToSequence(myAccessObject, 0x41);
  *
  *	// OPTIONAL:  If read operations are executed, the read count is set here.
- *	IO_setReadCount(myIOobject, 1);
+ *	IO_setReadCount(myAccessObject, 1);
  *
  *	// Set IO action to desired format
- *	IO_setIOAction(myIOobject, IO_WRITE_SEQUENTIAL);
+ *	IO_setIOAction(myAccessObject, IO_WRITE_SEQUENTIAL);
+ *
+ *	if ( Access_sequenceIsValid(myAccessObject) == NULL ) { return NULL; }
  *
  *	// Set communication complete callback ... fired when communication is done
  *	IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct) My_CommCompleteDone_CB);
  *	IO_setObjectPointer(localIoStructPtr, (void *)My_Pointer);
  *
  *	// Add the IO sequence to the main IO list IOTest_ioActionList
- *	IO_addIOSequenceToList(myIOobject)
+ *	IO_addIOSequenceToList(myIOobject, myAccessObject)
  *
  * 	// Set recurrent scheduler task specifying a suitable period in ticks.
  * 	scheduler_AddTask(IO_update,

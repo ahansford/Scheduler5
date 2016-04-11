@@ -1680,10 +1680,13 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 
 	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
+	/*
 	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr)
 		{ return NULL;  // fail
-	}
 
+	return _self;
+	}
+*/
 	return _self; // expected return path
 }
 
@@ -1703,8 +1706,8 @@ static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self
 
 	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
-	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr)
-		{ return NULL; }  // fail
+	//if ( IO_addIOSequenceToList(IO_OBJECT_TODO, localIoStructPtr) != localIoStructPtr)
+	//	{ return NULL; }  // fail
 
 	return _self; // expected return path
 }

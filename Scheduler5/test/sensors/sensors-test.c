@@ -673,11 +673,11 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 	IO_struct->bufferPointer[1]= 0x06;
 	IO_struct->writeCount = 2;
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	IO_update(IO_struct);
+	IO_update(IO_struct);
+	IO_update(IO_struct);
+	IO_update(IO_struct);
+	IO_update(IO_struct);
 
 	TEST_ASSERT_EQUAL(0x05,  targetArray[0] );
 	TEST_ASSERT_EQUAL(0x06,  targetArray[1] );
@@ -729,14 +729,14 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	//       todo: add to the sensor setup.  Probably a function like IO_getIoManagerPtr();
 	//
 	//IO_sequenceComplete_cb();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
-	IO_update();
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
+	//IO_update(IO_struct);
 
 	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(0x05,  Access_struct->bufferPointer[0] );
@@ -1462,7 +1462,7 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	int i;
 	for ( i = 0; i < 25; i++) {
 	Sensor_update(myTest_Sensor);
-	IO_update();
+	//IO_update();
 	}
 
 	// TODO: FIX this error
@@ -1609,19 +1609,19 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	// WARNING:  there need to be enough Sensor_update() calls to complete the
 	//           state machine processing ... reason is that example comm code shown
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	IO_update();
+	//IO_update();
 
 	// TODO: FIX this error
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);

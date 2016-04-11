@@ -33,8 +33,9 @@ static void * implement_IO_io_xxxx(struct IO * _self);
 const void * IOClass = NULL;
 const void * IO      = NULL;
 
+//TODO:move sequence into the private member space
 struct List * ioSequenceList = NULL; // pointer to the List of sequences
-struct AccessMEM * sequence  = NULL;       // pointer to the sequence currently being executed
+struct AccessMEM * sequence  = NULL; // pointer to the sequence currently being executed
 
 // the internally managed IO state machine state used in IO_update()
 io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
@@ -79,7 +80,7 @@ void IO_init(struct List * _ioSequenceList)
 					0);	// Terminator
 	}
 
-	ioSequenceList = _ioSequenceList;
+	//ioSequenceList = _ioSequenceList;
 
 	// WARNING:  the IO state machine needs a time out check in
 	// the IO_UPDATE_WAITING_COMMAND state in case the lower IO access
@@ -307,7 +308,7 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 {
-	struct AccessMEM * self = cast(AccessMEM, _self);
+	struct IO * self = cast(IO, _self);
 	if( self == NULL ) { return NULL; } // fail
 
 	struct List * localIoSequenceList = IO_getIoSequenceList(self);
@@ -322,7 +323,7 @@ void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 
 void * IO_getIOSequenceFromList(void * _self)
 {
-	struct AccessMEM * self = cast(AccessMEM, _self);
+	struct IO * self = cast(IO, _self);
 	if( self == NULL ) { return NULL; } // fail
 	struct List * localIoSequenceList = IO_getIoSequenceList(self);
 
@@ -528,6 +529,7 @@ static void * implement_IO_io_dtor(struct IO * _self)
 	//// WARNING:  delete/free the command buffer externally
 	//IO_setBufferPointer (_self, NULL);
 	//IO_setBufferSize    (_self, 0);
+	IO_setIoSequenceList(_self, NULL);
 	IO_setActionDone_cb(_self, NULL);
 	IO_setObjectPointer(_self, NULL);
 	return _self;

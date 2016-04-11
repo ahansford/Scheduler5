@@ -77,9 +77,9 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, copy_returnsNullOnNullMaster);
 
 	//****  equal IO_io_equal  ********************
-
-	RUN_TEST_CASE(io, myTest_IO_IsEqualTo_myTest_IO);
 	/**/
+	RUN_TEST_CASE(io, myTest_IO_IsEqualTo_myTest_IO);
+
 	////RUN_TEST_CASE(io, equal_UnequalBufferPointerReturn_Equal);
 	////RUN_TEST_CASE(io, equal_UnequalBufferSizeReturn_Unequal);
 
@@ -91,22 +91,22 @@ TEST_GROUP_RUNNER(io)
 
 	//****  IO_addIOSequenceToList  *********************
 	/**/
-	RUN_TEST_CASE(io, IO_addIOSequenceToList_returnsNullOnNullPtr);
-	RUN_TEST_CASE(io, IO_addIOSequenceToList_Returns_selfOnSuccess);
-	RUN_TEST_CASE(io, IO_addIOSequenceToList_takeRemovesItemFromList);
-	RUN_TEST_CASE(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd);
-	RUN_TEST_CASE(io, IO_addIOSequenceToList_addsMultipleIOObjects);
+	//RUN_TEST_CASE(io, IO_addIOSequenceToList_returnsNullOnNullPtr);
+	//RUN_TEST_CASE(io, IO_addIOSequenceToList_Returns_selfOnSuccess);
+	//RUN_TEST_CASE(io, IO_addIOSequenceToList_takeRemovesItemFromList);
+	//RUN_TEST_CASE(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd);
+	//RUN_TEST_CASE(io, IO_addIOSequenceToList_addsMultipleIOObjects);
 
 	//****  IO_getIOSequenceFromList  *********************
-	/**/
+	/*
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_returnsNullOnNullPtr);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_Returns_NullOnemptyList);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_Returns_objectFromList);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_listContainsZeroItemsAfterGet);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_Returns_MultipleioObjectsFromList);
-
+*/
 	//****  IO_update  *********************
-	/**/
+	/*
 	RUN_TEST_CASE(io, IO_update_writeSingleToSingleAddress);
 	RUN_TEST_CASE(io, IO_update_writeMultipleValuesToSingleAddress);
 	RUN_TEST_CASE(io, IO_update_writeMultipleValuesToSequentialLocation);
@@ -117,6 +117,6 @@ TEST_GROUP_RUNNER(io)
 
 	RUN_TEST_CASE(io, IO_update_firesCallback);
 	RUN_TEST_CASE(io, IO_update_canBeCalledMultipleTimesWithEmplyList);
-
+*/
 
 }
