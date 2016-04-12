@@ -28,7 +28,7 @@ TEST_GROUP_RUNNER(io)
 
 	RUN_TEST_CASE(io, Class_ctor_is_IO_Class_ctor);
 
-	RUN_TEST_CASE(io, bufferPointer_is_testBuffer_OnCreate);
+	RUN_TEST_CASE(io, bufferPointer_is_IOTest_ioListOfSequences_OnCreate);
 	RUN_TEST_CASE(io, IO_actionComplete_cb_is_Null_OnCreate);
 	RUN_TEST_CASE(io, objectPointer_is_Null_OnCreate);
 
@@ -37,22 +37,14 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(sensor, delete_returns_SelfOnSuccess);
 	RUN_TEST_CASE(sensor, delete_safeDelete_returnsNullOnSuccess);
 
-	/****  Set/Get bufferPointer  ****************/
-	/*
-	RUN_TEST_CASE(io, IO_getBufferPointer_returns_UnknownOnCreate);
-	RUN_TEST_CASE(io, IO_getBufferPointer_returns_specificValue);
-	RUN_TEST_CASE(io, IO_setBufferPointer_returnsSpecificValue);
-	RUN_TEST_CASE(io, IO_setBufferPointer_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(io, IO_setBufferPointer_canSetSpecificValue);
-	 */
-	/****  Set/Get bufferSize  ****************/
-	/*
-	RUN_TEST_CASE(io, IO_getBufferSize_returns_DefineValueOnCreate);
-	RUN_TEST_CASE(io, IO_getBufferSize_returns_specificValue);
-	RUN_TEST_CASE(io, IO_setBufferSize_returnsSpecificValue);
-	RUN_TEST_CASE(io, IO_setBufferSize_returnsUnknownOnNullPtr);
-	RUN_TEST_CASE(io, IO_setBufferSize_canSetSpecificValue);
-	 */
+	/****  Set/Get IoSequenceList  ****************/
+	/**/
+	RUN_TEST_CASE(io, IO_getIoSequenceList_returns_UnknownOnCreate);
+	RUN_TEST_CASE(io, IO_getIoSequenceList_returns_specificValue);
+	RUN_TEST_CASE(io, IO_setIoSequenceList_returnsSpecificValue);
+	RUN_TEST_CASE(io, IO_setIoSequenceList_returnsUnknownOnNullPtr);
+	RUN_TEST_CASE(io, IO_setIoSequenceList_canSetSpecificValue);
+
 	/****  Set/Get IO_actionComplete_cb  ****************/
 	/**/
 	RUN_TEST_CASE(io, IO_getIO_actionComplete_cb_returns_UnknownOnCreate);
@@ -79,9 +71,7 @@ TEST_GROUP_RUNNER(io)
 	//****  equal IO_io_equal  ********************
 	/**/
 	RUN_TEST_CASE(io, myTest_IO_IsEqualTo_myTest_IO);
-
-	////RUN_TEST_CASE(io, equal_UnequalBufferPointerReturn_Equal);
-	////RUN_TEST_CASE(io, equal_UnequalBufferSizeReturn_Unequal);
+	RUN_TEST_CASE(io, equal_UnequalSequenceListPointerReturn_Equal);
 
 	RUN_TEST_CASE(io, equal_UnequalActionDoneCB_Unequal);
 	RUN_TEST_CASE(io, equal_UnequalObjectPointerUnequal);
@@ -98,15 +88,15 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_addIOSequenceToList_addsMultipleIOObjects);
 
 	//****  IO_getIOSequenceFromList  *********************
-	/*
+	/**/
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_returnsNullOnNullPtr);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_Returns_NullOnemptyList);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_Returns_objectFromList);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_listContainsZeroItemsAfterGet);
 	RUN_TEST_CASE(io, IO_getIOSequenceFromList_Returns_MultipleioObjectsFromList);
-*/
+
 	//****  IO_update  *********************
-	/*
+	/**/
 	RUN_TEST_CASE(io, IO_update_writeSingleToSingleAddress);
 	RUN_TEST_CASE(io, IO_update_writeMultipleValuesToSingleAddress);
 	RUN_TEST_CASE(io, IO_update_writeMultipleValuesToSequentialLocation);
@@ -116,7 +106,8 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_update_readMultipleValuesfromSingleLocation);
 
 	RUN_TEST_CASE(io, IO_update_firesCallback);
+	RUN_TEST_CASE(io, IO_update_CallbackDoesNotFireOnWrongIoAction);
 	RUN_TEST_CASE(io, IO_update_canBeCalledMultipleTimesWithEmplyList);
-*/
+
 
 }

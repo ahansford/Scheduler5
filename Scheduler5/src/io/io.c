@@ -509,10 +509,8 @@ void * IO_setObjectPointer(void * _self, void * _objectPointer)
 static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyFrom)
 {
 	// copy master data members, except for PTRs and dynamic values
-	// WARNING:  data pointers are unique and should not be copied
-	// WARNING:  buffer count May be unique and should not be copied
-	////IO_setBufferPointer (_copyTo, IO_getBufferPointer(_copyFrom));
-	////IO_setBufferSize(_copyTo, IO_getBufferSize(_copyFrom));
+	// WARNING:  sequence List pointer is unique and will not be copied
+	////IO_setIoSequenceList (_copyTo, IO_getIoSequenceList(_copyFrom));
 	IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
 	IO_setObjectPointer(_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
@@ -520,10 +518,8 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 
 static void * implement_IO_io_ctor(void * _self)
 {
-	// WARNING: buffer and size set externally where the size is known
-	// WARNING: set in main ctor
-	////IO_setBufferPointer(_self, xxx);
-	////IO_setBufferSize(_self, xxx) );
+	// WARNING:  sequence List pointer is set in base ctor
+	////IO_setIoSequenceList(_self, xxx) );
 	IO_setActionDone_cb(_self, NULL);
 	IO_setObjectPointer(_self, NULL);
 	return _self;
@@ -531,10 +527,9 @@ static void * implement_IO_io_ctor(void * _self)
 
 static void * implement_IO_io_dtor(struct IO * _self)
 {
-	//// WARNING:  delete/free the command buffer externally
-	//IO_setBufferPointer (_self, NULL);
-	//IO_setBufferSize    (_self, 0);
+	//// WARNING:  delete/free the sequence List externally
 	IO_setIoSequenceList(_self, NULL);
+
 	IO_setActionDone_cb(_self, NULL);
 	IO_setObjectPointer(_self, NULL);
 	return _self;
@@ -548,11 +543,9 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 	struct IO * comparisonObject = (void *)_comparisonObject;
 
 	// data pointers are unique and should not be included in the comparison
-	////if( IO_getBufferPointer(self) != IO_getBufferPointer(comparisonObject) )
+	////if( IO_getIoSequenceList(self) != IO_getIoSequenceList(comparisonObject) )
 	////	{ return OBJECT_UNEQUAL; }
 
-	////if( IO_getBufferSize(self) != IO_getBufferSize(comparisonObject) )
-	////	{ return OBJECT_UNEQUAL; }
 
 	if( IO_getActionDone_cb(self) != IO_getActionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }

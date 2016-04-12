@@ -70,16 +70,11 @@ TEST_SETUP(io)
 	otherTestBuffer[1] = 0x00;
 	otherTestBuffer[2] = 0x00;
 
-
-
-	// create an AccessMEM object with an EXTERNAL data buffer
+	// create an AccessMEM object
 	// WARNING:  must always set the buffer size when creating this object
-	//myTest_AccessMEM = new(AccessMEM, testBuffer);
-	//Access_setBufferSize(myTest_AccessMEM, IO_COMMAND_BUFFER_SIZE);
-	//todo5:
 	myTest_AccessMEM = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
 
-	// secure access the the internal command buffer for testing
+	// secret access to the internal command buffer for testing
 	testBuffer = Access_getBufferPointer(myTest_AccessMEM);
 	testBuffer[0] = 0x00;
 	testBuffer[1] = 0x00;
@@ -159,9 +154,9 @@ TEST(io, Class_ctor_is_IO_Class_ctor)
 	TEST_ASSERT_EQUAL_PTR(IOClass_ctor,  localIOClass->_.ctor);
 }
 
-TEST(io, bufferPointer_is_testBuffer_OnCreate)
+TEST(io, bufferPointer_is_IOTest_ioListOfSequences_OnCreate)
 {
-	//TEST_ASSERT_EQUAL_PTR(testBuffer,  myTest_IO->bufferPointer);
+	TEST_ASSERT_EQUAL_PTR(IOTest_ioListOfSequences,  myTest_IO->ioSequenceList);
 }
 
 TEST(io, IO_actionComplete_cb_is_Null_OnCreate)
@@ -178,75 +173,53 @@ TEST(io, objectPointer_is_Null_OnCreate)
 
 TEST(io, delete_returns_SelfOnSuccess)
 {
-	struct IO * otherIO = new(IO, otherTestBuffer);
-	TEST_ASSERT_EQUAL_PTR(otherIO,  delete(otherIO));
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
+	TEST_ASSERT_EQUAL_PTR(masterIO,  delete(masterIO));
+	masterSequenceList = safeDelete(masterSequenceList);
 }
 
 TEST(io, delete_safeDelete_returnsNullOnSuccess)
 {
-	struct IO * otherIO = new(IO, otherTestBuffer);
-	TEST_ASSERT_EQUAL_PTR(NULL,  safeDelete(otherIO));
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
+	TEST_ASSERT_EQUAL_PTR(NULL,  safeDelete(masterIO));
+	masterSequenceList = safeDelete(masterSequenceList);
 }
 
-/****  Set/Get bufferPointer  ****************/
-/*
-TEST(io, IO_getBufferPointer_returns_UnknownOnCreate)
+/****  Set/Get IoSequenceList  ****************/
+
+TEST(io, IO_getIoSequenceList_returns_UnknownOnCreate)
 {
-	// set to testBuffer from the original new(IO, testBuffer); in setup
-	TEST_ASSERT_EQUAL(testBuffer,  IO_getBufferPointer(myTest_IO) );
+	// set to IOTest_ioListOfSequences from the original new(IO, IOTest_ioListOfSequences); in setup
+	TEST_ASSERT_EQUAL(IOTest_ioListOfSequences,  IO_getIoSequenceList(myTest_IO) );
 }
 
-TEST(io, IO_getBufferPointer_returns_specificValue)
+TEST(io, IO_getIoSequenceList_returns_specificValue)
 {
-	myTest_IO->bufferPointer = (void *)testBuffer;
-	TEST_ASSERT_EQUAL(testBuffer,  IO_getBufferPointer(myTest_IO) );
+	myTest_IO->ioSequenceList = (void *)testBuffer;
+	TEST_ASSERT_EQUAL(testBuffer,  IO_getIoSequenceList(myTest_IO) );
 }
 
-TEST(io, IO_setBufferPointer_returnsSpecificValue)
+TEST(io, IO_setIoSequenceList_returnsSpecificValue)
 {
-	TEST_ASSERT_EQUAL(testBuffer,  IO_setBufferPointer(myTest_IO, testBuffer));
+	TEST_ASSERT_EQUAL(testBuffer,  IO_setIoSequenceList(myTest_IO, testBuffer));
 }
 
-TEST(io, IO_setBufferPointer_returnsUnknownOnNullPtr)
+TEST(io, IO_setIoSequenceList_returnsUnknownOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(NULL,  IO_setBufferPointer(NULL, testBuffer));
+	TEST_ASSERT_EQUAL(NULL,  IO_setIoSequenceList(NULL, testBuffer));
 }
 
-TEST(io, IO_setBufferPointer_canSetSpecificValue)
+TEST(io, IO_setIoSequenceList_canSetSpecificValue)
 {
-	IO_setBufferPointer(myTest_IO, testBuffer);
-	TEST_ASSERT_EQUAL(testBuffer,  myTest_IO->bufferPointer);
-}
-*/
-/****  Set/Get bufferSize  ****************/
-/*
-TEST(io, IO_getBufferSize_returns_DefineValueOnCreate)
-{
-	TEST_ASSERT_EQUAL(IO_COMMAND_BUFFER_SIZE,  IO_getBufferSize(myTest_IO) );
+	IO_setIoSequenceList(myTest_IO, testBuffer);
+	TEST_ASSERT_EQUAL(testBuffer,  myTest_IO->ioSequenceList);
 }
 
-TEST(io, IO_getBufferSize_returns_specificValue)
-{
-	myTest_IO->bufferSize = 1;
-	TEST_ASSERT_EQUAL(1,  IO_getBufferSize(myTest_IO) );
-}
 
-TEST(io, IO_setBufferSize_returnsSpecificValue)
-{
-	TEST_ASSERT_EQUAL(2,  IO_setBufferSize(myTest_IO, 2));
-}
-
-TEST(io, IO_setBufferSize_returnsUnknownOnNullPtr)
-{
-	TEST_ASSERT_EQUAL(0,  IO_setBufferSize(NULL, 3));
-}
-
-TEST(io, IO_setBufferSize_canSetSpecificValue)
-{
-	IO_setBufferSize(myTest_IO, 4);
-	TEST_ASSERT_EQUAL(4,  myTest_IO->bufferSize);
-}
-*/
 /****  Set/Get ActionComplete_cb  ****************/
 /**/
 TEST(io, IO_getIO_actionComplete_cb_returns_UnknownOnCreate)
@@ -310,53 +283,56 @@ TEST(io, IO_setObjectPointer_canSetSpecificValue)
 
 TEST(io, copy_returnsSelfOnSuccess)
 {
-	struct IO * masterIO = new(IO, otherTestBuffer);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO * masterIO             = new(IO, masterSequenceList);
 	Access_setReadCount(masterIO, 5);
 	TEST_ASSERT_EQUAL_PTR(myTest_IO, copy(myTest_IO, masterIO));
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 TEST(io, copy_AllItemsCopiedToSelf)
 {
 	// NOTE: sensorState, and pointers are unique for every sensor
-	struct IO * masterIO = new(IO, otherTestBuffer);
-	//IO_setAddress       (masterIO, otherTestBuffer);
-	//IO_setIOAction      (masterIO, ACCESS_WRITE_SINGLE);
-	//IO_setReadCount     (masterIO, 5);
-	//IO_setWriteCount    (masterIO, 6);
-	//IO_setBufferPointer (masterIO, otherTestBuffer);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
 	IO_setActionDone_cb(masterIO, (access_cb_fnct)otherTestBuffer);
-	IO_setObjectPointer(masterIO, otherTestBuffer);
+	IO_setObjectPointer(masterIO, masterIO);
 
 	copy(myTest_IO, masterIO);
 
-	// NOTE: sensorState, and pointers are unique for every sensor
-	//TEST_ASSERT_EQUAL(otherTestBuffer,     myTest_IO->address);
-	//TEST_ASSERT_EQUAL(ACCESS_WRITE_SINGLE,            myTest_IO->ioAction);
-	//TEST_ASSERT_EQUAL(5,                   myTest_IO->readCount);
-	//TEST_ASSERT_EQUAL(6,                   myTest_IO->writeCount);
-	//// The buffer pointer is unique for every new(IO, &buffer) instantiation
-	////TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_IO->bufferPointer);
-	TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_IO->actionDone_cb);
-	TEST_ASSERT_EQUAL_PTR(otherTestBuffer, myTest_IO->objectPointer);
+	// NOTE: Sequence List pointer should be unchanged
+	TEST_ASSERT_EQUAL_PTR(IOTest_ioListOfSequences, IO_getIoSequenceList(myTest_IO));
+	// the items below should have been copied as expected
+	TEST_ASSERT_EQUAL_PTR(otherTestBuffer,    IO_getActionDone_cb(myTest_IO));
+	TEST_ASSERT_EQUAL_PTR(masterIO,           IO_getObjectPointer(myTest_IO));
 
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 TEST(io, copy_returnsNullOnNullSelf)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setReadCount(masterIO, 5);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
+	IO_setActionDone_cb(masterIO, (access_cb_fnct)otherTestBuffer);
 	TEST_ASSERT_EQUAL_PTR(NULL, copy(NULL, masterIO)  );
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 TEST(io, copy_returnsNullOnNullMaster)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setReadCount(masterIO, 5);
-	TEST_ASSERT_EQUAL_PTR(NULL, copy(myTest_IO, NULL) );
-	masterIO = safeDelete(masterIO);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
+	IO_setActionDone_cb(masterIO, (access_cb_fnct)otherTestBuffer);
+	TEST_ASSERT_EQUAL_PTR(NULL, copy(myTest_IO, NULL)  );
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 //****  equal IO_io_equal  ********************
@@ -366,63 +342,63 @@ TEST(io, myTest_IO_IsEqualTo_myTest_IO)
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_IO, myTest_IO));
 }
 
-/*
-TEST(io, equal_UnequalBufferPointerReturn_Equal)
+TEST(io, equal_UnequalSequenceListPointerReturn_Equal)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setBufferPointer(masterIO, otherTestBuffer);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
 	// bufferPointers are unique and will not trigger OBJECT_UNEQUAL
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_IO, masterIO) );
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
-TEST(io, equal_UnequalBufferSizeReturn_Unequal)
-{
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setBufferSize(masterIO, myTest_IO->bufferSize + 1 );
-	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, masterIO) );
-	masterIO = safeDelete(masterIO);
-}
-*/
 TEST(io, equal_UnequalActionDoneCB_Unequal)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setActionDone_cb(masterIO, (access_cb_fnct)otherTestBuffer);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
+	IO_setActionDone_cb(masterIO, (access_cb_fnct)otherTestBuffer);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, masterIO) );
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 TEST(io, equal_UnequalObjectPointerUnequal)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setObjectPointer(masterIO, otherTestBuffer);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
+	IO_setObjectPointer(masterIO, otherTestBuffer);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, masterIO) );
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 TEST(io, equal_NullReturns_Null)
 {
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_IO, NULL));
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(NULL, masterIO ));
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 TEST(io, equal_CopiedSensorReturnsEqual)
 {
-	struct IO * masterIO = new(IO, otherTestBuffer);
-	//Access_setAddress       (masterIO, otherTestBuffer);
-	//Access_setIOAction      (masterIO, ACCESS_WRITE_SINGLE);
-	//Access_setReadCount     (masterIO, 5);
-	//Access_setWriteCount    (masterIO, 6);
-	//IO_setBufferPointer (masterIO, otherTestBuffer);  // set in new(IO, bufferAddress);
+	int masterArray[IO_COMMAND_BUFFER_SIZE];
+	struct List * masterSequenceList = new(List, masterArray);
+	struct IO *   masterIO           = new(IO, masterSequenceList);
 	IO_setActionDone_cb(masterIO, (io_cb_fnct)otherTestBuffer);
 	IO_setObjectPointer (masterIO, otherTestBuffer);
 
 	copy(myTest_IO, masterIO);
 
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_IO, masterIO));
-	masterIO = safeDelete(masterIO);
+	masterSequenceList = safeDelete(masterSequenceList);
+	masterIO           = safeDelete(masterIO);
 }
 
 //****  IO_addIOSequenceToList  *********************
@@ -434,20 +410,8 @@ TEST(io, IO_addIOSequenceToList_returnsNullOnNullPtr)
 
 TEST(io, IO_addIOSequenceToList_Returns_selfOnSuccess)
 {
-	//printf("\n TEST: IO_addIOSequenceToList_Returns_selfOnSuccess at LINE: %i", __LINE__);
-	//printf("\nmyTest_AccessMEM: %p\n", myTest_AccessMEM);
-	////Access_setAddress(myTest_AccessMEM, otherTestBuffer);
-	////Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
-	/////Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
-	//TEST_ASSERT_EQUAL(otherTestBuffer, Access_getAddress(myTest_AccessMEM) );
-	//TEST_ASSERT_EQUAL(4, Access_getBufferSize(myTest_AccessMEM) );
-	//printf("myTest_AccessMEM: %p\n", myTest_AccessMEM);
-	//TEST_ASSERT_EQUAL(IOTest_ioListOfSequences, IO_getIoSequenceList(myTest_IO) );
-	//TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM) );
-
 	//TODO:  Should not be able to add an invalid sequence to the list ... place check
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM) );
-	//printf("\n TEST END: %i", __LINE__);
 }
 
 TEST(io, IO_addIOSequenceToList_takeRemovesItemFromList)
@@ -473,7 +437,7 @@ TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
 	TEST_ASSERT_EQUAL(myTest_Access_1, IO_getIOSequenceFromList(myTest_IO) );
 	TEST_ASSERT_EQUAL(myTest_Access_2, IO_getIOSequenceFromList(myTest_IO) );
 	TEST_ASSERT_EQUAL(myTest_Access_3, IO_getIOSequenceFromList(myTest_IO) );
-	TEST_ASSERT_EQUAL(NULL, take(IOTest_ioListOfSequences) );
+	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList(myTest_IO) );
 	myTest_Access_1 = safeDelete(myTest_Access_1);
 	myTest_Access_2 = safeDelete(myTest_Access_2);
 	myTest_Access_3 = safeDelete(myTest_Access_3);
@@ -483,7 +447,7 @@ TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
 
 TEST(io, IO_getIOSequenceFromList_returnsNullOnNullPtr)
 {
-	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList(myTest_AccessMEM) );
+	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList(NULL) );
 }
 
 TEST(io, IO_getIOSequenceFromList_Returns_NullOnemptyList)
@@ -494,31 +458,31 @@ TEST(io, IO_getIOSequenceFromList_Returns_NullOnemptyList)
 TEST(io, IO_getIOSequenceFromList_Returns_objectFromList)
 {
 	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
-	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_getIOSequenceFromList(myTest_AccessMEM) );
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_getIOSequenceFromList(myTest_IO) );
 }
 
 TEST(io, IO_getIOSequenceFromList_listContainsZeroItemsAfterGet)
 {
 	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 	IO_getIOSequenceFromList(myTest_IO);
-	TEST_ASSERT_EQUAL(0, getItemCount(IOTest_ioListOfSequences) );
+	TEST_ASSERT_EQUAL(0, getItemCount(IO_getIoSequenceList(myTest_IO)) );
 }
 
 TEST(io, IO_getIOSequenceFromList_Returns_MultipleioObjectsFromList)
 {
-	struct AccessMEM * myTest_IO_1 = new(AccessMEM, 3);
-	struct AccessMEM * myTest_IO_2 = new(AccessMEM, 3);
-	struct AccessMEM * myTest_IO_3 = new(AccessMEM, 3);
-	IO_addIOSequenceToList(myTest_IO, myTest_IO_1);
-	IO_addIOSequenceToList(myTest_IO, myTest_IO_2);
-	IO_addIOSequenceToList(myTest_IO, myTest_IO_3);
-	TEST_ASSERT_EQUAL(myTest_IO_1, IO_getIOSequenceFromList(myTest_IO) );
-	TEST_ASSERT_EQUAL(myTest_IO_2, IO_getIOSequenceFromList(myTest_IO) );
-	TEST_ASSERT_EQUAL(myTest_IO_3, IO_getIOSequenceFromList(myTest_IO) );
-	TEST_ASSERT_EQUAL(NULL, take(IOTest_ioListOfSequences) );
-	myTest_IO_1 = safeDelete(myTest_IO_1);
-	myTest_IO_2 = safeDelete(myTest_IO_2);
-	myTest_IO_3 = safeDelete(myTest_IO_3);
+	struct AccessMEM * myTest_AccessMEM_1 = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
+	struct AccessMEM * myTest_AccessMEM_2 = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
+	struct AccessMEM * myTest_AccessMEM_3 = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM_1);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM_2);
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM_3);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM_1, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_AccessMEM_2, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_AccessMEM_3, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(NULL, IO_getIOSequenceFromList(myTest_IO) );
+	myTest_AccessMEM_1 = safeDelete(myTest_AccessMEM_1);
+	myTest_AccessMEM_2 = safeDelete(myTest_AccessMEM_2);
+	myTest_AccessMEM_3 = safeDelete(myTest_AccessMEM_3);
 }
 
 
@@ -529,8 +493,6 @@ TEST(io, IO_update_writeSingleToSingleAddress)
 	Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
 	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
-	//Access_setActionDone_cb         (myTest_AccessMEM, IO_sequenceComplete_cb);
-	//Access_setObjectPointer         (myTest_AccessMEM, (void *)myTest_AccessMEM);
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
 
 	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
@@ -555,18 +517,18 @@ TEST(io, IO_update_writeMultipleValuesToSingleAddress)
 
 	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
 
-	IO_update(myTest_AccessMEM);
-	IO_update(myTest_AccessMEM);
-	IO_update(myTest_AccessMEM); // <<-- safety call
-	IO_update(myTest_AccessMEM); // <<-- safety call
-	IO_update(myTest_AccessMEM); // <<-- safety call
-	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[0] );
 }
 
 TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 {
-	Access_setIOAction             (myTest_AccessMEM, ACCESS_WRITE_SEQUENTIAL);
+	Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SEQUENTIAL);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x02);
 	Access_addWriteCommandToSequence(myTest_AccessMEM, 0x03);
@@ -577,12 +539,12 @@ TEST(io, IO_update_writeMultipleValuesToSequentialLocation)
 
 	IO_addIOSequenceToList (myTest_IO, myTest_AccessMEM);
 
-	IO_update(myTest_AccessMEM);
-	IO_update(myTest_AccessMEM);
-	IO_update(myTest_AccessMEM); // <<-- safety call
-	IO_update(myTest_AccessMEM); // <<-- safety call
-	IO_update(myTest_AccessMEM); // <<-- safety call
-	IO_update(myTest_AccessMEM); // <<-- safety call
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
 	TEST_ASSERT_EQUAL(0x01, otherTestBuffer[0] );
 	TEST_ASSERT_EQUAL(0x02, otherTestBuffer[1] );
 	TEST_ASSERT_EQUAL(0x03, otherTestBuffer[2] );
@@ -675,6 +637,30 @@ TEST(io, IO_update_firesCallback)
 	TEST_ASSERT_EQUAL(1, io_test_cb_count );
 }
 
+TEST(io, IO_update_CallbackDoesNotFireOnWrongIoAction)
+{
+	Access_setIOAction              (myTest_AccessMEM, ACCESS_ACTION_UNKNOWN);
+	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
+	Access_setAddress               (myTest_AccessMEM, otherTestBuffer);
+	Access_setActionDone_cb(myTest_AccessMEM, (void *)io_test_general_cb);
+	Access_setObjectPointer(myTest_AccessMEM, (void *)myTest_AccessMEM);
+
+	// confirm that sequence is invalid
+	TEST_ASSERT_EQUAL(0, Access_sequenceIsValid(myTest_AccessMEM));
+
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
+
+	TEST_ASSERT_EQUAL(0, io_test_cb_count );
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	TEST_ASSERT_EQUAL(0, io_test_cb_count );
+}
+
+
 TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 {
 	IO_update(myTest_IO);
@@ -683,7 +669,7 @@ TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 	IO_update(myTest_IO);
 	IO_update(myTest_IO);
 	IO_update(myTest_IO);
-	TEST_ASSERT_EQUAL(0x00, testBuffer[0] );
+
 	TEST_ASSERT_EQUAL(0x00, testBuffer[0] );
 	TEST_ASSERT_EQUAL(0x00, testBuffer[1] );
 	TEST_ASSERT_EQUAL(0x00, testBuffer[2] );
