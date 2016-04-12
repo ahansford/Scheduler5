@@ -91,11 +91,11 @@ TEST_GROUP_RUNNER(io)
 
 	//****  IO_addIOSequenceToList  *********************
 	/**/
-	//RUN_TEST_CASE(io, IO_addIOSequenceToList_returnsNullOnNullPtr);
-	//RUN_TEST_CASE(io, IO_addIOSequenceToList_Returns_selfOnSuccess);
-	//RUN_TEST_CASE(io, IO_addIOSequenceToList_takeRemovesItemFromList);
-	//RUN_TEST_CASE(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd);
-	//RUN_TEST_CASE(io, IO_addIOSequenceToList_addsMultipleIOObjects);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_returnsNullOnNullPtr);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_Returns_selfOnSuccess);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_takeRemovesItemFromList);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd);
+	RUN_TEST_CASE(io, IO_addIOSequenceToList_addsMultipleIOObjects);
 
 	//****  IO_getIOSequenceFromList  *********************
 	/*

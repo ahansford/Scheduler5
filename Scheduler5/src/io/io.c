@@ -308,17 +308,19 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 {
+	//printf("entering IO_addIOSequenceToList\n");
 	struct IO * self = cast(IO, _self);
-	if( self == NULL ) { return NULL; } // fail
+	if( self == NULL )        { return NULL; } // fail
+	if( _ioSequence == NULL ) { return NULL; } // fail
 
 	struct List * localIoSequenceList = IO_getIoSequenceList(self);
 	void * itemAddedToListPtr = add(localIoSequenceList, _ioSequence);
 	//void * itemAddedToListPtr = add(ioSequenceList, self);
-
+	//printf("adding sequence: %p to list: %p\n", _ioSequence,localIoSequenceList);
 	// test for failure to add
 	if ( itemAddedToListPtr == NULL ) { return NULL; } // fail
 
-	return self; // success
+	return _ioSequence; // success
 }
 
 void * IO_getIOSequenceFromList(void * _self)
@@ -430,8 +432,11 @@ void * IO_update(void * _self)
 
 void * IO_getIoSequenceList(const void * _self)
 {
+	//printf("\nIO_getIoSequenceList with _self: %p\n", _self);
 	const struct IO * self = cast(IO, _self);
+	//printf("IO self: %p\n", self);
 	if ( self == NULL ) { return NULL; }
+	//printf("sequence list: %p\n", self->ioSequenceList);
 	return self->ioSequenceList;
 }
 

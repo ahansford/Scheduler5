@@ -13,6 +13,7 @@
 #include "..\..\src\mocks\RuntimeErrorStub.h"
 
 #include "..\..\src\io\io.h"
+#include "..\..\src\access_mem\access-mem.h"
 //#include "..\..\src\sensors\sensors-private.h"
 
 
@@ -58,7 +59,7 @@ TEST_SETUP(io)
 	IO_init(IOTest_ioListOfSequences);
 
 	// create the IO object for testing
-	myTest_IO = new(IO, testBuffer);
+	myTest_IO = new(IO, IOTest_ioListOfSequences);
 	if ( myTest_IO == NULL ) {printf("failed to allocate memory for new(IO, testBuffer)\n"); }
 
 	io_test_cb_count  = 0;
@@ -433,21 +434,32 @@ TEST(io, IO_addIOSequenceToList_returnsNullOnNullPtr)
 
 TEST(io, IO_addIOSequenceToList_Returns_selfOnSuccess)
 {
-	printf("\n TEST: IO_addIOSequenceToList_Returns_selfOnSuccess at LINE: %i", __LINE__);
+	//printf("\n TEST: IO_addIOSequenceToList_Returns_selfOnSuccess at LINE: %i", __LINE__);
+	//printf("\nmyTest_AccessMEM: %p\n", myTest_AccessMEM);
+	////Access_setAddress(myTest_AccessMEM, otherTestBuffer);
+	////Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
+	/////Access_addWriteCommandToSequence(myTest_AccessMEM, 0x01);
+	//TEST_ASSERT_EQUAL(otherTestBuffer, Access_getAddress(myTest_AccessMEM) );
+	//TEST_ASSERT_EQUAL(4, Access_getBufferSize(myTest_AccessMEM) );
+	//printf("myTest_AccessMEM: %p\n", myTest_AccessMEM);
+	//TEST_ASSERT_EQUAL(IOTest_ioListOfSequences, IO_getIoSequenceList(myTest_IO) );
+	//TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM) );
+
+	//TODO:  Should not be able to add an invalid sequence to the list ... place check
 	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM) );
-	printf("\n TEST END: %i", __LINE__);
+	//printf("\n TEST END: %i", __LINE__);
 }
 
 TEST(io, IO_addIOSequenceToList_takeRemovesItemFromList)
 {
 	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
-	TEST_ASSERT_EQUAL(myTest_AccessMEM, take(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, IO_getIOSequenceFromList(myTest_IO) );
 }
 
 TEST(io, IO_addIOSequenceToList_listContainsOneItemAfterAdd)
 {
 	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
-	TEST_ASSERT_EQUAL(1, getItemCount(myTest_IO) );
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(myTest_IO)) );
 }
 
 TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
@@ -458,9 +470,9 @@ TEST(io, IO_addIOSequenceToList_addsMultipleIOObjects)
 	IO_addIOSequenceToList(myTest_IO, myTest_Access_1);
 	IO_addIOSequenceToList(myTest_IO, myTest_Access_2);
 	IO_addIOSequenceToList(myTest_IO, myTest_Access_3);
-	TEST_ASSERT_EQUAL(myTest_Access_1, take(IOTest_ioListOfSequences) );
-	TEST_ASSERT_EQUAL(myTest_Access_2, take(IOTest_ioListOfSequences) );
-	TEST_ASSERT_EQUAL(myTest_Access_3, take(IOTest_ioListOfSequences) );
+	TEST_ASSERT_EQUAL(myTest_Access_1, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_Access_2, IO_getIOSequenceFromList(myTest_IO) );
+	TEST_ASSERT_EQUAL(myTest_Access_3, IO_getIOSequenceFromList(myTest_IO) );
 	TEST_ASSERT_EQUAL(NULL, take(IOTest_ioListOfSequences) );
 	myTest_Access_1 = safeDelete(myTest_Access_1);
 	myTest_Access_2 = safeDelete(myTest_Access_2);
