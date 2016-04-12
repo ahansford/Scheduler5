@@ -118,7 +118,8 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	@endcode
  *
  */
-void IO_init(struct List * _ioSequenceList);
+//void IO_init(struct List * _ioSequenceList);
+void IO_init(void);
 
 
 /*!

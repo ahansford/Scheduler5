@@ -659,7 +659,8 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 {
 	void * IO_actionBuffer[0];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
-	IO_init(IOTest_ioActionList);
+	//IO_init(IOTest_ioActionList);
+	IO_init();
 
 	io_data_t targetArray[4];
 	targetArray[0] = 0;
@@ -703,7 +704,8 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	void * IO_actionBuffer[1];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	TEST_ASSERT_TRUE(IOTest_ioActionList != NULL );
-	IO_init(IOTest_ioActionList);
+	//IO_init(IOTest_ioActionList);
+	IO_init();
 
 	access_data_t targetArray[4];
 	targetArray[0] = 5;
@@ -1446,7 +1448,8 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	// enable the IO list
 	void * IO_actionBuffer[4];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
-	IO_init(IOTest_ioActionList);
+	//IO_init(IOTest_ioActionList);
+		IO_init();
 
 	// set the address element in the IO object to a known safe buffer address
 	// the default address of NULL will prevent IO operations for the sensor
@@ -1594,7 +1597,8 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	// enable an IO list
 	void * IOTest_ioActionBuffer[16];
 	struct List * IOTest_ioActionList = new(List, IOTest_ioActionBuffer);
-	IO_init(IOTest_ioActionList);
+	//IO_init(IOTest_ioActionList);
+		IO_init();
 
 	// set the address element in the IO object to a known buffer address
 	io_data_t knownCharBuffer[16];

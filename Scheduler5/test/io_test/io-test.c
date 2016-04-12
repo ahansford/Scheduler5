@@ -56,7 +56,9 @@ TEST_SETUP(io)
 
 	// Initialize the list buffer, the list and IO classes
 	IOTest_ioListOfSequences = new(List, IOTest_ioListBuffer);
-	IO_init(IOTest_ioListOfSequences);
+	//IO_init(IOTest_ioListOfSequences);
+	//IO_init(NULL);
+	IO_init();
 
 	// create the IO object for testing
 	myTest_IO = new(IO, IOTest_ioListOfSequences);

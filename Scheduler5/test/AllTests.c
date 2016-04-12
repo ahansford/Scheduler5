@@ -62,7 +62,8 @@ int main(int argc, char* argv[])
 	Button_init(100);
 	Sensor_init();
 	Node_X10_init();
-	IO_init(NULL);
+	IO_init();
+	//IO_init(NULL);
 	Access_init();
 
 	clearFile("scheduler_puto.txt");

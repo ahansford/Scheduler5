@@ -42,7 +42,9 @@ io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
 
 
 // MUST be called before other IO methods are called
-void IO_init(struct List * _ioSequenceList)
+//void IO_init(struct List * _ioSequenceList)
+//IO_init(IOTest_ioActionList);
+void IO_init(void)
 {
 	// Insert the lines below for any derived subclasses
 	//if (!IO)      {IO_init();}
