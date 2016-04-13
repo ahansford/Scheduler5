@@ -687,10 +687,15 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 
 	struct SENSOR_DEFAULT_IO_TYPE * IO_struct = Sensor_getIoStructPointer(myTest_Sensor);
 	IO_struct->address = targetArray;
-	IO_struct->bufferPointer[0]= 0x05;
-	IO_struct->bufferPointer[1]= 0x06;
-	IO_struct->writeCount = 2;
-	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
+	Access_addWriteCommandToSequence(IO_struct, 0x05);
+	Access_addWriteCommandToSequence(IO_struct, 0x06);
+	Access_setIOAction(IO_struct, ACCESS_WRITE_SEQUENTIAL);
+	TEST_ASSERT_EQUAL_PTR(IO_struct,  Access_sequenceIsValid(IO_struct));
+
+	TEST_ASSERT_EQUAL_PTR(IO_struct,  IO_addIOSequenceToList(IoSequences, IO_struct));
+
+	//TODO: start looking for failure below here.
+	//TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
 	IO_update(IO_struct);
 	IO_update(IO_struct);
 	IO_update(IO_struct);
