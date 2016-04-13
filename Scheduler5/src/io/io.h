@@ -70,7 +70,7 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	void * IO_actionBuffer[4];
  *	// Create a List where IO will store IO sequences waiting to be executed
  *	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
- *	IO_init(IOTest_ioActionList);
+ *	IO_init();
  *
  *	// Create a new IO object
  * 	struct IO * myIOobject = new(IO, ioActionList);
@@ -118,7 +118,6 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	@endcode
  *
  */
-//void IO_init(struct List * _ioSequenceList);
 void IO_init(void);
 
 

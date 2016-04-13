@@ -68,8 +68,8 @@ void Sensor_init(void)
 	if (!Node)      {Node_init();}
 	if (!NodeClass) {Node_init();}
 
-	//if (!IO)      {IO_init();}
-	//if (!IOClass) {IO_init();}
+	if (!IO)      {IO_init();}
+	if (!IOClass) {IO_init();}
 
 	if (! SensorClass) {
 		SensorClass = new(Class,  		// should be "Class"
@@ -630,7 +630,7 @@ static void * implement_Sensor_default_ctor(void * _self)
 			(sensor_default_command_t *)malloc(sizeof(sensor_default_command_t)*SENSOR_DEFAULT_MAX_COMMANDS);
 	if ( commandBufferPTR == NULL ) { return NULL; }  // fail
 
-	// WARNING TODO:  internal IO management List needed for IO_init() should
+	// WARNING TODO:  internal IO management List needed for new(IO, struct List *) should
 	//                ... be created external to Sensor.  This weakness should
 	//                ... be corrected
 

@@ -66,11 +66,8 @@ void * super_Access_processSequence(const void * _class, void * _self);
 void *   Access_MEM_processSequence(                     void * _self);
 
 // not implemented
-void * super_IO_xxxx(const void * _class, void * _self);
-void *    IO_io_xxxx(                     void * _self);
-
-//  gets struct IO item from internal list specified by IO_init(struct List *)
-//void * IO_getActionFromList(void);
+void * super_Access_xxxx(const void * _class, void * _self);
+void *   Access_MEM_xxxx(                     void * _self);
 
 
 #endif /* SRC_ACCESS_MEM_ACCESS_MEM_PRIVATE_H_ */

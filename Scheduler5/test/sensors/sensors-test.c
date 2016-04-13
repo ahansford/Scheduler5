@@ -29,6 +29,11 @@ struct Sensor * Sensor_test_general_cb2(struct Sensor * _self);
 int sensor_test_cb_count;
 int sensor_test_cb_count2;
 
+void * IoSequenceBuffer[4];
+struct List * IoSequenceList = NULL;
+
+struct IO * IoSequences;
+
 int i;
 
 /****************************************/
@@ -38,6 +43,15 @@ TEST_GROUP(sensor);
 TEST_SETUP(sensor)
 {
 	RuntimeErrorStub_Reset();
+
+	// Initialize a list to hold IO sequences
+	List_init();
+	IoSequenceList = new(List, IoSequenceBuffer);
+
+	// Initialize IO classes structures
+	IO_init();
+	IoSequences = new(IO, IoSequenceList);
+
 	Sensor_init();
 
 	sensor_test_cb_count  = 0;
@@ -61,6 +75,9 @@ TEST_TEAR_DOWN(sensor)
 	//if ( myTest_Sensor != memoryLeakPointer )
 	//	{ printf("\nPossible memory leak in Sensors\n"); }
 	//myTest_Sensor = safeDelete(myTest_Sensor);
+
+	IoSequences    = safeDelete(IoSequences);
+	IoSequenceList = safeDelete(IoSequenceList);
 
 	RuntimeErrorStub_Reset();
 }
@@ -1448,8 +1465,7 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	// enable the IO list
 	void * IO_actionBuffer[4];
 	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
-	//IO_init(IOTest_ioActionList);
-		IO_init();
+	IO_init();
 
 	// set the address element in the IO object to a known safe buffer address
 	// the default address of NULL will prevent IO operations for the sensor
@@ -1465,7 +1481,6 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 	int i;
 	for ( i = 0; i < 25; i++) {
 	Sensor_update(myTest_Sensor);
-	//IO_update();
 	}
 
 	// TODO: FIX this error
@@ -1597,8 +1612,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	// enable an IO list
 	void * IOTest_ioActionBuffer[16];
 	struct List * IOTest_ioActionList = new(List, IOTest_ioActionBuffer);
-	//IO_init(IOTest_ioActionList);
-		IO_init();
+	IO_init();
 
 	// set the address element in the IO object to a known buffer address
 	io_data_t knownCharBuffer[16];
@@ -1613,19 +1627,12 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	// WARNING:  there need to be enough Sensor_update() calls to complete the
 	//           state machine processing ... reason is that example comm code shown
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	//IO_update();
 
 	// TODO: FIX this error
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);

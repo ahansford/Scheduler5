@@ -42,8 +42,6 @@ io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
 
 
 // MUST be called before other IO methods are called
-//void IO_init(struct List * _ioSequenceList)
-//IO_init(IOTest_ioActionList);
 void IO_init(void)
 {
 	// Insert the lines below for any derived subclasses
@@ -82,12 +80,10 @@ void IO_init(void)
 					0);	// Terminator
 	}
 
-	//ioSequenceList = _ioSequenceList;
-
-	// WARNING:  the IO state machine needs a time out check in
+	// WARNING:  TODO: the IO state machine needs a time out check in
 	// the IO_UPDATE_WAITING_COMMAND state in case the lower IO access
 	// module does not execute as planned.  This should also include an
-	// unwinding process to report the failure and attempted retrys.
+	// unwinding process to report the failure and attempted re-trys.
 
 	io_update_state = IO_UPDATE_IDLE;
 

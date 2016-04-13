@@ -210,14 +210,17 @@ typedef unsigned char sensor_default_command_t;
 * Higher level program code creates one of more sensors using new().
 *
 * @code
-* // Initialize the IO driver to support the IO struct used by the Sensor //
+*
+* // Create IO object to support the IO struct used by the Sensor //
 * // Create List for the IO driver
 * List_init();
 * void * IoSequenceBuffer[4];
 * struct List * IoSequenceList = new(List, IoSequenceBuffer);
 *
 * // Initialize IO classes structures
-* IO_init(IoSequenceList);
+* IO_init();
+* struct IO * IoSequences = new(IO, IoSequenceList);
+*
 *
 * // Initialize Sensor classes structures
 * Sensor_init();
