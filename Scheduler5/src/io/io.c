@@ -306,7 +306,7 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 {
-	//printf("entering IO_addIOSequenceToList\n");
+	printf("\nentering IO_addIOSequenceToList\n");
 	struct IO * self = cast(IO, _self);
 	if( self == NULL )        { return NULL; } // fail
 	if( _ioSequence == NULL ) { return NULL; } // fail
@@ -314,7 +314,7 @@ void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 	struct List * localIoSequenceList = IO_getIoSequenceList(self);
 	void * itemAddedToListPtr = add(localIoSequenceList, _ioSequence);
 	//void * itemAddedToListPtr = add(ioSequenceList, self);
-	//printf("adding sequence: %p to list: %p\n", _ioSequence,localIoSequenceList);
+	printf("adding sequence: %p to list: %p\n", _ioSequence,localIoSequenceList);
 	// test for failure to add
 	if ( itemAddedToListPtr == NULL ) { return NULL; } // fail
 
@@ -520,6 +520,10 @@ static void * implement_IO_io_ctor(void * _self)
 	////IO_setIoSequenceList(_self, xxx) );
 	IO_setActionDone_cb(_self, NULL);
 	IO_setObjectPointer(_self, NULL);
+	//struct List * localListPtr = IO_getIoSequenceList(_self);
+	//int localItemCount = getItemCount(localListPtr);
+	//int i;
+	//for (i = 0; i < localItemCount; i++) { take(localListPtr); }
 	return _self;
 }
 

@@ -637,22 +637,22 @@ static void * implement_Sensor_default_ctor(void * _self)
 
 	// create new Access structure object
 
-	struct SENSOR_DEFAULT_IO_TYPE * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, commandBufferPTR);
+	//struct SENSOR_DEFAULT_ACCESS_TYPE * accessStructPointer = new(SENSOR_DEFAULT_ACCESS_TYPE, commandBufferPTR);
 	// todo5:
-	//struct SENSOR_DEFAULT_IO_TYPE * ioStructPointer = new(SENSOR_DEFAULT_IO_TYPE, SENSOR_DEFAULT_MAX_COMMANDS);
+	struct SENSOR_DEFAULT_ACCESS_TYPE * accessStructPointer = new(SENSOR_DEFAULT_ACCESS_TYPE, SENSOR_DEFAULT_MAX_COMMANDS);
 
 
-	if (ioStructPointer == NULL ) { printf("FAIL in sensor ctor; no AccessMEM object\n"); }
+	if (accessStructPointer == NULL ) { printf("FAIL in sensor ctor; no AccessMEM object\n"); }
 	// WARNING:  MUST set the bufferSize when the Access structure
-	Access_setBufferSize(ioStructPointer, SENSOR_DEFAULT_MAX_COMMANDS);
+	Access_setBufferSize(accessStructPointer, SENSOR_DEFAULT_MAX_COMMANDS);
 	// Point the sensor to its access object
-	Sensor_setIoStructPointer(_self, ioStructPointer);
+	Sensor_setAccessStructPointer(_self, accessStructPointer);
 
 
 	// set the IO address to NULL for safety
 	// Ordinary drivers will select a non-NULL value
 	// can be overwritten externally for testing
-	ioStructPointer->address = SENSOR_DEFAULT_ADDRESS;
+	accessStructPointer->address = SENSOR_DEFAULT_ADDRESS;
 
 
 	// generate raw data object
@@ -684,11 +684,11 @@ static void * implement_Sensor_default_dtor(struct Sensor * _self)
 {
 	/**/
 	// delete strict IO access object and set pointer to NULL
-	struct IO * ioStructPointer = Sensor_getIoStructPointer(_self);
+	struct IO * ioStructPointer = Sensor_getAccessStructPointer(_self);
 	if ( ioStructPointer != NULL ) {
 		delete(ioStructPointer);
-		Sensor_setIoStructPointer(_self, NULL);
-		if ( Sensor_getIoStructPointer(_self) != NULL )
+		Sensor_setAccessStructPointer(_self, NULL);
+		if ( Sensor_getAccessStructPointer(_self) != NULL )
 			{ return NULL; } // fail
 	}
 
@@ -778,8 +778,8 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	//		Sensor_getIoStructPointer(_copyFromMaster));
 
 	// copy IO structure values
-	copy(Sensor_getIoStructPointer(_copyTo),
-			Sensor_getIoStructPointer(_copyFromMaster));
+	copy(Sensor_getAccessStructPointer(_copyTo),
+			Sensor_getAccessStructPointer(_copyFromMaster));
 
 	return _copyTo;
 }
@@ -866,8 +866,8 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 		{return OBJECT_UNEQUAL;}
 	*/
 
-	if( equal(Sensor_getIoStructPointer(self),
-		Sensor_getIoStructPointer(comparisonObject)) == OBJECT_UNEQUAL )
+	if( equal(Sensor_getAccessStructPointer(self),
+		Sensor_getAccessStructPointer(comparisonObject)) == OBJECT_UNEQUAL )
 		{return OBJECT_UNEQUAL;}
 
 	// all data members are congruent
@@ -950,7 +950,7 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor IoStructPointer:            %p\n",
-			Sensor_getIoStructPointer(self) ))
+			Sensor_getAccessStructPointer(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	fprintf(_fp, "\n  New methods added in Sensor:\n");
@@ -1365,6 +1365,24 @@ struct Sensor *  Sensor_emptyAlarmTriggeredCallback(struct Sensor * _self)
 
 
 /*********************************************/
+/*****  set and get accessStructPointer    *******/
+/**/
+void * Sensor_getAccessStructPointer(const void * _self)
+{
+	const struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }
+	return self->accessStructPtr;
+}
+
+void * Sensor_setAccessStructPointer(void * _self, void * _accessStructPtr)
+{
+	struct Sensor * self = cast(Sensor, _self);
+	if ( self == NULL ) { return NULL; }
+	self->accessStructPtr = _accessStructPtr;
+	return _accessStructPtr;
+}
+
+/*********************************************/
 /*****  set and get ioStructPointer    *******/
 /**/
 void * Sensor_getIoStructPointer(const void * _self)
@@ -1381,6 +1399,8 @@ void * Sensor_setIoStructPointer(void * _self, void * _ioStructPtr)
 	self->ioStructPtr = _ioStructPtr;
 	return _ioStructPtr;
 }
+
+
 
 
 /*************************************/
@@ -1666,35 +1686,38 @@ sensor_cb_fnct Sensor_armDelayedCallback(void *         _self,
 
 static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 {
-	// get struct IO pointer in the correct IO type ... SENSOR_xxxx_IO_TYPE
-	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-	                                    Sensor_getIoStructPointer(_self);
+	// get struct IO pointer in the correct Access struct type ... SENSOR_xxxx_IO_TYPE
+	struct SENSOR_DEFAULT_ACCESS_TYPE * localAccessStructPtr =
+	                                    Sensor_getAccessStructPointer(_self);
+	if ( localAccessStructPtr == NULL ) { return NULL; }  // fail no IO struct
+
+	// get a pointer to the IO struct where the access struct is kept in a list
+	struct IO * localIoStructPtr = Sensor_getIoStructPointer(_self);
 	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
 	// set for sequential writes to successive locations starting with "address"
 	// default sensor is a simple memory access module and assumes sequential
-	Access_setIOAction(localIoStructPtr, ACCESS_WRITE_SEQUENTIAL);
+	Access_setIOAction(localAccessStructPtr, ACCESS_WRITE_SEQUENTIAL);
 
-	// test for a valid IO sequence before adding it to the list below
-	if ( Access_sequenceIsValid(localIoStructPtr) == NULL ) { return NULL; }
+	// test for a valid Access sequence before adding it to the list below
+	if ( Access_sequenceIsValid(localAccessStructPtr) == NULL ) { return NULL; }
 
 	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
-	/*
-	if ( IO_addIOSequenceToList(localIoStructPtr) != localIoStructPtr)
-		{ return NULL;  // fail
+	/**/
+	printf("\n IO sequences on list: %i", getItemCount(IO_getIoSequenceList(localIoStructPtr)) );
+	if ( IO_addIOSequenceToList(localIoStructPtr, localAccessStructPtr) != localAccessStructPtr)
+		{ return NULL; }  // fail
+	printf("\n IO sequences on list: %i", getItemCount(IO_getIoSequenceList(localIoStructPtr)) );
 
-	return _self;
-	}
-*/
 	return _self; // expected return path
 }
 
 static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self)
 {
 	// get the sensor's IO structure pointer. fail on NULL
-	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-										Sensor_getIoStructPointer(_self);
+	struct SENSOR_DEFAULT_ACCESS_TYPE * localIoStructPtr =
+										Sensor_getAccessStructPointer(_self);
 	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
 	// set for sequential writes to successive locations starting with "address"
@@ -1741,7 +1764,7 @@ static void * implement_Sensor_default_clearAllValues(struct Sensor * _self)
 	Sensor_setNormalState          (_self, ALARM_TYPE_UNKNOWN);
 	Sensor_setOnReportReady_cb     (_self, Sensor_emptyReportReadyCallback);
 	Sensor_setOnAlarmTriggered_cb  (_self, Sensor_emptyAlarmTriggeredCallback);
-	Sensor_setIoStructPointer      (_self, NULL);
+	Sensor_setAccessStructPointer      (_self, NULL);
 	return _self;
 }
 
@@ -1787,8 +1810,8 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		//           ... address is set to NULL
 
 		// get pointer to the struct IO
-		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-		                                    Sensor_getIoStructPointer(_self);
+		struct SENSOR_DEFAULT_ACCESS_TYPE * localIoStructPtr =
+		                                    Sensor_getAccessStructPointer(_self);
 		if ( localIoStructPtr == NULL ) { return NULL; }  // fail
 
 		//  get pointer to the command buffer
@@ -1940,8 +1963,8 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 		//           ... address is set to NULL
 
 		// get pointer to the struct IO
-		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-											Sensor_getIoStructPointer(_self);
+		struct SENSOR_DEFAULT_ACCESS_TYPE * localIoStructPtr =
+											Sensor_getAccessStructPointer(_self);
 		if ( localIoStructPtr == NULL ) { return NULL; }  // fail
 
 		//  get pointer to the command buffer
@@ -1995,8 +2018,8 @@ static void * implement_Sensor_default_storeRawData(struct Sensor * _self)
 
 		// transfer data to the rawDataBuffer
 		// get pointer to the buffer in the struct IO object
-		struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-											Sensor_getIoStructPointer(_self);
+		struct SENSOR_DEFAULT_ACCESS_TYPE * localIoStructPtr =
+											Sensor_getAccessStructPointer(_self);
 		if ( localIoStructPtr == NULL )  { return NULL; }  // fail
 		access_data_t * localBufferPointer = Access_getBufferPointer(localIoStructPtr);
 		if ( localBufferPointer == NULL ) { return NULL; }  // fail
@@ -2223,8 +2246,8 @@ void * Sensor_incrementMiniState(struct Sensor * _self)
 void * Sensor_getIoCommandBufPointer( void * _self)
 {
 	struct Sensor * self = cast(Sensor, _self);
-	struct SENSOR_DEFAULT_IO_TYPE * localIoStructPtr =
-										Sensor_getIoStructPointer(self);
+	struct SENSOR_DEFAULT_ACCESS_TYPE * localIoStructPtr =
+										Sensor_getAccessStructPointer(self);
 	if ( localIoStructPtr == NULL ) {
 		Sensor_incrementMiniState(self);
 		return NULL;  // fail

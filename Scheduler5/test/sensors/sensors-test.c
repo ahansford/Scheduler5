@@ -57,8 +57,11 @@ TEST_SETUP(sensor)
 	sensor_test_cb_count  = 0;
 	sensor_test_cb_count2 = 0;
 
-	myTest_Sensor = new(Sensor);
+	myTest_Sensor = new(Sensor, SENSOR_DEFAULT_MAX_COMMANDS);
 	if ( myTest_Sensor == NULL ) {printf("failed to allocate memory for new(Sensor)\n"); }
+
+	Sensor_setIoStructPointer(myTest_Sensor, IoSequences);
+
 	myTest_SensorClass_PTR  = classOf(myTest_Sensor);
 	myTest_Sensor_class_PTR = Sensor;
 	scheduler_Create(testTASKS_sensors);
@@ -136,7 +139,7 @@ TEST(sensor, Sensor_normalState_isUnknownOnCreate)
 
 TEST(sensor, Sensor_ioStructPointer_isNullOnCreate)
 {
-	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->ioStructPtr);
+	TEST_ASSERT_NOT_EQUAL(NULL,  myTest_Sensor->accessStructPtr);
 }
 
 
@@ -664,20 +667,21 @@ TEST(sensor, Sensor_getIoCommandBufPointer_returns_UnknownOnCreate)
 TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
 {
 	// WARNING: object will be deleted on completion of test ... MUST return correct PTR
-	void * originalPTR = myTest_Sensor->ioStructPtr->bufferPointer;
-	myTest_Sensor->ioStructPtr->bufferPointer = (void *)6;
+	void * originalPTR = myTest_Sensor->accessStructPtr->bufferPointer;
+	myTest_Sensor->accessStructPtr->bufferPointer = (void *)6;
 	TEST_ASSERT_EQUAL_PTR((void *)6,  Sensor_getIoCommandBufPointer(myTest_Sensor) );
-	myTest_Sensor->ioStructPtr->bufferPointer = originalPTR;
+	myTest_Sensor->accessStructPtr->bufferPointer = originalPTR;
 }
 
 /****  Sensor_writeCommandsToSensor  ****************/
 /**/
 TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 {
-	void * IO_actionBuffer[0];
-	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
+	printf("\nTEST:  Sensor_writesCommandDataToSpecifiedLocation at line: %i", __LINE__);
+	//void * IO_actionBuffer[0];
+	//struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
 	//IO_init(IOTest_ioActionList);
-	IO_init();
+	//IO_init();
 
 	io_data_t targetArray[4];
 	targetArray[0] = 0;
@@ -685,32 +689,43 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 	TEST_ASSERT_EQUAL(0,  targetArray[0] );
 	TEST_ASSERT_EQUAL(0,  targetArray[1] );
 
-	struct SENSOR_DEFAULT_IO_TYPE * IO_struct = Sensor_getIoStructPointer(myTest_Sensor);
-	IO_struct->address = targetArray;
-	Access_addWriteCommandToSequence(IO_struct, 0x05);
-	Access_addWriteCommandToSequence(IO_struct, 0x06);
-	Access_setIOAction(IO_struct, ACCESS_WRITE_SEQUENTIAL);
-	TEST_ASSERT_EQUAL_PTR(IO_struct,  Access_sequenceIsValid(IO_struct));
+	struct SENSOR_DEFAULT_ACCESS_TYPE * localAccess_struct = Sensor_getAccessStructPointer(myTest_Sensor);
+	localAccess_struct->address = targetArray;
+	Access_addWriteCommandToSequence(localAccess_struct, 0x05);
+	Access_addWriteCommandToSequence(localAccess_struct, 0x06);
+	Access_setIOAction(localAccess_struct, ACCESS_WRITE_SEQUENTIAL);
+	TEST_ASSERT_EQUAL_PTR(localAccess_struct,  Access_sequenceIsValid(localAccess_struct));
 
-	TEST_ASSERT_EQUAL_PTR(IO_struct,  IO_addIOSequenceToList(IoSequences, IO_struct));
+	struct IO * localIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
+
+	TEST_ASSERT_EQUAL(0, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	TEST_ASSERT_EQUAL_PTR(localAccess_struct,  IO_addIOSequenceToList(IoSequences, localAccess_struct));
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
 
 	//TODO: start looking for failure below here.
-	//TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
-	IO_update(IO_struct);
-	IO_update(IO_struct);
-	IO_update(IO_struct);
-	IO_update(IO_struct);
-	IO_update(IO_struct);
+	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_writeDataToSensor(myTest_Sensor));
+	TEST_ASSERT_EQUAL(2, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+
+	IO_update(localIoPointer);
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	IO_update(localIoPointer);
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	IO_update(localIoPointer);
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	IO_update(localIoPointer);
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	IO_update(localIoPointer);
+	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
 
 	TEST_ASSERT_EQUAL(0x05,  targetArray[0] );
 	TEST_ASSERT_EQUAL(0x06,  targetArray[1] );
 
-	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
+	//IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
 TEST(sensor, Sensor_writesCommandtakesNoActionOnNullAddress)
 {
-	myTest_Sensor->ioStructPtr->address = NULL;
+	myTest_Sensor->accessStructPtr->address = NULL;
 	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_writeDataToSensor(myTest_Sensor) );
 }
 
@@ -735,7 +750,7 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	TEST_ASSERT_EQUAL(5,  targetArray[0] );
 	TEST_ASSERT_EQUAL(6,  targetArray[1] );
 
-	struct SENSOR_DEFAULT_IO_TYPE * Access_struct = Sensor_getIoStructPointer(myTest_Sensor);
+	struct SENSOR_DEFAULT_ACCESS_TYPE * Access_struct = Sensor_getAccessStructPointer(myTest_Sensor);
 	TEST_ASSERT_NOT_EQUAL(NULL,  Access_struct);
 	Access_struct->address = targetArray;
 	Access_struct->bufferPointer[0]= 0x00;
@@ -771,7 +786,7 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 
 TEST(sensor, Sensor_readsCommandtakesNoActionOnNullAddress)
 {
-	myTest_Sensor->ioStructPtr->address = NULL;
+	myTest_Sensor->accessStructPtr->address = NULL;
 	TEST_ASSERT_EQUAL_PTR(NULL,  Sensor_readDataFromSensor(myTest_Sensor) );
 }
 
@@ -1140,7 +1155,7 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	Sensor_setOnReportReady_cb     (masterSensor, Sensor_test_general_cb );
 	Sensor_setOnAlarmTriggered_cb  (masterSensor, Sensor_test_general_cb2 );
 
-	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
+	struct IO * masterIoPointer = Sensor_getAccessStructPointer(masterSensor);
 	Access_setAddress   (masterIoPointer, (void *)11);
 	Access_setIOAction  (masterIoPointer, ACCESS_READ_SINGLE);
 	Access_setReadCount (masterIoPointer, 1);
@@ -1166,7 +1181,7 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	TEST_ASSERT_EQUAL(ALARM_BETWEEN,       myTest_Sensor->normalState);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb,  myTest_Sensor->Sensor_onReportReady_cb);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb2, myTest_Sensor->Sensor_onAlarmTriggered_cb);
-	struct IO * toIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
+	struct IO * toIoPointer = Sensor_getAccessStructPointer(myTest_Sensor);
 	TEST_ASSERT_EQUAL(11, Access_getAddress(toIoPointer));
 	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(ACCESS_READ_SINGLE, Access_getIOAction(toIoPointer));
@@ -1285,7 +1300,7 @@ TEST(sensor, equal_UnequalAlarmReadyCB_Unequal)
 TEST(sensor, equal_UnequalAddress_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
-	struct IO * masterIoPointer = Sensor_getIoStructPointer(masterSensor);
+	struct IO * masterIoPointer = Sensor_getAccessStructPointer(masterSensor);
 	Access_setAddress(masterIoPointer, (void *)11);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1474,7 +1489,7 @@ TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 
 	// set the address element in the IO object to a known safe buffer address
 	// the default address of NULL will prevent IO operations for the sensor
-	struct IO  * localIoStructPtr = Sensor_getIoStructPointer(myTest_Sensor);
+	struct IO  * localIoStructPtr = Sensor_getAccessStructPointer(myTest_Sensor);
 	io_data_t knownCharBuffer[16];
 	void * originalAddress = Access_getAddress(localIoStructPtr);
 	Access_setAddress(localIoStructPtr, knownCharBuffer);
@@ -1621,7 +1636,7 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 
 	// set the address element in the IO object to a known buffer address
 	io_data_t knownCharBuffer[16];
-	struct AccessMEM * localIoPtr = Sensor_getIoStructPointer(myTest_Sensor);
+	struct AccessMEM * localIoPtr = Sensor_getAccessStructPointer(myTest_Sensor);
 	void * originalAddress = Access_getAddress(localIoPtr);
 	Access_setAddress(localIoPtr, knownCharBuffer);
 	//localIoPtr->address = knownCharBuffer;

@@ -176,7 +176,7 @@ typedef unsigned char sensor_default_command_t;
 #define SENSOR_DEFAULT_ADDRESS   NULL
 
 //! The default IO type where "IO" = memory access.
-#define SENSOR_DEFAULT_IO_TYPE   AccessMEM
+#define SENSOR_DEFAULT_ACCESS_TYPE   AccessMEM
 /***********************************************/
 /************ protected includes  **************/
 /***** must be after externs and typedefs  *****/
@@ -497,7 +497,12 @@ alarmType_t Sensor_setNormalState(void * _self, alarmType_t _normalState);
 
 sensorReportStatus_t Sensor_reportReady(const void * _self);
 
-//! Pointer to the IO structure used to communicate with sensor
+//! Pointer to the Access structure used to communicate with sensor
+void * Sensor_getAccessStructPointer(const void * _self);
+void * Sensor_setAccessStructPointer(      void * _self, void * _accessStructPtr);
+
+//! Pointer to the IO structure used hold Access sequences
+//! this is a shared resource
 void * Sensor_getIoStructPointer(const void * _self);
 void * Sensor_setIoStructPointer(      void * _self, void * _ioStructPtr);
 
