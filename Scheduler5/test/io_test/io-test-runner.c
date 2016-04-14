@@ -109,5 +109,7 @@ TEST_GROUP_RUNNER(io)
 	RUN_TEST_CASE(io, IO_update_CallbackDoesNotFireOnWrongIoAction);
 	RUN_TEST_CASE(io, IO_update_canBeCalledMultipleTimesWithEmplyList);
 
+	RUN_TEST_CASE(io, IO_update_writeSingleToSingleAddressUsingSecondSequence);
+
 
 }

@@ -680,6 +680,47 @@ TEST(io, IO_update_canBeCalledMultipleTimesWithEmplyList)
 	TEST_ASSERT_EQUAL(0x00, otherTestBuffer[2] );
 }
 
+TEST(io, IO_update_writeSingleToSingleAddressUsingSecondSequence)
+{
+
+	Access_setIOAction              (myTest_AccessMEM, ACCESS_WRITE_SINGLE);
+	Access_addWriteCommandToSequence(myTest_AccessMEM, 0xFF);
+	Access_setAddress               (myTest_AccessMEM, scratchArrayBuffer);
+	TEST_ASSERT_EQUAL(myTest_AccessMEM, Access_sequenceIsValid(myTest_AccessMEM));
+
+	IO_addIOSequenceToList(myTest_IO, myTest_AccessMEM);
+
+	struct AccessMEM * secondAccessSequence = new(AccessMEM, IO_COMMAND_BUFFER_SIZE);
+
+	Access_setIOAction              (secondAccessSequence, ACCESS_WRITE_SINGLE);
+	Access_addWriteCommandToSequence(secondAccessSequence, 0x05);
+	Access_setAddress               (secondAccessSequence, scratchArrayBuffer);
+	TEST_ASSERT_EQUAL(secondAccessSequence, Access_sequenceIsValid(secondAccessSequence));
+
+	IO_addIOSequenceToList(myTest_IO, secondAccessSequence);
+
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	TEST_ASSERT_EQUAL(0xFF, scratchArrayBuffer[0] );
+	IO_sequenceComplete_cb(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+
+
+
+	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	IO_update(myTest_IO); // <<-- safety call
+	TEST_ASSERT_EQUAL(0x05, scratchArrayBuffer[0] );
+
+	secondAccessSequence = safeDelete(secondAccessSequence);
+
+}
 
 //****  Support Methods  ****************
 /**/

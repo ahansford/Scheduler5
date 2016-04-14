@@ -306,15 +306,13 @@ void * IO_io_xxxx(void * _self)
 
 void * IO_addIOSequenceToList(void * _self, void * _ioSequence)
 {
-	printf("\nentering IO_addIOSequenceToList\n");
 	struct IO * self = cast(IO, _self);
 	if( self == NULL )        { return NULL; } // fail
 	if( _ioSequence == NULL ) { return NULL; } // fail
 
 	struct List * localIoSequenceList = IO_getIoSequenceList(self);
 	void * itemAddedToListPtr = add(localIoSequenceList, _ioSequence);
-	//void * itemAddedToListPtr = add(ioSequenceList, self);
-	printf("adding sequence: %p to list: %p\n", _ioSequence,localIoSequenceList);
+
 	// test for failure to add
 	if ( itemAddedToListPtr == NULL ) { return NULL; } // fail
 

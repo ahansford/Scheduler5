@@ -127,7 +127,7 @@ void * Access_xxxx(void);
  * PRIVATE: generic Access callback that fires when Access I/O action is complete.
  * The sequence will be marked completed.
  */
-void * Access_sequenceComplete_cb(struct AccessMEM * _self);
+void * Access_sequenceComplete_cb(void * _self);
 
 /*!
  * OPTIONAL: Resets write and read counts indicating that the CMD buffer is

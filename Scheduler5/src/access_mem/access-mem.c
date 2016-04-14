@@ -826,7 +826,7 @@ static void Access_MEM_readSequential(void * _to, void * _from, int _readCount)
 }
 
 
-void * Access_sequenceComplete_cb(struct AccessMEM * _self)
+void * Access_sequenceComplete_cb(void * _self)
 {
 	//Goal:  call the action complete callback in the higher level module
 

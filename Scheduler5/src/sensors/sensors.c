@@ -1705,32 +1705,34 @@ static void * implement_Sensor_default_writeDataToSensor(struct Sensor * _self)
 	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
 	/**/
-	printf("\n IO sequences on list: %i", getItemCount(IO_getIoSequenceList(localIoStructPtr)) );
 	if ( IO_addIOSequenceToList(localIoStructPtr, localAccessStructPtr) != localAccessStructPtr)
 		{ return NULL; }  // fail
-	printf("\n IO sequences on list: %i", getItemCount(IO_getIoSequenceList(localIoStructPtr)) );
 
 	return _self; // expected return path
 }
 
 static void * implement_Sensor_default_readDataFromSensor (struct Sensor * _self)
 {
-	// get the sensor's IO structure pointer. fail on NULL
-	struct SENSOR_DEFAULT_ACCESS_TYPE * localIoStructPtr =
-										Sensor_getAccessStructPointer(_self);
+	// get struct IO pointer in the correct Access struct type ... SENSOR_xxxx_IO_TYPE
+	struct SENSOR_DEFAULT_ACCESS_TYPE * localAccessStructPtr =
+	                                    Sensor_getAccessStructPointer(_self);
+	if ( localAccessStructPtr == NULL ) { return NULL; }  // fail no IO struct
+
+	// get a pointer to the IO struct where the access struct is kept in a list
+	struct IO * localIoStructPtr = Sensor_getIoStructPointer(_self);
 	if ( localIoStructPtr == NULL ) { return NULL; }  // fail no IO struct
 
 	// set for sequential writes to successive locations starting with "address"
 	// default sensor is a simple memory access module and assumes sequential
-	Access_setIOAction(localIoStructPtr, ACCESS_READ_SEQUENTIAL);
+	Access_setIOAction(localAccessStructPtr, ACCESS_READ_SEQUENTIAL);
 
 	// test for a valid IO sequence before adding it to the list below
-	if ( Access_sequenceIsValid(localIoStructPtr) == NULL ) { return NULL; }
+	if ( Access_sequenceIsValid(localAccessStructPtr) == NULL ) { return NULL; }
 
 	// TODO:  How do we know that IO_int(List *) has been called ??
 	// add the command sequence to the IO list for processing when possible
-	//if ( IO_addIOSequenceToList(IO_OBJECT_TODO, localIoStructPtr) != localIoStructPtr)
-	//	{ return NULL; }  // fail
+	if ( IO_addIOSequenceToList(localIoStructPtr, localAccessStructPtr) != localAccessStructPtr)
+		{ return NULL; }  // fail
 
 	return _self; // expected return path
 }

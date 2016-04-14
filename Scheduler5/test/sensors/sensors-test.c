@@ -678,11 +678,6 @@ TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
 TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 {
 	printf("\nTEST:  Sensor_writesCommandDataToSpecifiedLocation at line: %i", __LINE__);
-	//void * IO_actionBuffer[0];
-	//struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
-	//IO_init(IOTest_ioActionList);
-	//IO_init();
-
 	io_data_t targetArray[4];
 	targetArray[0] = 0;
 	targetArray[1] = 0;
@@ -707,20 +702,17 @@ TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 	TEST_ASSERT_EQUAL(2, getItemCount(IO_getIoSequenceList(localIoPointer)) );
 
 	IO_update(localIoPointer);
-	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
 	IO_update(localIoPointer);
-	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	IO_update(localIoPointer);  //  <<-- safety call
+	IO_sequenceComplete_cb(localIoPointer);
+
 	IO_update(localIoPointer);
-	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
 	IO_update(localIoPointer);
-	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
-	IO_update(localIoPointer);
-	TEST_ASSERT_EQUAL(1, getItemCount(IO_getIoSequenceList(localIoPointer)) );
+	IO_update(localIoPointer);  //  <<-- safety call
+	IO_sequenceComplete_cb(localIoPointer);
 
 	TEST_ASSERT_EQUAL(0x05,  targetArray[0] );
 	TEST_ASSERT_EQUAL(0x06,  targetArray[1] );
-
-	//IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
 TEST(sensor, Sensor_writesCommandtakesNoActionOnNullAddress)
@@ -738,11 +730,11 @@ TEST(sensor, Sensor_writesCommandtakesNoActionOnNullObject)
 /**/
 TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 {
-	void * IO_actionBuffer[1];
-	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
-	TEST_ASSERT_TRUE(IOTest_ioActionList != NULL );
+	//void * IO_actionBuffer[1];
+	//struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
+	//TEST_ASSERT_TRUE(IOTest_ioActionList != NULL );
 	//IO_init(IOTest_ioActionList);
-	IO_init();
+	//IO_init();
 
 	access_data_t targetArray[4];
 	targetArray[0] = 5;
@@ -752,6 +744,8 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 
 	struct SENSOR_DEFAULT_ACCESS_TYPE * Access_struct = Sensor_getAccessStructPointer(myTest_Sensor);
 	TEST_ASSERT_NOT_EQUAL(NULL,  Access_struct);
+
+
 	Access_struct->address = targetArray;
 	Access_struct->bufferPointer[0]= 0x00;
 	Access_struct->bufferPointer[1]= 0x00;
@@ -760,28 +754,30 @@ TEST(sensor, Sensor_readsCommandDataFromSpecifiedLocation)
 	//Access_struct->ioAction = ACCESS_READ_SINGLE;
 	//Access_struct->ioAction = ACCESS_READ_SEQUENTIAL;
 	TEST_ASSERT_EQUAL_PTR(myTest_Sensor,  Sensor_readDataFromSensor(myTest_Sensor));
-	//IO_commandExecuteComplete_cb();
+
 
 	//TODO:  need to reset the IO state machine to a benign state.
 	//       Where is the IO module being initialized?
 	//       look to IO test to get a sense of what is needed
 	//       todo: add to the sensor setup.  Probably a function like IO_getIoManagerPtr();
 	//
-	//IO_sequenceComplete_cb();
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
-	//IO_update(IO_struct);
+
+	struct IO * localIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
+	//IO_sequenceComplete_cb(localIoPointer);
+	IO_update(localIoPointer);
+	IO_update(localIoPointer);
+	IO_update(localIoPointer);
+	IO_update(localIoPointer);
+	IO_sequenceComplete_cb(localIoPointer);
+	IO_update(localIoPointer);
+	IO_update(localIoPointer);
+	IO_update(localIoPointer);
 
 	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(0x05,  Access_struct->bufferPointer[0] );
 	TEST_ASSERT_EQUAL(0x06,  Access_struct->bufferPointer[1] );
 
-	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
+	//IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
 TEST(sensor, Sensor_readsCommandtakesNoActionOnNullAddress)
@@ -1483,32 +1479,40 @@ TEST(sensor, Sensor_measure_triggeresStartWhenNotStarted)
 TEST(sensor, Sensor_measure_triggeresEndsInReportWhenNotStarted)
 {
 	// enable the IO list
-	void * IO_actionBuffer[4];
-	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
-	IO_init();
+	struct IO * localIoStructPointer = Sensor_getIoStructPointer(myTest_Sensor);
 
 	// set the address element in the IO object to a known safe buffer address
 	// the default address of NULL will prevent IO operations for the sensor
-	struct IO  * localIoStructPtr = Sensor_getAccessStructPointer(myTest_Sensor);
+	struct Access * localAccessStructPtr = Sensor_getAccessStructPointer(myTest_Sensor);
+
+
 	io_data_t knownCharBuffer[16];
-	void * originalAddress = Access_getAddress(localIoStructPtr);
-	Access_setAddress(localIoStructPtr, knownCharBuffer);
+	void * originalAddress = Access_getAddress(localAccessStructPtr);
+	Access_addWriteCommandToSequence(localAccessStructPtr, 0x05);
+	Access_setIOAction(localAccessStructPtr, ACCESS_WRITE_SEQUENTIAL);
+	Access_setAddress(localAccessStructPtr, knownCharBuffer);
+	Access_setActionDone_cb(localAccessStructPtr, Access_sequenceComplete_cb);
+	Access_setObjectPointer(localAccessStructPtr, localIoStructPointer);
+
+
 
 	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, myTest_Sensor->sensorState);
 	Sensor_measureAndProcess(myTest_Sensor);
+
 
 	// simulate the scheduler calls to IO and Sensor
 	int i;
 	for ( i = 0; i < 25; i++) {
 	Sensor_update(myTest_Sensor);
+	IO_update(localIoStructPointer);
 	}
 
 	// TODO: FIX this error
 	TEST_ASSERT_EQUAL(SENSOR_REPORT, myTest_Sensor->sensorState);
 
 	// garbage collection ... failure to assign back to original will leave original buffer undeleted
-	Access_setAddress(localIoStructPtr, originalAddress);
-	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
+	Access_setAddress(localAccessStructPtr, originalAddress);
+	//IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
 TEST(sensor, Sensor_measure_triggeresMeasureWhenReadyIdle)
