@@ -677,7 +677,6 @@ TEST(sensor, Sensor_getIoCommandBufPointer_returns_specificValue)
 /**/
 TEST(sensor, Sensor_writesCommandDataToSpecifiedLocation)
 {
-	printf("\nTEST:  Sensor_writesCommandDataToSpecifiedLocation at line: %i", __LINE__);
 	io_data_t targetArray[4];
 	targetArray[0] = 0;
 	targetArray[1] = 0;
@@ -1657,6 +1656,14 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
 	Sensor_update(myTest_Sensor); // mini states may need additional update()
+
+	// simulate the scheduler calls to IO and Sensor
+	//int i;
+	//for ( i = 0; i < 25; i++) {
+	//Sensor_update(myTest_Sensor);
+	//IO_update(localIoStructPointer);
+	//}
+
 
 	// TODO: FIX this error
 	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
