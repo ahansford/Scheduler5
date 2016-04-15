@@ -723,12 +723,19 @@ static void * implement_Sensor_default_dtor(struct Sensor * _self)
 static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 						     const struct Sensor * _copyFromMaster)
 {
+	// theoretical use case would be to configure a sensor of a given type,
+	// and then copy that configuration to a separate sensor so they operate the same
+	// some items like pointers will be unique
+	// some items should benign like sensorState
+
+
 	// copy master data members, except for PTRs and dynamic
 	// PTRs and dynamic values are unique and should not be copied
 
 	// Dynamic value
 	//Sensor_setSensorState(_copyTo,
 	//		Sensor_getSensorState(_copyFromMaster));
+	//Sensor_setSensorState(_copyTo, SENSOR_STATE_UNKNOWN);
 
 	//Sensor_setMiniState(_copyTo,
 	//		Sensor_getMiniState(_copyFromMaster));
@@ -737,7 +744,7 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	//		Sensor_getAsyncFlag(_copyFromMaster));
 
 	Sensor_setPowerUpDelayTicks(_copyTo,
-			Sensor_getEnablePowerDelayTicks(_copyFromMaster));
+			Sensor_getPowerUpDelayTicks(_copyFromMaster));
 
 	Sensor_setAlignConfigDelayTicks(_copyTo,
 			Sensor_getAlignConfigDelayTicks(_copyFromMaster));
@@ -806,8 +813,8 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 	//		               Sensor_getAsyncFlag(comparisonObject) )
 	//	{return OBJECT_UNEQUAL;}
 
-	if( Sensor_getEnablePowerDelayTicks(self) !=
-			               Sensor_getEnablePowerDelayTicks(comparisonObject) )
+	if( Sensor_getPowerUpDelayTicks(self) !=
+							Sensor_getPowerUpDelayTicks(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
 	if( Sensor_getAlignConfigDelayTicks(self) !=
@@ -902,7 +909,7 @@ puto_return_t implement_Sensor_default_puto(const struct Sensor * _self, FILE * 
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor powerUpDelayTicks:     %i\n",
-			Sensor_getEnablePowerDelayTicks(self) ))
+			Sensor_getPowerUpDelayTicks(self) ))
 		{ printReturnCode = PUTO_ERROR;  } // error detected
 
 	if (PUTO_ERROR == fprintf(_fp, "  Sensor alignConfigDelayTicks: %i\n",
@@ -1097,7 +1104,7 @@ sensorAsyncFlag_t Sensor_setAsyncFlag(void * _self,
 /********************************************/
 /****  set and get powerUpDelayTicks    *****/
 
-int Sensor_getEnablePowerDelayTicks(const void * _self)
+int Sensor_getPowerUpDelayTicks(const void * _self)
 {
 	const struct Sensor * self = cast(Sensor, _self);
 	if ( self == NULL ) { return SENSOR_DELAY_TICKS_UNKNOWN; }
@@ -1856,7 +1863,7 @@ static void * implement_Sensor_default_enablePower(struct Sensor * _self)
 		// last mini-state
 		// all device communication is complete
 		// arm scheduler task to fire, OR automatically transition on 0 delay
-		int delayTicks = Sensor_getEnablePowerDelayTicks(_self);
+		int delayTicks = Sensor_getPowerUpDelayTicks(_self);
 		if ( delayTicks > 0 ) {
 			Sensor_armDelayedCallback(_self,
 								      (sensor_cb_fnct)Sensor_postEnablePower,

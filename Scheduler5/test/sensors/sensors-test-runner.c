@@ -242,7 +242,7 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, Sensor_AlarmTriggered_firesDesignatedCallback);
 
 	/***********  config  **************/
-	//RUN_TEST_CASE(sensor, Config_copiesState);
+	RUN_TEST_CASE(sensor, Config_copiesState);
 
 
 	/***********  init  **************/
@@ -290,7 +290,6 @@ TEST_GROUP_RUNNER(sensor)
 
 	RUN_TEST_CASE(sensor, Sensor_stop_endsInUnpoweredIdle);
 
-	// TODO: should this test pass?
 	RUN_TEST_CASE(sensor, Sensor_stop_sendsPowerDownCommands);
 
 	RUN_TEST_CASE(sensor, Sensor_resetMiniState_setsToStateZero);

@@ -439,7 +439,7 @@ sensorAsyncFlag_t Sensor_setAsyncFlag(void * _self,
  *   the sensor is not in use.  No communication with the sensor should be
  *   attempted until the sensor is powered AND stable.
  */
-sensorDelayTicks_t Sensor_getEnablePowerDelayTicks(const void * _self);
+sensorDelayTicks_t Sensor_getPowerUpDelayTicks(const void * _self);
 sensorDelayTicks_t Sensor_setPowerUpDelayTicks(void * _self,
 		                                       sensorDelayTicks_t _delayTicks);
 

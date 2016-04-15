@@ -12,20 +12,22 @@ struct Sensor {
 	const struct Object _;	// should the superclass
 	sensorState_t      sensorState;  //! The primary state variable
 	int				   miniState;    //! A generic state variable for sub-states
-	sensorAsyncFlag_t  asyncFlag;   //! registers external asynchronous state machine change requests
+	sensorAsyncFlag_t  asyncFlag;    //! registers external asynchronous state machine change requests
 	sensorDelayTicks_t powerUpDelayTicks;  //! Post enable power CB delay in ticks
 	int 			   configDelayTicks;   //! Post align & config CB delay in ticks
 	//! Post measurement CB delay in ticks
 	int 			measurementDelayTicks;
-	void * 			rawDataPointer;  //! Pointer to the unprocessed data buffer
-	void * 			finalDataPointer;  //! Pointer to the processed data buffer
-	void * 			alarmLevelsPointer;  //! Pointer alarm level(s) (nodes)
-	alarmType_t 	alarmState;          //! Current alarm state
-	alarmType_t		normalState;         //! Expected (normal) alarm state
+	void * 			rawDataPointer;     //! Pointer to the unprocessed data buffer
+	void * 			finalDataPointer;   //! Pointer to the processed data buffer
+	void * 			alarmLevelsPointer; //! Pointer alarm level(s) (nodes)
+	alarmType_t 	alarmState;         //! Current alarm state
+	alarmType_t		normalState;        //! Expected (normal) alarm state
 	//! Callback to middleware when sensor data is ready to be reported out
 	struct Sensor * (*Sensor_onReportReady_cb)    (struct Sensor * _sensor);
 	//! Callback to middleware when alarm state does not match the expected
 	struct Sensor * (*Sensor_onAlarmTriggered_cb) (struct Sensor * _sensor);
+
+	// IO abstraction structures
 	struct SENSOR_DEFAULT_ACCESS_TYPE * accessStructPtr; // pointer to the IO object managing sensor I/O
 	struct IO *     ioStructPtr;	// pointer to the IO list that should receive sequences
 };

@@ -24,6 +24,8 @@ struct Sensor * memoryLeakPointer;
 
 struct_task_t testTASKS_sensors[SCHEDULER_MAX_TASKS];
 
+io_data_t scratchArrayBuffer[SENSOR_DEFAULT_MAX_COMMANDS];
+
 struct Sensor * Sensor_test_general_cb(struct Sensor * _self);
 struct Sensor * Sensor_test_general_cb2(struct Sensor * _self);
 int sensor_test_cb_count;
@@ -338,13 +340,13 @@ TEST(sensor, Sensor_setAsyncFlag_canSetSpecificValue)
 /**/
 TEST(sensor, Sensor_getPowerUpDelayTicks_returns_UnknownOnCreate)
 {
-	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  Sensor_getEnablePowerDelayTicks(myTest_Sensor) );
+	TEST_ASSERT_EQUAL(SENSOR_DELAY_TICKS_UNKNOWN,  Sensor_getPowerUpDelayTicks(myTest_Sensor) );
 }
 
 TEST(sensor, Sensor_getPowerUpDelayTicks_returns_specificValue)
 {
 	myTest_Sensor->powerUpDelayTicks = 5;
-	TEST_ASSERT_EQUAL(5,  Sensor_getEnablePowerDelayTicks(myTest_Sensor) );
+	TEST_ASSERT_EQUAL(5,  Sensor_getPowerUpDelayTicks(myTest_Sensor) );
 }
 
 TEST(sensor, Sensor_setPowerUpDelayTicks_returnsSpecificValue)
@@ -1376,17 +1378,46 @@ TEST(sensor, Sensor_AlarmTriggered_firesDesignatedCallback)
 
 
 /***********  config  **************/
-/*
+/**/
 TEST(sensor, Config_copiesState)
 {
-	struct Sensor * masterSensor = new(Sensor);
-	Sensor_setPressType(masterSensor, BUTTON_SHORT_PRESS);
-	Sensor_setPressTime(masterSensor, 7);
+
+	// theoretical use case would be to configure a sensor of a given type,
+	// and then copy that configuration to a separate sensor so they operate the same
+	// some items like pointers will be unique
+	// some items should benign like sensorState
+	struct Sensor * masterSensor = new(Sensor, SENSOR_DEFAULT_MAX_COMMANDS);
+	Sensor_setSensorState(masterSensor, SENSOR_WAITING_CONFIG); // sensorState should configure as SENSOR_STATE_UNKNOWN
+	Sensor_setMiniState(masterSensor, SENSOR_MINI_STATE_7); // miniState should configure as SENSOR_MINI_STATE_UNKNOWN
+	Sensor_setAsyncFlag(masterSensor, SENSOR_ASYNC_MEASURE_REQUEST); // asyncFlag should configure as SENSOR_ASYNC_FLAG_UNKNOWN
+	Sensor_setPowerUpDelayTicks(masterSensor, 5); // powerUpDelayTicks should match
+	Sensor_setAlignConfigDelayTicks(masterSensor, 6); // configDelayTicks should match
+	Sensor_setMeasurementDelayTicks(masterSensor, 7); // measurementDelayTicks should match
+	//Sensor_setRawDataPointer(masterSensor, NULL); // rawDataPointer should be unique and non-NULL
+	//Sensor_setFinalDataPointer(masterSensor, NULL); // finalDataPointer should be unique and non-NULL
+	//Sensor_setAlarmLevelsPointer(masterSensor, NULL); // alarmLevelsPointer should be unique and non-NULL; levels should match
+	Sensor_setAlarmState(masterSensor, ALARM_EQUAL); // alarmState should configure as ALARM_TYPE_UNKNOWN
+	Sensor_setNormalState(masterSensor, ALARM_BELOW); // normalState should match
+	Sensor_setOnReportReady_cb(masterSensor, Sensor_emptyReportReadyCallback); // (*Sensor_onReportReady_cb) should match
+	Sensor_setOnAlarmTriggered_cb(masterSensor, Sensor_emptyAlarmTriggeredCallback); // (*Sensor_onAlarmTriggered_cb) should match
+	//Sensor_setAccessStructPointer(masterSensor, NULL); // accessStructPtr should be unique and non-NULL
+	Sensor_setIoStructPointer(masterSensor, IoSequenceList); // ioStructPtr should match
+
 	config(myTest_Sensor, masterSensor);
-	TEST_ASSERT_EQUAL(BUTTON_SHORT_PRESS, Sensor_getPressType(myTest_Sensor));
-	TEST_ASSERT_EQUAL(7,                  Sensor_getPressTime(myTest_Sensor));
+
+	// TODO: finish adding tests
+	TEST_ASSERT_EQUAL(SENSOR_STATE_UNKNOWN, Sensor_getSensorState(myTest_Sensor));
+	TEST_ASSERT_EQUAL(SENSOR_MINI_STATE_UNKNOWN, Sensor_getMiniState(myTest_Sensor));
+	TEST_ASSERT_EQUAL(SENSOR_ASYNC_FLAG_UNKNOWN, Sensor_getAsyncFlag(myTest_Sensor));
+	TEST_ASSERT_EQUAL(5, Sensor_getPowerUpDelayTicks(myTest_Sensor));
+	TEST_ASSERT_EQUAL(6, Sensor_getAlignConfigDelayTicks(myTest_Sensor));
+	TEST_ASSERT_EQUAL(7, Sensor_getMeasurementDelayTicks(myTest_Sensor));
+
+	//TEST_ASSERT_EQUAL(7,                  Sensor_getPressTime(myTest_Sensor));
+
+	masterSensor = safeDelete(masterSensor);
 }
-*/
+
 
 /***********  init  **************/
 /**/
@@ -1632,41 +1663,30 @@ TEST(sensor, Sensor_measureAndProcess_sendsAllCommands)
 
 TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 {
-	// enable an IO list
-	void * IOTest_ioActionBuffer[16];
-	struct List * IOTest_ioActionList = new(List, IOTest_ioActionBuffer);
-	IO_init();
+	// set the Access target address to a safe destination
+	struct AccessMEM * localAccessPtr = Sensor_getAccessStructPointer(myTest_Sensor);
+	Access_setAddress(localAccessPtr, scratchArrayBuffer);
 
-	// set the address element in the IO object to a known buffer address
-	io_data_t knownCharBuffer[16];
-	struct AccessMEM * localIoPtr = Sensor_getAccessStructPointer(myTest_Sensor);
-	void * originalAddress = Access_getAddress(localIoPtr);
-	Access_setAddress(localIoPtr, knownCharBuffer);
-	//localIoPtr->address = knownCharBuffer;
+	// set power up delay ticks to greater than 0 to trigger a callback wait state
+	Sensor_setPowerUpDelayTicks(myTest_Sensor, 1); // >0 triggers callback wait
 
-	Sensor_setPowerUpDelayTicks    (myTest_Sensor, 1); // >0 triggers callback wait
+	// direct sensor to enable power
 	Sensor_transitionState(myTest_Sensor, SENSOR_ENABLE_POWER);
 
-	// WARNING:  there need to be enough Sensor_update() calls to complete the
-	//           state machine processing ... reason is that example comm code shown
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
-	Sensor_update(myTest_Sensor); // mini states may need additional update()
+	// get the IO pointer from sensor for IO_update()
+	struct IO * localIoPointer = Sensor_getIoStructPointer(myTest_Sensor);
 
-	// simulate the scheduler calls to IO and Sensor
-	//int i;
-	//for ( i = 0; i < 25; i++) {
-	//Sensor_update(myTest_Sensor);
-	//IO_update(localIoStructPointer);
-	//}
+	// simulate the scheduler calls to IO_update() and Sensor_update()
+	// 3 cycles were originally needed
+	int i;
+	for ( i = 0; i < 10; i++) {
+		// mini-states may need additional calls to Sensor_update()
+		Sensor_update(myTest_Sensor);
+		IO_update(localIoPointer);
+	}
 
-
-	// TODO: FIX this error
-	TEST_ASSERT_TRUE(myTest_Sensor->sensorState >= SENSOR_WAITING_POWER);
+	// primary test
+	TEST_ASSERT_TRUE(myTest_Sensor->sensorState == SENSOR_WAITING_POWER);
 
 	// tests below depend on knowledge of the scheduler implementation
 	// verify that the post power up callback was registered
@@ -1677,9 +1697,6 @@ TEST(sensor, Sensor_enablePower_armsPowerUpCallback)
 	TEST_ASSERT_EQUAL(myTest_Sensor->powerUpDelayTicks, testTASKS_sensors[0].delay);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].period);
 	TEST_ASSERT_EQUAL(0,                                testTASKS_sensors[0].runMe);
-
-	Access_setAddress(localIoPtr, originalAddress);
-	IOTest_ioActionList = safeDelete(IOTest_ioActionList);
 }
 
 TEST(sensor, Sensor_configAndAlign_armsConfigAlignCallback)
@@ -1876,11 +1893,12 @@ TEST(sensor, Sensor_stop_endsInUnpoweredIdle)
 
 TEST(sensor, Sensor_stop_sendsPowerDownCommands)
 {
+	Sensor_setSensorState(myTest_Sensor, SENSOR_WAITING_MEASUREMENT);
 	Sensor_start(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
 	Sensor_stopAndRemovePower(myTest_Sensor);
 	Sensor_update(myTest_Sensor);
-	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, myTest_Sensor->sensorState);
+	TEST_ASSERT_EQUAL(SENSOR_UNPOWERED_IDLE, Sensor_getSensorState(myTest_Sensor) );
 }
 
 TEST(sensor, Sensor_resetMiniState_setsToStateZero)

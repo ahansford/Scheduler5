@@ -34,7 +34,9 @@ const void * IOClass = NULL;
 const void * IO      = NULL;
 
 //TODO:move sequence into the private member space
-struct List * ioSequenceList = NULL; // pointer to the List of sequences
+//struct List * ioSequenceList = NULL; // pointer to the List of sequences
+
+//TODO:move sequence into the private member space
 struct AccessMEM * sequence  = NULL; // pointer to the sequence currently being executed
 
 // the internally managed IO state machine state used in IO_update()
