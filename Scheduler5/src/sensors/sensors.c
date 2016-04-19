@@ -780,7 +780,7 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	Sensor_setOnAlarmTriggered_cb(_copyTo,
 			Sensor_getOnAlarmTriggered_cb(_copyFromMaster));
 
-	// copy Access structure values which is unique to each sensot
+	// copy Access structure values which is unique to each sensor
 	//copy(Sensor_getAccessStructPointer(_copyTo),
 	//		Sensor_getAccessStructPointer(_copyFromMaster));
 
