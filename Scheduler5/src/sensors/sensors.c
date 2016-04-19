@@ -780,13 +780,15 @@ static void * implement_Sensor_default_copy(      struct Sensor * _copyTo,
 	Sensor_setOnAlarmTriggered_cb(_copyTo,
 			Sensor_getOnAlarmTriggered_cb(_copyFromMaster));
 
-	// Pointer value
-	//Sensor_setIoStructPointer(_copyTo,
-	//		Sensor_getIoStructPointer(_copyFromMaster));
+	// copy Access structure values which is unique to each sensot
+	//copy(Sensor_getAccessStructPointer(_copyTo),
+	//		Sensor_getAccessStructPointer(_copyFromMaster));
 
-	// copy IO structure values
-	copy(Sensor_getAccessStructPointer(_copyTo),
-			Sensor_getAccessStructPointer(_copyFromMaster));
+	// Pointer IO struct pointer which can be shared across multiple sensors
+	Sensor_setIoStructPointer(_copyTo,
+			Sensor_getIoStructPointer(_copyFromMaster));
+
+
 
 	return _copyTo;
 }

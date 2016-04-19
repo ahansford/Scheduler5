@@ -1152,14 +1152,16 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	Sensor_setOnReportReady_cb     (masterSensor, Sensor_test_general_cb );
 	Sensor_setOnAlarmTriggered_cb  (masterSensor, Sensor_test_general_cb2 );
 
-	struct IO * masterIoPointer = Sensor_getAccessStructPointer(masterSensor);
-	Access_setAddress   (masterIoPointer, (void *)11);
-	Access_setIOAction  (masterIoPointer, ACCESS_READ_SINGLE);
-	Access_setReadCount (masterIoPointer, 1);
-	Access_setWriteCount(masterIoPointer, 1);
-	//Access_setBufferPointer(masterIoPointer, NULL);
-	Access_setActionDone_cb(masterIoPointer, NULL);
-	Access_setObjectPointer(masterIoPointer, NULL);
+	struct IO * masterAccessPointer = Sensor_getAccessStructPointer(masterSensor);
+	Access_setAddress   (masterAccessPointer, (void *)11);
+	Access_setIOAction  (masterAccessPointer, ACCESS_READ_SINGLE);
+	Access_setReadCount (masterAccessPointer, 1);
+	Access_setWriteCount(masterAccessPointer, 1);
+	//Access_setBufferPointer(masterAccessPointer, NULL);
+	Access_setActionDone_cb(masterAccessPointer, NULL);
+	Access_setObjectPointer(masterAccessPointer, NULL);
+
+
 
 	copy(myTest_Sensor, masterSensor);
 
@@ -1178,6 +1180,9 @@ TEST(sensor, copy_AllItemsCopiedToSelf)
 	TEST_ASSERT_EQUAL(ALARM_BETWEEN,       myTest_Sensor->normalState);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb,  myTest_Sensor->Sensor_onReportReady_cb);
 	TEST_ASSERT_EQUAL_PTR(Sensor_test_general_cb2, myTest_Sensor->Sensor_onAlarmTriggered_cb);
+	TEST_ASSERT_EQUAL_PTR(Sensor_getIoStructPointer(masterSensor), Sensor_getIoStructPointer(myTest_Sensor));
+
+
 	struct IO * toIoPointer = Sensor_getAccessStructPointer(myTest_Sensor);
 	TEST_ASSERT_EQUAL(11, Access_getAddress(toIoPointer));
 	// TODO: FIX this error
@@ -1412,7 +1417,19 @@ TEST(sensor, Config_copiesState)
 	TEST_ASSERT_EQUAL(5, Sensor_getPowerUpDelayTicks(myTest_Sensor));
 	TEST_ASSERT_EQUAL(6, Sensor_getAlignConfigDelayTicks(myTest_Sensor));
 	TEST_ASSERT_EQUAL(7, Sensor_getMeasurementDelayTicks(myTest_Sensor));
-
+	TEST_ASSERT_NOT_EQUAL(NULL, Sensor_getRawDataPointer(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(NULL, Sensor_getFinalDataPointer(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(NULL, Sensor_getAlarmLevelsPointer(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(Sensor_getRawDataPointer(masterSensor), Sensor_getRawDataPointer(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(Sensor_getFinalDataPointer(masterSensor), Sensor_getFinalDataPointer(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(Sensor_getAlarmLevelsPointer(masterSensor), Sensor_getAlarmLevelsPointer(myTest_Sensor));
+	TEST_ASSERT_EQUAL(ALARM_EQUAL, Sensor_getAlarmState(myTest_Sensor));
+	TEST_ASSERT_EQUAL(ALARM_BELOW, Sensor_getNormalState(myTest_Sensor));
+	TEST_ASSERT_EQUAL(Sensor_emptyReportReadyCallback, Sensor_getOnReportReady_cb(myTest_Sensor));
+	TEST_ASSERT_EQUAL(Sensor_emptyAlarmTriggeredCallback, Sensor_getOnAlarmTriggered_cb(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(NULL, Sensor_getAccessStructPointer(myTest_Sensor));
+	TEST_ASSERT_NOT_EQUAL(Sensor_getAccessStructPointer(masterSensor), Sensor_getAccessStructPointer(myTest_Sensor));
+	TEST_ASSERT_EQUAL(IoSequenceList, Sensor_getIoStructPointer(myTest_Sensor));
 	//TEST_ASSERT_EQUAL(7,                  Sensor_getPressTime(myTest_Sensor));
 
 	masterSensor = safeDelete(masterSensor);
