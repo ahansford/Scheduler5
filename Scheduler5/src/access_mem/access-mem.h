@@ -176,9 +176,8 @@ void * Access_setBufferPointer(      void * _self, void * _bufferPointer);
 
 /*!
  * Number of values that can be stored in the command buffer.
- * Should be set immediately after new(AccessMEM, _commandBufferPtr); is called
- * TODO: Shift the command buffer to an internally generated buffer
- * Access_getBufferSize() is PRIVATE
+ * This is set when creating a new Access object new(AccessMEM, bufferSize);
+ * // Access_setBufferSize() should be PRIVATE
  */
 int Access_getBufferSize(const void * _self);
 int Access_setBufferSize(      void * _self, int _size);

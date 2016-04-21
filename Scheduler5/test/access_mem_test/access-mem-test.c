@@ -59,18 +59,13 @@ TEST_SETUP(accessMem)
 {
 	RuntimeErrorStub_Reset();
 
-	//accessMemTest_ioActionList = new(List, ASSECCTest_ioActionBuffer);
-	//IO_init(accessMemTest_ioActionList);
-
 	Access_init();
 
-	// create a new AccessMEM object using the externally created testBuffer
-	//myTest_accessMem = new(AccessMEM, testBuffer);
-	//if ( myTest_accessMem == NULL ) {printf("failed to allocate memory for new(AccessMEM)\n"); }
-	//Access_setBufferSize(myTest_accessMem, ACCESS_COMMAND_BUFFER_SIZE);
-	// todo5:
+	// create a new AccessMEM object with a specified command buffer size
 	myTest_accessMem = new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE);
-	if ( myTest_accessMem == NULL ) { printf("new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE) is NULL\n"); }
+	if ( myTest_accessMem == NULL ) {
+		printf("new(AccessMEM, ACCESS_COMMAND_BUFFER_SIZE) is NULL\n");
+	}
 
 
 	testBuffer = Access_getBufferPointer(myTest_accessMem);
@@ -774,18 +769,18 @@ TEST(accessMem, equal_UnequalActionDoneCB_Unequal)
 	masterIO = safeDelete(masterIO);
 }
 
-TEST(accessMem, equal_UnequalHardwareConfigUnequal)
-{
-	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
-	Access_setHardwareConfig(masterIO, otherTestBuffer);
-	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
-	masterIO = safeDelete(masterIO);
-}
-
 TEST(accessMem, equal_UnequalObjectPointerUnequal)
 {
 	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
 	Access_setObjectPointer(masterIO, otherTestBuffer);
+	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
+	masterIO = safeDelete(masterIO);
+}
+
+TEST(accessMem, equal_UnequalHardwareConfigUnequal)
+{
+	struct AccessMEM * masterIO = new(AccessMEM, otherTestBuffer);
+	Access_setHardwareConfig(masterIO, otherTestBuffer);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_accessMem, masterIO) );
 	masterIO = safeDelete(masterIO);
 }

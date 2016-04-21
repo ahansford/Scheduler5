@@ -869,15 +869,15 @@ static equal_t implement_Sensor_default_equal(const struct Sensor * _self,
 			               Sensor_getOnAlarmTriggered_cb(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
 
-	/* IO pointer is not directly compared
 	if( Sensor_getIoStructPointer(self) !=
 			               Sensor_getIoStructPointer(comparisonObject) )
 		{return OBJECT_UNEQUAL;}
-	*/
 
+	/* Access pointer is not directly compared
 	if( equal(Sensor_getAccessStructPointer(self),
 		Sensor_getAccessStructPointer(comparisonObject)) == OBJECT_UNEQUAL )
 		{return OBJECT_UNEQUAL;}
+	 */
 
 	// all data members are congruent
 	return OBJECT_EQUAL;

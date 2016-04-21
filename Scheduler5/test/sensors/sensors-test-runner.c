@@ -219,9 +219,10 @@ TEST_GROUP_RUNNER(sensor)
 	RUN_TEST_CASE(sensor, equal_UnequalAlarmStateReturn_Unequal);
 	RUN_TEST_CASE(sensor, equal_UnequalNormalStateReturn_Unequal);
 	RUN_TEST_CASE(sensor, equal_UnequalReportReadyCB_Unequal);
-	RUN_TEST_CASE(sensor, equal_UnequalAlarmReadyCB_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalAlarmTriggeredCB_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalIoStructPointer_Unequal);
 
-	RUN_TEST_CASE(sensor, equal_UnequalAddress_Unequal);
+	RUN_TEST_CASE(sensor, equal_UnequalAccessStructPointer_Equal);
 
 	RUN_TEST_CASE(sensor, equal_NullReturns_Null);
 	RUN_TEST_CASE(sensor, equal_CopiedSensorReturnsEqual);

@@ -102,17 +102,6 @@ void * Access_MEM_ctor(void * _self, va_list * app)
 	// ... this seems like an undue burden on the user.  Leave commented out
 	// ... numerous unit tests will need to be adapted if uncommented
 
-	// TODO: created the command buffer once if pointer is NULL
-	// if buffer is created in this constructor, then its deletion
-	// must be kept separate from externally generated list buffers
-
-	// c pointer assignments do not carry type information
-
-
-	//Access_setBufferPointer(self, va_arg(* app, access_data_t *));
-
-	//Access_setBufferPointer(self, va_arg(* app, void *));
-	// todo5:
 	Access_setBufferSize(self, va_arg(* app, int));
 
 	//self->minute = va_arg(* app, minute_t);
@@ -567,8 +556,6 @@ static void * implement_Access_MEM_copy(struct AccessMEM * _copyTo, const struct
 	Access_setObjectPointer(_copyTo, Access_getObjectPointer(_copyFrom));
 	Access_setHardwareConfig(_copyTo, Access_getHardwareConfig(_copyFrom));
 	return _copyTo;
-
-	//TODO: add test coverage for hardware pointer
 }
 
 static void * implement_Access_MEM_ctor(void * _self)
@@ -578,9 +565,6 @@ static void * implement_Access_MEM_ctor(void * _self)
 	Access_setReadCount      (_self, 0);
 	Access_setWriteCount     (_self, 0);
 
-	//Access_setBufferSize     (_self, 0);
-	//todo5:
-	// allocate memory for the command buffer and assign the pointer
 	int localBufferSize = Access_getBufferSize(_self);
 	access_data_t * commandBufferPTR =
 			(access_data_t *)malloc(sizeof(access_data_t)*localBufferSize);
@@ -600,7 +584,6 @@ static void * implement_Access_MEM_dtor(struct AccessMEM * _self)
 	Access_setReadCount    (_self, 0);
 	Access_setWriteCount   (_self, 0);
 
-	//todo5:
 	// free the memory block
 	Access_clearCommandBuffer(_self);
 	void * localBufferPointer = Access_getBufferPointer(_self);

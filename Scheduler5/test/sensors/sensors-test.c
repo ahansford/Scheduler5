@@ -1225,6 +1225,7 @@ TEST(sensor, myTest_Sensor_IsEqualTo_myTest_Sensor)
 TEST(sensor, equal_UnequalSensorStateReturn_Equal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setSensorState(masterSensor, SENSOR_ALIGN_CONFIG);
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1233,6 +1234,7 @@ TEST(sensor, equal_UnequalSensorStateReturn_Equal)
 TEST(sensor, equal_UnequalMiniStateReturn_Equal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setMiniState(masterSensor, 1);
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1241,6 +1243,7 @@ TEST(sensor, equal_UnequalMiniStateReturn_Equal)
 TEST(sensor, equal_UnequalAsyncFlagReturn_Equal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setAsyncFlag(masterSensor, 1);
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1249,6 +1252,7 @@ TEST(sensor, equal_UnequalAsyncFlagReturn_Equal)
 TEST(sensor, equal_UnequalEnablePowerDelayTicksReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setAlignConfigDelayTicks(masterSensor, 2);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1257,6 +1261,7 @@ TEST(sensor, equal_UnequalEnablePowerDelayTicksReturn_Unequal)
 TEST(sensor, equal_UnequalAlignConfigDelayTicksReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setAlignConfigDelayTicks(masterSensor, 2);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1265,6 +1270,7 @@ TEST(sensor, equal_UnequalAlignConfigDelayTicksReturn_Unequal)
 TEST(sensor, equal_UnequalMeasurementDelayTicksReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setMeasurementDelayTicks (masterSensor, 3);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1273,6 +1279,7 @@ TEST(sensor, equal_UnequalMeasurementDelayTicksReturn_Unequal)
 TEST(sensor, equal_UnequalAlarmStateReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setAlarmState  (masterSensor, ALARM_ABOVE);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1281,6 +1288,7 @@ TEST(sensor, equal_UnequalAlarmStateReturn_Unequal)
 TEST(sensor, equal_UnequalNormalStateReturn_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setNormalState(masterSensor, ALARM_OUTSIDE);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
@@ -1289,31 +1297,45 @@ TEST(sensor, equal_UnequalNormalStateReturn_Unequal)
 TEST(sensor, equal_UnequalReportReadyCB_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setOnReportReady_cb(masterSensor, Sensor_test_general_cb);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
 }
 
-TEST(sensor, equal_UnequalAlarmReadyCB_Unequal)
+TEST(sensor, equal_UnequalAlarmTriggeredCB_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	Sensor_setOnAlarmTriggered_cb(masterSensor, Sensor_test_general_cb);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
 	masterSensor = safeDelete(masterSensor);
 }
 
-TEST(sensor, equal_UnequalAddress_Unequal)
+TEST(sensor, equal_UnequalIoStructPointer_Unequal)
 {
 	struct Sensor * masterSensor = new(Sensor);
-	struct IO * masterIoPointer = Sensor_getAccessStructPointer(masterSensor);
-	Access_setAddress(masterIoPointer, (void *)11);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
+	Sensor_setIoStructPointer(masterSensor, Sensor_test_general_cb);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, masterSensor) );
+	masterSensor = safeDelete(masterSensor);
+}
+
+TEST(sensor, equal_UnequalAccessStructPointer_Equal)
+{
+	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
+	struct Access * originalAccessPointer = Sensor_getAccessStructPointer(masterSensor);
+	Sensor_setAccessStructPointer(masterSensor, NULL);
+	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor) );
+	Sensor_setAccessStructPointer(masterSensor, originalAccessPointer);
 	masterSensor = safeDelete(masterSensor);
 }
 
 TEST(sensor, equal_NullReturns_Null)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(myTest_Sensor, NULL));
 	TEST_ASSERT_EQUAL(OBJECT_UNEQUAL, equal(NULL, masterSensor ));
 	masterSensor = safeDelete(masterSensor);
@@ -1322,6 +1344,7 @@ TEST(sensor, equal_NullReturns_Null)
 TEST(sensor, equal_CopiedSensorReturnsEqual)
 {
 	struct Sensor * masterSensor = new(Sensor);
+	Sensor_setIoStructPointer(masterSensor, IoSequences);
 	copy(myTest_Sensor, masterSensor);
 	TEST_ASSERT_EQUAL(OBJECT_EQUAL, equal(myTest_Sensor, masterSensor));
 	masterSensor = safeDelete(masterSensor);
