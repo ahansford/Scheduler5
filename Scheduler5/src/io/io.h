@@ -169,5 +169,11 @@ io_cb_fnct IO_setActionDone_cb(      void * _self, io_cb_fnct _cb);
 void * IO_getObjectPointer(const void * _self);
 void * IO_setObjectPointer(      void * _self, void * _objectPointer);
 
+void * IO_getCurrentSequence(const void * _self);
+void * IO_setCurrentSequence(void * _self, void * _currentSequence);
+
+
+int IO_getIoState(const void * _self);
+int IO_setIoState(void * _self, int _ioState);
 
 #endif /* SRC_IO_IO_H_ */

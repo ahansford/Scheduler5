@@ -11,9 +11,11 @@
 struct IO {
 	const struct Object _;	// should the Object or the "superclass"
 	// TODO: probably has no use, but still in the constuctor
-	struct List *   ioSequenceList;
-	io_cb_fnct		actionDone_cb;
-	void * 			objectPointer;  // back ptr to the original item
+	struct List *   	ioSequenceList;
+	struct AccessMEM * 	currentSequence;
+	int					ioState;
+	io_cb_fnct			actionDone_cb;
+	void * 				objectPointer;  // back ptr to the original item
 };
 
 struct IOClass {

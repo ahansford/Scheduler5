@@ -701,6 +701,8 @@ TEST(io, IO_update_writeSingleToSingleAddressUsingSecondSequence)
 
 	IO_update(myTest_IO);
 	IO_update(myTest_IO);
+	IO_update(myTest_IO);
+	//IO_update(myTest_IO);
 	TEST_ASSERT_EQUAL(0xFF, scratchArrayBuffer[0] );
 	IO_sequenceComplete_cb(myTest_IO);
 	IO_update(myTest_IO); // <<-- safety call

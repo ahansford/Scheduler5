@@ -33,16 +33,6 @@ static void * implement_IO_io_xxxx(struct IO * _self);
 const void * IOClass = NULL;
 const void * IO      = NULL;
 
-//TODO:move sequence into the private member space
-//struct List * ioSequenceList = NULL; // pointer to the List of sequences
-
-//TODO:move sequence into the private member space
-struct AccessMEM * sequence  = NULL; // pointer to the sequence currently being executed
-
-// the internally managed IO state machine state used in IO_update()
-io_update_state_t io_update_state = IO_UPDATE_UNKNOWN;
-
-
 // MUST be called before other IO methods are called
 void IO_init(void)
 {
@@ -87,7 +77,6 @@ void IO_init(void)
 	// module does not execute as planned.  This should also include an
 	// unwinding process to report the failure and attempted re-trys.
 
-	io_update_state = IO_UPDATE_IDLE;
 
 	// requires #include "..\..\src\lists\lists.h" to support class registry
 	//implement_Sensor_registerKeyClasses();
@@ -108,9 +97,6 @@ void * IO_io_ctor(void * _self, va_list * app)
 	// Only uncomment if all data members will be specified in new() command
 	// ... this seems like an undue burden on the user.  Leave commented out
 	// ... numerous unit tests will need to be adapted if uncommented
-	// TODO: needs to be removed from the listing, or converted to a list of
-	//       lists where meme, I2C and SPI are covered
-	//self->bufferPointer = va_arg(* app, io_data_t *);
 	//self->minute = va_arg(* app, minute_t);
 	IO_setIoSequenceList(self, va_arg(* app, void *));
 
@@ -334,7 +320,8 @@ void * IO_getIOSequenceFromList(void * _self)
 void * IO_sequenceComplete_cb(void * _self)
 {
 	//TODO: when does this fire ??  who fires it ??
-	io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
+	//io_update_state = IO_UPDATE_SEQUENCE_COMPLETE;
+	IO_setIoState(_self, IO_UPDATE_SEQUENCE_COMPLETE);
 	return NULL;
 }
 
@@ -347,21 +334,20 @@ void * IO_update(void * _self)
 	struct IO * self = cast(IO, _self);
 	if (self == NULL ) { return NULL; }
 
-	// TODO: io_state_t io_update_state = IO_getIoState(_self);
-	// TODO: struct AccessMEM * sequence = cast( AccessMEM, IO_getSequencePtr(_self));
-	// if (sequence == NULL ) {return NULL: }  // fail
+	struct AccessMEM * sequence = IO_getCurrentSequence(self);
+	io_update_state_t io_update_state2 = IO_getIoState(self);
 
-	switch (io_update_state) {
+	switch (io_update_state2) {
 
 	case IO_UPDATE_IDLE: {
 		// check for a sequence to execute
 		// only one sequence is manipulated at a time per I/O access method
 		sequence = IO_getIOSequenceFromList(self);
+		IO_setCurrentSequence(self, sequence);
 
 		if (sequence != NULL ) {
 			//sequence found, therefore transition to next state
-			io_update_state = IO_UPDATE_EXECUTE_COMMAND;
-			// TODO: IO_setSequencePtr(_self, sequence);
+			IO_setIoState(_self, IO_UPDATE_EXECUTE_COMMAND);
 		}
 
 		// otherwise, no sequence to transmit ... do nothing
@@ -370,15 +356,12 @@ void * IO_update(void * _self)
 
 	case IO_UPDATE_EXECUTE_COMMAND: {
 
-		// TODO:  IO_processSequence() may not be used anymore here
-		// TODO:  Understand what replaces IO_processSequence()
-
 		// set next transition to WAITING ... assumes the wait is needed
 		// the IO_processSequence() method can override with COMPLETE if needed
 		// immediate action drivers should override
 		// override is accomplished by firing IO_sequenceComplete_cb()
 		// delayed action drivers should fire callback after that delay
-		io_update_state = IO_UPDATE_WAITING_COMMAND;
+		IO_setIoState(_self, IO_UPDATE_WAITING_COMMAND);
 
 		// sends i/o sequence instructions to the respective driver
 		// IO_processSequence() must manage any failures itself
@@ -396,7 +379,7 @@ void * IO_update(void * _self)
 
 	case IO_UPDATE_SEQUENCE_COMPLETE: {
 		// transition to IDLE on next call, regardless of callback status
-		io_update_state = IO_UPDATE_IDLE;
+		IO_setIoState(_self, IO_UPDATE_IDLE);
 
 		// sequence processing is complete, fire sequence completed callback
 		// WARNING: the callback should only set a variable or flag,
@@ -411,12 +394,11 @@ void * IO_update(void * _self)
 	}
 
 	default: {
-		io_update_state = IO_UPDATE_IDLE;
+		IO_setIoState(_self, IO_UPDATE_IDLE);
 		break; }
 
 	}  //  end switch
 
-	// TODO: IO_setIoState(_self, io_update_state);
 	return self;
 }
 
@@ -430,11 +412,8 @@ void * IO_update(void * _self)
 
 void * IO_getIoSequenceList(const void * _self)
 {
-	//printf("\nIO_getIoSequenceList with _self: %p\n", _self);
 	const struct IO * self = cast(IO, _self);
-	//printf("IO self: %p\n", self);
 	if ( self == NULL ) { return NULL; }
-	//printf("sequence list: %p\n", self->ioSequenceList);
 	return self->ioSequenceList;
 }
 
@@ -447,23 +426,40 @@ void * IO_setIoSequenceList(void * _self, void * _ioSequenceList)
 }
 
 /*****************************************/
-/*****  set and get bufferSize  *******/
-/*
-int IO_getBufferSize(const void * _self)
+/*****  set and get currentSequence  *******/
+
+void * IO_getCurrentSequence(const void * _self)
 {
 	const struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return 0; }
-	return self->bufferSize;
+	return self->currentSequence;
 }
 
-int IO_setBufferSize(void * _self, int _bufferSize)
+void * IO_setCurrentSequence(void * _self, void * _currentSequence)
 {
 	struct IO * self = cast(IO, _self);
 	if ( self == NULL ) { return 0; }
-	self->bufferSize = _bufferSize;
-	return _bufferSize;
+	self->currentSequence = _currentSequence;
+	return _currentSequence;
 }
-*/
+
+/*****************************************/
+/*****  set and get ioState  *******/
+
+int IO_getIoState(const void * _self)
+{
+	const struct IO * self = cast(IO, _self);
+	if ( self == NULL ) { return 0; }
+	return self->ioState;
+}
+
+int IO_setIoState(void * _self, int _ioState)
+{
+	struct IO * self = cast(IO, _self);
+	if ( self == NULL ) { return 0; }
+	self->ioState = _ioState;
+	return _ioState;
+}
 
 /************************************************/
 /*****  set and get ActionComplete_cb  *******/
@@ -509,8 +505,10 @@ static void * implement_IO_io_copy(struct IO * _copyTo, const struct IO * _copyF
 	// copy master data members, except for PTRs and dynamic values
 	// WARNING:  sequence List pointer is unique and will not be copied
 	////IO_setIoSequenceList (_copyTo, IO_getIoSequenceList(_copyFrom));
-	IO_setActionDone_cb(_copyTo, IO_getActionDone_cb(_copyFrom));
-	IO_setObjectPointer(_copyTo, IO_getObjectPointer(_copyFrom));
+	////IO_setCurrentSequence(_copyTo, IO_getCurrentSequence(_copyFrom));
+	////IO_setIoState        (_copyTo, IO_getIoState(_copyFrom));
+	IO_setActionDone_cb  (_copyTo, IO_getActionDone_cb(_copyFrom));
+	IO_setObjectPointer  (_copyTo, IO_getObjectPointer(_copyFrom));
 	return _copyTo;
 }
 
@@ -518,22 +516,27 @@ static void * implement_IO_io_ctor(void * _self)
 {
 	// WARNING:  sequence List pointer is set in base ctor
 	////IO_setIoSequenceList(_self, xxx) );
-	IO_setActionDone_cb(_self, NULL);
-	IO_setObjectPointer(_self, NULL);
-	//struct List * localListPtr = IO_getIoSequenceList(_self);
-	//int localItemCount = getItemCount(localListPtr);
-	//int i;
-	//for (i = 0; i < localItemCount; i++) { take(localListPtr); }
+	IO_setCurrentSequence(_self, NULL);
+	IO_setIoState        (_self, IO_UPDATE_UNKNOWN);
+	IO_setActionDone_cb  (_self, NULL);
+	IO_setObjectPointer  (_self, NULL);
+
+	// insure the list of sequences is empty
+	struct List * localListPtr = IO_getIoSequenceList(_self);
+	int localItemCount = getItemCount(localListPtr);
+	int i;
+	for (i = 0; i < localItemCount; i++) { take(localListPtr); }
 	return _self;
 }
 
 static void * implement_IO_io_dtor(struct IO * _self)
 {
 	//// WARNING:  delete/free the sequence List externally
-	IO_setIoSequenceList(_self, NULL);
-
-	IO_setActionDone_cb(_self, NULL);
-	IO_setObjectPointer(_self, NULL);
+	IO_setIoSequenceList (_self, NULL);
+	IO_setCurrentSequence(_self, NULL);
+	IO_setIoState        (_self, IO_UPDATE_UNKNOWN);
+	IO_setActionDone_cb  (_self, NULL);
+	IO_setObjectPointer  (_self, NULL);
 	return _self;
 }
 
@@ -548,6 +551,11 @@ static equal_t implement_IO_io_equal(const struct IO * _self,
 	////if( IO_getIoSequenceList(self) != IO_getIoSequenceList(comparisonObject) )
 	////	{ return OBJECT_UNEQUAL; }
 
+	////if( IO_getCurrentSequence(self) != IO_getCurrentSequence(comparisonObject) )
+	////	{ return OBJECT_UNEQUAL; }
+
+	////if( IO_getIoState(self) != IO_getIoState(comparisonObject) )
+	////	{ return OBJECT_UNEQUAL; }
 
 	if( IO_getActionDone_cb(self) != IO_getActionDone_cb(comparisonObject) )
 		{ return OBJECT_UNEQUAL; }
