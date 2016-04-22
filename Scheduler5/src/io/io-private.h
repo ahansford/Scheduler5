@@ -64,17 +64,38 @@ void *    IO_io_xxxx(void * _self);
 //  gets struct IO item from internal list specified by IO_init(struct List *)
 void * IO_getIOSequenceFromList(void * _self);
 
+
+
+/*!
+ * Possible new method to allow multiple sequences to hold control of the
+ * communication bus.  Method returns NULL if no follow-on sequence is needed.
+ * Returns the follow-on sequence if one exists.  This function would
+ * be overloadable.
+ * void * IO_getFollowOnSequence(void * _self);
+ */
+
+// WARNING: this method is not implemented
+void * IO_xxxx(void * _self);
+
+
 /*!
  * Generic IO callback that fires when I/O action is complete.  The IO state variable will
  * increment automatically to a completed setting.
  */
 void * IO_sequenceComplete_cb(void * _self);
 
-
 /*!
  * PRIVATE: Accessor method for internal List to hold IO actions
  */
 void * IO_getIoSequenceList(const void * _self);
 void * IO_setIoSequenceList(void * _self, void * _ioSequenceList);
+
+void * IO_getCurrentSequence(const void * _self);
+void * IO_setCurrentSequence(void * _self, void * _currentSequence);
+
+
+int IO_getIoState(const void * _self);
+int IO_setIoState(void * _self, int _ioState);
+
 
 #endif /* SRC_IO_IO_PRIVATE_H_ */

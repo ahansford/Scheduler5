@@ -28,17 +28,6 @@ extern const void * IOClass;
  */
 typedef unsigned char io_data_t;
 
-/*
-typedef enum io_read_write_t {
-	IO_ACTION_UNKNOWN = -1,
-	//IO_WRITE_SINGLE,
-	//IO_WRITE_SEQUENTIAL,
-	//IO_WRITE_READ_SINGLE,
-	//IO_WRITE_READ_SEQUENTIAL,
-	//IO_READ_SINGLE,
-	//IO_READ_SEQUENTIAL
-} io_read_write_t;
-*/
 /*!
  * The generic callback typedef that takes a void pointer and returns a void
  * pointer.  Registered functions of this type can be called on completion of
@@ -47,7 +36,6 @@ typedef enum io_read_write_t {
  * a sensor can register Sensor_incrementMiniState() using void*-void*.
  */
 typedef void * (* io_cb_fnct)(void * _io);
-
 
 
 /***********************************************/
@@ -66,10 +54,11 @@ typedef void * (* io_cb_fnct)(void * _io);
  *
  *	@code
  *
+ *  // initialize and configure IO class
  *	// create an initial array to seed a List for IO storage
- *	void * IO_actionBuffer[4];
+ *	void * IO_ioListBuffer[4];
  *	// Create a List where IO will store IO sequences waiting to be executed
- *	struct List * IOTest_ioActionList = new(List, IO_actionBuffer);
+ *	struct List * IOTest_ioListOfSequences = new(List, IO_ioListBuffer);
  *	IO_init();
  *
  *	// Create a new IO object
@@ -77,7 +66,9 @@ typedef void * (* io_cb_fnct)(void * _io);
  *
  *	// Create an area in memory where reads and write are allowed
  *	// Set address to this area
- *	io_data_t allowedMemoryArea[16];
+ *	// WARNING: memory access is dangerous in that there is no means to
+ *	//          check for Access objects that write beyond the allowed area
+ *	access_data_t allowedMemoryArea[16];
  *
  *	// create an Access object
  *	myAccessObject = new(AccessMEM, MAX_NUMBER_OF_COMMANDS);
@@ -97,11 +88,17 @@ typedef void * (* io_cb_fnct)(void * _io);
  *	// Set IO action to desired format
  *	IO_setIOAction(myAccessObject, IO_WRITE_SEQUENTIAL);
  *
- *	if ( Access_sequenceIsValid(myAccessObject) == NULL ) { return NULL; }
+ *	if ( Access_sequenceIsValid(myAccessObject) == NULL ) { return NULL; } // fail
  *
  *	// Set communication complete callback ... fired when communication is done
- *	IO_set_actionDone_cb(localIoStructPtr, (io_cb_fnct) My_CommCompleteDone_CB);
- *	IO_setObjectPointer(localIoStructPtr, (void *)My_Pointer);
+ *	// example callback for the post measurement phase of a sensor process
+ *	Access_setActionDone_cb(myAccessObject, (io_cb_fnct) Sensor_postStartMeasurement);
+ *	Access_setObjectPointer(myAccessObject, (void *)MySensor_Pointer);
+ *
+ *	// set IO callback and object pointer that fires when an Access sequence completes
+ *	// Note that this can be something such as canceling a task on the scheduler
+ *	IO_setActionDone_cb(myIOobject, (io_cb_fnct)MySomthing_callbackFunction);
+ *	IO_setObjectPointer(myIOobject, (void *)MySomthing_pointer);
  *
  *	// Add the IO sequence to the main IO list IOTest_ioActionList
  *	IO_addIOSequenceToList(myIOobject, myAccessObject)
@@ -112,14 +109,13 @@ typedef void * (* io_cb_fnct)(void * _io);
  *					  _period);
  *
  *	// Once the communication sequence completes, the callback is fired by IO.
- *	// ... My_CommCompleteDone_CB(My_Pointer);
- *	// The module calling IO can use this callback to initiate next steps.
+ *	// ... MySomthing_callbackFunction(MySomthing_pointer);
+ *	// The module calling IO can use this callback to modify scheduler tasks if needed
  *
  *	@endcode
  *
  */
 void IO_init(void);
-
 
 /*!
  * Adds the sequence of commands to the List of sequences managed by IO.
@@ -132,18 +128,6 @@ void * IO_addIOSequenceToList(void * _self, void * _ioSequence);
  * processed struct IO object pointer on completion.
  */
 void * IO_update(void * _self);
-
-
-/*!
- * Possible new method to allow multiple sequences to hold control of the
- * communication bus.  Method returns NULL if no follow-on sequence is needed.
- * Returns the follow-on sequence if one exists.  This function would
- * be overloadable.
- * void * IO_getFollowOnSequence(void * _self);
- */
-
-// WARNING: this method is not implemented
-void * IO_xxxx(void * _self);
 
 
 /******************************/
@@ -169,11 +153,5 @@ io_cb_fnct IO_setActionDone_cb(      void * _self, io_cb_fnct _cb);
 void * IO_getObjectPointer(const void * _self);
 void * IO_setObjectPointer(      void * _self, void * _objectPointer);
 
-void * IO_getCurrentSequence(const void * _self);
-void * IO_setCurrentSequence(void * _self, void * _currentSequence);
-
-
-int IO_getIoState(const void * _self);
-int IO_setIoState(void * _self, int _ioState);
 
 #endif /* SRC_IO_IO_H_ */
