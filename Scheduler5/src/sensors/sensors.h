@@ -28,26 +28,26 @@ extern const void * Sensor;
 extern const void * SensorClass;
 
 /*!
- * Enumerated states for the main sensor state machine.  Most sensors will go
+ * Enumerated states for the main sensor state machine.  Most sensors will
  * proceed through these states regardless of the specific sensor type.  The
- * sensor is assumed to require power application as well as configuration
+ * sensor is assumed to require power application, as well as configuration
  * before use.  The individual sensor methods can be overloaded as needed with
  * execution code appropriate to the individual sensor type.
  *
  * Powering a sensor is likely to be hardware specific.  For example, a digital
- * line may been to be enabled for a given sensor.  The default sensor does not
- * address this detail. it is expected that a separate hardware interface
- * layer will be implemented for the unique hardware implementation, and
- * then called appropriately by the sensor enable power method.
+ * line may need to be enabled to power a given sensor.  The default sensor does
+ * not address this detail. It is expected that a separate hardware interface
+ * layer will be implemented for each unique hardware implementation, and
+ * then called appropriately by the sensor_enable_power method.
  *
  * The sensor driver is assumed to communicate with the sensor hardware through
  * the IO driver.  The IO driver requires creation of the List as part of the
  * IO_init() process.  This List is implemented external to the Sensor driver
- * and the IO driver.  The IO driver initialization and list creation must be
+ * and the IO driver.  The IO driver initialization and List creation must be
  * executed prior to use of Sensor methods.
  *
- * The default sensor assumes a memory mapped configuration.  Use of the
- * default Sensor driver is dangerous in that it can easily overwrite
+ * WARNING: The default sensor assumes a memory mapped configuration.  Use of
+ * the default Sensor driver is dangerous in that it can easily overwrite
  * disallowed memory areas.  It should only be used in narrow and selective
  * cases.  Proper use of the Sensor driver is to overload the methods for a
  * specific sensor such as an I2C interface device where the risk of erroneous
@@ -90,7 +90,7 @@ typedef enum sensorAsyncFlag_t {
 } sensorAsyncFlag_t;
 
 /*!
- * The miniStates support the sometimes complex interaction needed to for
+ * The miniStates support the sometimes complex interaction needed for
  * serial communications as one example.  The miniState is reset every time
  * the main state machine transitions.  MiniStates are only meaningful within
  * a single state of the main sensor state machine.
@@ -109,7 +109,7 @@ typedef enum miniState_t {
  * sensor powers up for example.  Polling operations across the serial channel
  * offer another method to delay main state machine transitions.  The
  * miniState construct can be used to repeatedly poll for an indicator of
- * power success if the sensor supports this type of polling operation.  Yet
+ * power up success if the sensor supports this type of polling operation.  Yet
  * polling can be power inefficient in embedded systems.  If a relatively long
  * delay is needed before power stabilizes, the DelayTicks can be used to set
  * a longer delay callback task on the main scheduler.  This minimizes
@@ -131,8 +131,8 @@ typedef enum sensorDelayTicks_t {
  *  Alarm check compares processed data value to the alarm threshold values. The
  *  alarm triggered callback will fire if the normalState does NOT match the actual
  *  alarmState.  If normalState is unknown, then the alarm check will always return
- *  unknow, and the alarm triggered callback will NOT fire, regardless of threshold
- *  values and the processed data value.
+ *  ALARM_TYPE_UNKNOWN, and the alarm triggered callback will NOT fire, regardless
+ *  of threshold values and the processed data value.
  */
 typedef enum alarmType_t {
 	ALARM_TYPE_UNKNOWN = -1,
@@ -151,6 +151,11 @@ typedef enum alarmType_t {
 	ALARM_OUTSIDE
 } alarmType_t;
 
+/*!
+ * Sensors may take some time processing before their values are stable and useable.
+ * The SENSOR_REPORT_IS_READY flag indicates when values in the sensor data data
+ * structure can be trusted or used safely.
+ */
 typedef enum sensorReportStatus_t {
 	SENSOR_REPORT_NOT_READY = 0, SENSOR_REPORT_IS_READY = 1
 } sensorReportStatus_t;
@@ -160,7 +165,7 @@ typedef struct Sensor * (* sensor_cb_fnct)(struct Sensor * _sensor);
 /*! Maximum number of commands that can be pre-loaded into the command buffer.
  *  Commands are 8-bit char types.  Note that address registers that might be
  *  needed in other communications protocols like I2C also count in this total.
- *  Do NOT set a value of 0 commands; this risks disallowed access to memory.
+ *  Do NOT set a value of 0 commands; this risks a disallowed access to memory.
  */
 #define SENSOR_DEFAULT_MAX_COMMANDS 4
 typedef unsigned char sensor_default_command_t;
@@ -175,7 +180,7 @@ typedef unsigned char sensor_default_command_t;
  */
 #define SENSOR_DEFAULT_ADDRESS   NULL
 
-//! The default IO type where "IO" = memory access.
+//! The default IO type for the sensor
 #define SENSOR_DEFAULT_ACCESS_TYPE   AccessMEM
 /***********************************************/
 /************ protected includes  **************/
@@ -195,7 +200,7 @@ typedef unsigned char sensor_default_command_t;
 * manager attempts to abstract sensor control and processing for higher level
 * program components.
 *
-* The nominal methods treat the sensor as a simple memory addressed device.
+* The nominal methods treat the sensor as a simple memory-addressed device.
 * Nominal reads and writes are executed directly by the base methods.
 *
 * Other sensor types should overload the base methods with appropriate code
@@ -211,16 +216,14 @@ typedef unsigned char sensor_default_command_t;
 *
 * @code
 *
-* // Create IO object to support the IO struct used by the Sensor //
 * // Create List for the IO driver
 * List_init();
 * void * IoSequenceBuffer[4];
 * struct List * IoSequenceList = new(List, IoSequenceBuffer);
 *
-* // Initialize IO classes structures
+* // Create and initilize IO object to support the IO struct used by the Sensor
 * IO_init();
 * struct IO * IoSequences = new(IO, IoSequenceList);
-*
 *
 * // Initialize Sensor classes structures
 * Sensor_init();
@@ -228,7 +231,7 @@ typedef unsigned char sensor_default_command_t;
 * // create a new sensor
 * struct Sensor * mySensorPointer = new(Sensor);
 *
-* // Set recurrent scheduler task specifying a suitable period in ticks
+* // Set recurrent scheduler task for a suitable sensor state machine period in ticks
 * scheduler_AddTask_wPTR(Sensor_update,
 *                        mySensorPointer,
 *                        _ticksOfDelay,
@@ -274,13 +277,15 @@ typedef unsigned char sensor_default_command_t;
 void Sensor_init(void);
 
 /*!
- * Initializes sensor access structure defaults.  Sets the data members of a
- * specific sensor to their defaults values.  Returns self on success,
- * otherwise NULL.  Callbacks and other individualized/unique settings should be
- * set AFTER Sensor_start().  The required callback delays are powerUp, reset and
- * measurement, which should be greater than '0' ticks if the delays are used.
+ * Initializes sensor access structure defaults.  Sets the data members of
+ * a specific sensor to their defaults values.  Returns self on success,
+ * otherwise NULL.  Callbacks and other individualized/unique settings should
+ * be set AFTER Sensor_start().  The required callback delays are powerUp,
+ * reset and measurement, which should be greater than '0' ticks if scheduler
+ * delays are used.
 */
 void * Sensor_start(void * _self);
+
 
 /****************************************/
 /*** interface manager for callbacks  ***/
@@ -300,7 +305,7 @@ void Sensor_postEnablePower(void * _self);
 void Sensor_postAlignAndConfig(void * _self);
 void Sensor_postStartMeasurement(void * _self);
 
-// returns current callback function on key sensor state machine events
+// returns current callback function for key sensor state machine events
 // can be used to create a callback chains that fire on reportReady or alarm
 sensor_cb_fnct Sensor_setOnReportReady_cb(const void * _self,
 		                                  sensor_cb_fnct _cb);
@@ -310,6 +315,7 @@ sensor_cb_fnct Sensor_getOnReportReady_cb(const void * _self);
 sensor_cb_fnct Sensor_setOnAlarmTriggered_cb(const void * _self,
 		                                     sensor_cb_fnct _cb);
 sensor_cb_fnct Sensor_getOnAlarmTriggered_cb(const void * _self);
+
 
 /*******************************************/
 /*** Post sensor configuration controls  ***/
@@ -339,7 +345,7 @@ void * Sensor_stopAndRemovePower(void * _self);
  * values have been properly set.  Any unique configuration settings can be
  * made after the initial Sensor_update() call.  This method can be
  * overloaded.  WARNING: If Sensor_loadDefaults() is called again, the unique
- * values will be overwritten and must be reset.
+ * values will be overwritten and must be set to their desired values.
  */
 void * Sensor_loadDefaults(void * _self);
 
@@ -351,8 +357,7 @@ void * Sensor_enablePower(void * _self);
 
 /*!
  * Executes the sensor alignment and configuration communications.
- * This method can be
- * overloaded.
+ * This method can be overloaded.
  */
 void * Sensor_alignAndConfig(void * _self);
 
@@ -386,6 +391,7 @@ void * Sensor_processRawData(void * _self);
  * This method can be overloaded.
  */
 void * Sensor_checkAlarms(void * _self);
+
 
 /****************************************/
 /******** I/O manager interface  ********/

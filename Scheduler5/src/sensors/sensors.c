@@ -7,16 +7,16 @@
 
 #include <stdlib.h>                    // for free() and malloc()
 #include "sensors.h"
-#include "sensors-private.h"           // safety include
+//#include "sensors-private.h"           // safety include
 
-#include "..\..\src\nodes\nodes.h"     // safety include
+//#include "..\..\src\nodes\nodes.h"     // safety include
 //#include "..\..\src\node_list\node-list.h"     // safety include
 //#include "..\..\src\times\times.h"       // safety include
 //#include "..\..\src\lists\lists.h"       // supports class registration
-#include "..\..\src\objects\objects.h"     // safety include
-#include "..\..\src\scheduler\scheduler.h" // safety include
-#include "..\..\src\io\io.h"               // safety include
-#include "..\..\src\access_mem\access-mem.h"               // safety include
+//#include "..\..\src\objects\objects.h"     // safety include
+//#include "..\..\src\scheduler\scheduler.h" // safety include
+//#include "..\..\src\io\io.h"               // safety include
+//#include "..\..\src\access_mem\access-mem.h"               // safety include
 //#include "..\..\src\events\events.h" // safety include
 
 /**************************************/
@@ -1601,7 +1601,7 @@ void * Sensor_stopAndRemovePower(void * _self)
 	//       ... there may be communication sequences already registered with
 	//       ... the IO driver.  These comm sequences will execute when
 	//       ... possible and will likely assume that the sensor is powered.
-	//       ... Need to unwind these comm calls without hanging the system.
+	//       ... Need to unwind these comm calls without hanging the system..
 
 	return self;
 }
